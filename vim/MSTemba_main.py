@@ -36,7 +36,7 @@ parser.add_argument('-flow_root', type=str, default='no_root')
 parser.add_argument('-type', type=str, default='original')
 # parser.add_argument('-lr', type=str, default='0.1')
 parser.add_argument('-epochs', type=int, default=50)
-parser.add_argument('-model', type=str, default='')
+parser.add_argument('-model', type=str, default='mstemba')
 parser.add_argument('-load_model', type=str, default='False')
 parser.add_argument('-batch_size', type=str, default='False')
 parser.add_argument('-num_clips', type=str, default='False')
@@ -48,7 +48,7 @@ parser.add_argument('-beta_l', type=float, default='1.0')
 parser.add_argument('-output_dir', type=str, default='./output', help='Directory to save output files')
 
 # Add new arguments from main_no_teacher.py
-parser.add_argument('--model', default='vim_tiny_patch16_224_bimambav2_final_pool_mean_abs_pos_embed_with_midclstok_div2', type=str, metavar='MODEL',
+parser.add_argument('--model', default='mstemba', type=str, metavar='MODEL',
                     help='Name of model to train')
 # parser.add_argument('--input-size', default=224, type=int, help='images input size')
 # parser.add_argument('--drop', type=float, default=0.0, metavar='PCT', help='Dropout rate (default: 0.)')
@@ -127,7 +127,7 @@ def load_data(train_split, val_split, root):
 
     if len(train_split) > 0:
         dataset = Dataset(train_split, 'training', root, batch_size, classes, int(args.num_clips), int(args.skip))
-        dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=4,
+        dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=0,
                                                  pin_memory=True, collate_fn=collate_fn)
         dataloader.root = root
     else:
@@ -136,7 +136,7 @@ def load_data(train_split, val_split, root):
         dataloader = None
 
     val_dataset = Dataset(val_split, 'testing', root, batch_size, classes, int(args.num_clips), int(args.skip))
-    val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=1, shuffle=True, num_workers=4,
+    val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=1, shuffle=True, num_workers=0,
                                                  pin_memory=True, collate_fn=collate_fn)
     val_dataloader.root = root
     dataloaders = {'train': dataloader, 'val': val_dataloader}
@@ -490,14 +490,16 @@ def val_step(model, gpu, dataloader, epoch):
     
     # Calculate metrics for final output
     val_map = torch.sum(100 * apm.value()) / torch.nonzero(100 * apm.value()).size()[0]
-    sample_val_map = torch.sum(100 * sampled_apm.value()) / torch.nonzero(100 * sampled_apm.value()).size()[0]
+    vals = np.array(sampled_apm.value())
+    sample_val_map = vals[vals != 0].mean() * 100 if np.count_nonzero(vals) > 0 else 0.0
 
     # Calculate metrics for each block
     block_val_maps = []
     block_sample_val_maps = []
     for i in range(3):
         block_val_map = torch.sum(100 * block_apms[i].value()) / torch.nonzero(100 * block_apms[i].value()).size()[0]
-        block_sample_val_map = torch.sum(100 * block_sampled_apms[i].value()) / torch.nonzero(100 * block_sampled_apms[i].value()).size()[0]
+        block_vals = np.array(block_sampled_apms[i].value())
+        block_sample_val_map = block_vals[block_vals != 0].mean() * 100 if np.count_nonzero(block_vals) > 0 else 0.0
         block_val_maps.append(block_val_map)
         block_sample_val_maps.append(block_sample_val_map)
         
@@ -542,8 +544,9 @@ if __name__ == '__main__':
         collate_fn_f = collate_fn_unisize(args.num_clips)
         collate_fn = collate_fn_f.charades_collate_fn_unisize
     else:
-        from charades_dataloader import mt_collate_fn as collate_fn
-    
+        from charades_dataloader import collate_fn_unisize
+        collate_fn = collate_fn_unisize(args.num_clips).charades_collate_fn_unisize
+
     if args.dataset == 'charades':
         train_split = '/data/asinha13/projects/MAD/MS-TCT/data/charades.json'
         test_split = train_split
@@ -552,7 +555,7 @@ if __name__ == '__main__':
         classes = 157
         
     elif args.dataset == 'tsu':
-        train_split = '/data/asinha13/projects/MAD/MS-TCT/data/smarthome_CS_51.json'
+        train_split = '/home/3185670/ASO-Temba/data/smarthome.json'
         test_split = train_split
         rgb_root =  args.rgb_root 
         flow_root = '/flow_feat_path/' # optional
@@ -571,7 +574,7 @@ if __name__ == '__main__':
     setup_logging(args.output_dir)
     logging.info(f"Arguments: {args}")
 
-    if args.train:
+    if args.train== 'train':
         if args.backbone == 'i3d':
             in_feat_dim = 1024
         elif args.backbone == 'clip':
