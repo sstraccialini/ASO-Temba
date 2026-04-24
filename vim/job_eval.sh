@@ -34,7 +34,7 @@ echo "======================"
 python MSTemba_main.py \
   -dataset tsu \
   -mode rgb \
-  -train train \
+  -train eval \
   -backbone i3d \
   -gpu 0 \
   -batch_size 1 \
@@ -45,8 +45,9 @@ python MSTemba_main.py \
   --warmup-epochs 5 \
   -epochs 140 \
   --model mstemba \
-  -skip 1 \
-  -rgb_root $BASE_HOME/ASO-Temba/data/TSU/i3d_features \
-  -output_dir $BASE_HOME/ASO-Temba/outputs/tsu_i3d
+-skip 1 \
+-rgb_root $BASE_HOME/ASO-Temba/data/TSU/i3d_features \
+-load_model $BASE_HOME/ASO-Temba/outputs/tsu_i3d/best_model.pth \
+-output_dir $BASE_HOME/ASO-Temba/outputs/tsu_i3d_eval
 
-echo "Training done."
+echo "Evaluation done."
