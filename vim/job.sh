@@ -37,8 +37,16 @@ python MSTemba_main.py \
   -train train \
   -backbone i3d \
   -gpu 0 \
-  -batch_size 4 \
-  -num_clips 8 \
+  -batch_size 1 \
+  -num_clips 2500 \
+  --opt adamw \
+  --lr 4.5e-4 \
+  --sched cosine \
+  --warmup-epochs 5 \
+  -epochs 140 \
+  --model mstemba \
   -skip 1 \
   -rgb_root $BASE_HOME/ASO-Temba/data/TSU/i3d_features \
   -output_dir $BASE_HOME/ASO-Temba/outputs/tsu_i3d
+
+echo "Training done."
