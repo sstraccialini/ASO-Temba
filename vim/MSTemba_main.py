@@ -559,7 +559,7 @@ if __name__ == '__main__':
         test_split = train_split
         rgb_root =  args.rgb_root 
         flow_root = '/flow_feat_path/' # optional
-        classes = 51
+        classes = 53
 
     if args.mode == 'flow':
         print('flow mode', flow_root)
