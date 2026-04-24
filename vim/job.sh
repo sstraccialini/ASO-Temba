@@ -1,23 +1,33 @@
 #!/bin/bash
-#SBATCH --account=3185670
+#SBATCH --account=3199302
 #SBATCH --partition=stud
 #SBATCH --qos=stud
 #SBATCH --gres=gpu:1
-#SBATCH --time=00:15:00
+#SBATCH --time=08:00:00
 #SBATCH --output=slurm-%j.out
 
+# ====== USER CONFIG ======
+MYID=3199302
+BASE_HOME=/mnt/beegfsstudents/home/$MYID
+USER_HOME=/home/$MYID
+
+# ====== ENV SETUP ======
 source ~/.bashrc
 conda activate cv_project
-cd /mnt/beegfsstudents/home/3185670/ASO-Temba/vim
 
-export PYTHONPATH=/home/3185670/ASO-Temba/mamba-1p1p1:$PYTHONPATH
+cd $BASE_HOME/ASO-Temba/vim
+
+export PYTHONPATH=$BASE_HOME/ASO-Temba/mamba-1p1p1:$PYTHONPATH
 export LD_LIBRARY_PATH=$CONDA_PREFIX/lib:$LD_LIBRARY_PATH
 
+# ====== DEBUG INFO ======
 hostname
 which python
+echo "MYID=$MYID"
 echo "CONDA_PREFIX=$CONDA_PREFIX"
 echo "PYTHONPATH=$PYTHONPATH"
 echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
+
 python -m pip show mamba-ssm || true
 echo "======================"
 
@@ -29,6 +39,7 @@ python MSTemba_main.py \
   -gpu 0 \
   -batch_size 4 \
   -num_clips 8 \
+  --num_classes 53
   -skip 1 \
-  -rgb_root /home/3185670/i3d_features \
-  -output_dir /home/3185670/ASO-Temba/outputs/tsu_i3d
+  -rgb_root $BASE_HOME/ASO-Temba/data/TSU/i3d_features \
+  -output_dir $BASE_HOME/ASO-Temba/outputs/tsu_i3d

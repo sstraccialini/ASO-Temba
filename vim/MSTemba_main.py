@@ -555,7 +555,7 @@ if __name__ == '__main__':
         classes = 157
         
     elif args.dataset == 'tsu':
-        train_split = '/home/3185670/ASO-Temba/data/smarthome.json'
+        train_split = '../data/TSU/Annotation_MS-TEMBA_smarthome.json'
         test_split = train_split
         rgb_root =  args.rgb_root 
         flow_root = '/flow_feat_path/' # optional
