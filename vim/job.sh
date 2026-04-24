@@ -3,7 +3,7 @@
 #SBATCH --partition=stud
 #SBATCH --qos=stud
 #SBATCH --gres=gpu:1
-#SBATCH --time=08:00:00
+#SBATCH --time=24:00:00
 #SBATCH --output=slurm-%j.out
 
 # ====== USER CONFIG ======
@@ -34,7 +34,7 @@ echo "======================"
 python MSTemba_main.py \
   -dataset tsu \
   -mode rgb \
-  -train train \
+  -train eval \
   -backbone i3d \
   -gpu 0 \
   -batch_size 1 \
@@ -47,6 +47,6 @@ python MSTemba_main.py \
   --model mstemba \
   -skip 1 \
   -rgb_root $BASE_HOME/ASO-Temba/data/TSU/i3d_features \
-  -output_dir $BASE_HOME/ASO-Temba/outputs/tsu_i3d
+  -output_dir $BASE_HOME/ASO-Temba/outputs/tsu_i3d_eval
 
 echo "Training done."
