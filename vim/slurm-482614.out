@@ -1,0 +1,44 @@
+ERROR: Unable to locate a modulefile for 'slurm'
+gnode04
+/home/3199302/.conda/envs/cv_project/bin/python
+MYID=3199302
+CONDA_PREFIX=/home/3199302/.conda/envs/cv_project
+PYTHONPATH=/mnt/beegfsstudents/home/3199302/ASO-Temba/mamba-1p1p1:
+LD_LIBRARY_PATH=/home/3199302/.conda/envs/cv_project/lib:
+Name: mamba-ssm
+Version: 1.1.1
+Summary: Mamba state-space model
+Home-page: https://github.com/state-spaces/mamba
+Author: Tri Dao, Albert Gu
+Author-email: tri@tridao.me, agu@cs.cmu.edu
+License: 
+Location: /mnt/beegfsstudents/home/3199302/.conda/envs/cv_project/lib/python3.10/site-packages
+Requires: causal-conv1d, einops, ninja, packaging, torch, transformers, triton
+Required-by: 
+======================
+/home/3199302/.conda/envs/cv_project/lib/python3.10/site-packages/timm/models/registry.py:4: FutureWarning: Importing from timm.models.registry is deprecated, please import via timm.models
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.models", FutureWarning)
+/home/3199302/.conda/envs/cv_project/lib/python3.10/site-packages/timm/models/layers/__init__.py:49: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+usage: MSTemba_main.py [-h] [-mode MODE] [-train TRAIN] [-backbone BACKBONE]
+                       [-comp_info COMP_INFO] [-gpu GPU] [-dataset DATASET]
+                       [-rgb_root RGB_ROOT] [-flow_root FLOW_ROOT]
+                       [-type TYPE] [-epochs EPOCHS] [-model MODEL]
+                       [-load_model LOAD_MODEL] [-batch_size BATCH_SIZE]
+                       [-num_clips NUM_CLIPS] [-skip SKIP]
+                       [-num_layer NUM_LAYER] [-unisize UNISIZE]
+                       [-alpha_l ALPHA_L] [-beta_l BETA_L]
+                       [-output_dir OUTPUT_DIR] [--model MODEL] [--model-ema]
+                       [--no-model-ema] [--model-ema-decay MODEL_EMA_DECAY]
+                       [--model-ema-force-cpu] [--drop PCT] [--drop-path PCT]
+                       [--opt OPTIMIZER] [--opt-eps EPSILON]
+                       [--opt-betas BETA [BETA ...]] [--clip-grad NORM]
+                       [--momentum M] [--weight-decay WEIGHT_DECAY]
+                       [--sched SCHEDULER] [--lr LR]
+                       [--lr-noise pct, pct [pct, pct ...]]
+                       [--lr-noise-pct PERCENT] [--lr-noise-std STDDEV]
+                       [--warmup-lr LR] [--min-lr LR] [--decay-epochs N]
+                       [--warmup-epochs N] [--cooldown-epochs N]
+                       [--patience-epochs N] [--decay-rate RATE]
+MSTemba_main.py: error: unrecognized arguments: --num_classes 53
+/var/spool/slurmd/job482614/slurm_script: line 43: -skip: command not found

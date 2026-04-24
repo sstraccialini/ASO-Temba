@@ -39,7 +39,6 @@ python MSTemba_main.py \
   -gpu 0 \
   -batch_size 4 \
   -num_clips 8 \
-  --num_classes 53
   -skip 1 \
   -rgb_root $BASE_HOME/ASO-Temba/data/TSU/i3d_features \
   -output_dir $BASE_HOME/ASO-Temba/outputs/tsu_i3d
