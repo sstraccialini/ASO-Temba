@@ -12,7 +12,8 @@ parser.add_argument('-save_dir', type=str)
 parser.add_argument('-frames_per_segment', type=int, default=16, help='Number of frames per contiguous segment')
 parser.add_argument('-target_T', type=int, default=2500, help='Pad or truncate to exactly target_T segments')
 parser.add_argument('-pad_mode', type=str, default='zero', choices=['zero', 'repeat_last'], help='How to pad if num_segments < target_T')
-parser.add_argument('-save_format', type=str, default='npy', choices=['npy', 'npz', 'both'], help='Format to save the features')
+parser.add_argument('-delete_frames', action='store_true', help='Delete frame directory after processing')
+parser.add_argument('-video_root', type=str, help='Directory containing the original .mp4 videos (for deletion)')
 
 args = parser.parse_args()
 os.environ["CUDA_VISIBLE_DEVICES"]=args.gpu
@@ -68,7 +69,9 @@ def load_and_transform_chunk(frames_paths, mode, test_transforms):
     return imgs.unsqueeze(0)
 
 
-def run(mode='rgb', root='', load_model='', save_dir='', frames_per_segment=16, target_T=2500, pad_mode='zero', save_format='npy'):
+import shutil
+
+def run(mode='rgb', root='', load_model='', save_dir='', frames_per_segment=16, target_T=2500, pad_mode='zero', save_format='npy', delete_frames=False, delete_video=False, video_root=None):
     os.makedirs(save_dir, exist_ok=True)
     test_transforms = transforms.Compose([videotransforms.CenterCrop(224)])     
 
@@ -135,8 +138,12 @@ def run(mode='rgb', root='', load_model='', save_dir='', frames_per_segment=16, 
                 feat = i3d.extract_features(inputs)
                 
                 # MS-Temba expects one vector per segment: [1024]
-                # Global average pool explicitly over spatial and temporal dims
-                feat = feat.mean(dim=[2, 3, 4]).squeeze(0)  # shape [1024]
+                # Reshape features from [Batch, 1024, T_out, H_out, W_out]
+                # to [num_sub_tokens_per_segment, 1024] for each segment
+                feat = feat.squeeze(0) # Remove batch dim: [1024, T_out, H_out, W_out]
+                feat = feat.permute(1, 2, 3, 0) # Permute to: [T_out, H_out, W_out, 1024]
+                T_out_curr, H_out_curr, W_out_curr, C_feat = feat.shape
+                feat = feat.reshape(T_out_curr * H_out_curr * W_out_curr, C_feat) # Reshape to: [num_sub_tokens_per_segment, 1024]
                 
                 # Move to CPU immediately, convert to numpy, to prevent GPU OOM
                 segment_features.append(feat.cpu().numpy())
@@ -144,19 +151,19 @@ def run(mode='rgb', root='', load_model='', save_dir='', frames_per_segment=16, 
         if len(segment_features) == 0:
             continue
             
-        # Stack all segment features -> shape [num_segments, 1024]
-        features_raw = np.stack(segment_features, axis=0) 
-        num_extracted_segments = features_raw.shape[0]
+        # Concatenate all segment features -> shape [total_num_tokens, 1024]
+        features_raw = np.concatenate(segment_features, axis=0) 
+        num_extracted_tokens = features_raw.shape[0]
 
         # Apply Zero-padding or Repeat-last padding for target_T (e.g., 2500)
         features_padded = features_raw
         if target_T is not None and target_T > 0:
-            if num_extracted_segments > target_T:
+            if num_extracted_tokens > target_T:
                 # Truncate to target length
                 features_padded = features_raw[:target_T, :]
-            elif num_extracted_segments < target_T:
+            elif num_extracted_tokens < target_T:
                 # Pad to target length
-                pad_len = target_T - num_extracted_segments
+                pad_len = target_T - num_extracted_tokens
                 if pad_mode == 'zero':
                     padding = np.zeros((pad_len, features_raw.shape[1]), dtype=np.float32)
                     features_padded = np.concatenate([features_raw, padding], axis=0)
@@ -169,7 +176,7 @@ def run(mode='rgb', root='', load_model='', save_dir='', frames_per_segment=16, 
             'video_id': vid,
             'num_frames': total_frames,
             'frames_per_segment': frames_per_segment,
-            'num_segments_raw': num_extracted_segments,
+            'num_tokens_raw': num_extracted_tokens,
             'target_T': target_T,
             'feature_dim': features_padded.shape[1]
         }
@@ -184,10 +191,24 @@ def run(mode='rgb', root='', load_model='', save_dir='', frames_per_segment=16, 
                      raw_features=features_raw, 
                      **metadata)
                      
-        print(f"[Run] Finished {vid}. Extracted {num_extracted_segments} segs. Final saved shape: {features_padded.shape}")
+        print(f"[Run] Finished {vid}. Extracted {num_extracted_tokens} tokens. Final saved shape: {features_padded.shape}")
+
+        if delete_frames:
+            print(f"[Cleanup] Deleting frames directory: {vid_dir}")
+            shutil.rmtree(vid_dir)
+        
+        if delete_video and video_root:
+            video_path = os.path.join(video_root, vid + ".mp4")
+            if os.path.exists(video_path):
+                print(f"[Cleanup] Deleting video file: {video_path}")
+                os.remove(video_path)
+            else:
+                print(f"[Cleanup] Video file not found for deletion: {video_path}")
 
 if __name__ == '__main__':
     run(mode=args.mode, root=args.root, load_model=args.load_model, save_dir=args.save_dir,
         frames_per_segment=args.frames_per_segment, target_T=args.target_T, 
-        pad_mode=args.pad_mode, save_format=args.save_format)
+        pad_mode=args.pad_mode, save_format=args.save_format,
+        delete_frames=args.delete_frames, delete_video=args.delete_video,
+        video_root=args.video_root)
 
