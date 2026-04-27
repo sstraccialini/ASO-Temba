@@ -3,11 +3,10 @@
 #SBATCH --partition=stud
 #SBATCH --qos=stud
 #SBATCH --gres=gpu:1
-#SBATCH --job-name=parallel_extract
+#SBATCH --job-name=serial_extract
 #SBATCH --time=24:00:00
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=64G
-#SBATCH --array=0-49%10
 
 set -euo pipefail
 
@@ -33,54 +32,47 @@ cd $BASE_HOME/ASO-Temba
 mkdir -p "$FRAME_DIR"
 mkdir -p "$FEAT_DIR"
 
-# Get all mp4 files into an array
-VIDEOS=("$VIDEO_DIR"/*.mp4)
+for video in "$VIDEO_DIR"/*.mp4; do
+    base=$(basename "$video")
+    name="${base%.mp4}"
 
-# SLURM_ARRAY_TASK_ID gives each job a unique number (0, 1, 2...)
-# Check if the ID is out of bounds
-if [ ${SLURM_ARRAY_TASK_ID} -ge ${#VIDEOS[@]} ]; then
-    echo "No video for array index ${SLURM_ARRAY_TASK_ID}."
-    exit 0
-fi
+    # Create an isolated root for this specific video so extract_features.py doesn't see others
+    TMP_ROOT="$FRAME_DIR/batch_$name"
+    outdir="$TMP_ROOT/$name"
 
-video="${VIDEOS[$SLURM_ARRAY_TASK_ID]}"
-base=$(basename "$video")
-name="${base%.mp4}"
+    # Skip if features already exist
+    if [ -f "$FEAT_DIR/$name.npy" ]; then
+        echo "Features for $name already exist. Skipping."
+        continue
+    fi
 
-# Create an isolated root for this specific video so extract_features.py doesn't see others
-TMP_ROOT="$FRAME_DIR/batch_$name"
-outdir="$TMP_ROOT/$name"
+    echo "--- Processing $name ---"
 
-# Skip if features already exist
-if [ -f "$FEAT_DIR/$name.npy" ]; then
-    echo "Features for $name already exist. Skipping."
-    exit 0
-fi
+    # 1. Extract frames into the isolated folder
+    mkdir -p "$outdir"
+    ffmpeg -hide_banner -loglevel error -y -i "$video" -vf "fps=$FPS" -q:v 2 "$outdir/frame_%04d.jpg"
 
-echo "--- Processing $name ---"
+    # 2. Extract features (using target_T 0, batch scaling, and handling deletion safely in bash)
+    python pytorch-i3d/extract_features.py \
+        -mode rgb \
+        -load_model "$MODEL_PATH" \
+        -root "$TMP_ROOT" \
+        -save_dir "$FEAT_DIR" \
+        -frames_per_segment 16 \
+        -batch_size 32 \
+        -target_T 0 \
+        -pad_mode zero
 
-# 1. Extract frames into the isolated folder
-mkdir -p "$outdir"
-ffmpeg -hide_banner -loglevel error -y -i "$video" -vf "fps=$FPS" -q:v 2 "$outdir/frame_%04d.jpg"
+    # 3. Clean up ONLY if feature extraction succeeded
+    if [ -f "$FEAT_DIR/$name.npy" ]; then
+        echo "[Cleanup] Successfully generated features. Cleaning up $name..."
+        rm -rf "$TMP_ROOT"
+        rm -f "$video"
+    else
+        echo "[Error] Feature file not generated. Keeping frames and mp4 for debugging."
+    fi
 
-# 2. Extract features (using target_T 0, batch scaling, and handling deletion safely in bash)
-python pytorch-i3d/extract_features.py \
-    -mode rgb \
-    -load_model "$MODEL_PATH" \
-    -root "$TMP_ROOT" \
-    -save_dir "$FEAT_DIR" \
-    -frames_per_segment 16 \
-    -batch_size 32 \
-    -target_T 0 \
-    -pad_mode zero
+    echo "--- Finished $name ---"
+done
 
-# 3. Clean up ONLY if feature extraction succeeded
-if [ -f "$FEAT_DIR/$name.npy" ]; then
-    echo "[Cleanup] Successfully generated features. Cleaning up $name..."
-    rm -rf "$TMP_ROOT"
-    rm -f "$video"
-else
-    echo "[Error] Feature file not generated. Keeping frames and mp4 for debugging."
-fi
-
-echo "--- Finished $name ---"
+echo "Pipeline complete."
