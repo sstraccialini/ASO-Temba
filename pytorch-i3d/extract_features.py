@@ -9,6 +9,7 @@ parser.add_argument('-load_model', type=str)
 parser.add_argument('-root', type=str)
 parser.add_argument('-gpu', type=str, default='0')
 parser.add_argument('-save_dir', type=str)
+parser.add_argument('-batch_size', type=int, default=16, help='Number of segments to process in parallel')
 parser.add_argument('-frames_per_segment', type=int, default=16, help='Number of frames per contiguous segment')
 parser.add_argument('-target_T', type=int, default=2500, help='Pad or truncate to exactly target_T segments')
 parser.add_argument('-pad_mode', type=str, default='zero', choices=['zero', 'repeat_last'], help='How to pad if num_segments < target_T')
@@ -73,7 +74,7 @@ def load_and_transform_chunk(frames_paths, mode, test_transforms):
 
 import shutil
 
-def run(mode='rgb', root='', load_model='', save_dir='', frames_per_segment=16, target_T=2500, pad_mode='zero', save_format='npy', delete_frames=False, delete_video=False, video_root=None):
+def run(mode='rgb', root='', load_model='', save_dir='', frames_per_segment=16, batch_size=16, target_T=2500, pad_mode='zero', save_format='npy', delete_frames=False, delete_video=False, video_root=None):
     os.makedirs(save_dir, exist_ok=True)
     test_transforms = transforms.Compose([videotransforms.CenterCrop(224)])     
 
@@ -125,30 +126,33 @@ def run(mode='rgb', root='', load_model='', save_dir='', frames_per_segment=16, 
         
         # Disable gradient calculations completely to save GPU memory
         with torch.no_grad():
-            for s in range(num_segments):
-                start_idx = s * frames_per_segment
-                end_idx = start_idx + frames_per_segment
-                chunk_paths = frames_paths[start_idx:end_idx]
+            for b in range(0, num_segments, batch_size):
+                batch_inputs = []
+                for s in range(b, min(b + batch_size, num_segments)):
+                    start_idx = s * frames_per_segment
+                    end_idx = start_idx + frames_per_segment
+                    chunk_paths = frames_paths[start_idx:end_idx]
+                    
+                    inp = load_and_transform_chunk(chunk_paths, mode, test_transforms)
+                    if inp is not None:
+                        batch_inputs.append(inp)
                 
-                inputs = load_and_transform_chunk(chunk_paths, mode, test_transforms)
-                if inputs is None:
+                if not batch_inputs:
                     continue
                     
-                inputs = inputs.cuda()
+                inputs = torch.cat(batch_inputs, dim=0).cuda()
                 
                 # I3D output shape: [Batch, 1024, T_out, H_out, W_out]
                 feat = i3d.extract_features(inputs)
                 
                 # MS-Temba expects one vector per segment: [1024]
-                # Reshape features from [Batch, 1024, T_out, H_out, W_out]
-                # to [num_sub_tokens_per_segment, 1024] for each segment
-                feat = feat.squeeze(0) # Remove batch dim: [1024, T_out, H_out, W_out]
-                feat = feat.permute(1, 2, 3, 0) # Permute to: [T_out, H_out, W_out, 1024]
-                T_out_curr, H_out_curr, W_out_curr, C_feat = feat.shape
-                feat = feat.reshape(T_out_curr * H_out_curr * W_out_curr, C_feat) # Reshape to: [num_sub_tokens_per_segment, 1024]
-                
-                # Move to CPU immediately, convert to numpy, to prevent GPU OOM
-                segment_features.append(feat.cpu().numpy())
+                # Process batch:
+                for i in range(feat.size(0)):
+                    f = feat[i] # [1024, T_out, H_out, W_out]
+                    f = f.permute(1, 2, 3, 0) # Permute to: [T_out, H_out, W_out, 1024]
+                    T_out_curr, H_out_curr, W_out_curr, C_feat = f.shape
+                    f = f.reshape(T_out_curr * H_out_curr * W_out_curr, C_feat) # [tokens, 1024]
+                    segment_features.append(f.cpu().numpy())
 
         if len(segment_features) == 0:
             continue
@@ -209,7 +213,7 @@ def run(mode='rgb', root='', load_model='', save_dir='', frames_per_segment=16, 
 
 if __name__ == '__main__':
     run(mode=args.mode, root=args.root, load_model=args.load_model, save_dir=args.save_dir,
-        frames_per_segment=args.frames_per_segment, target_T=args.target_T, 
+        frames_per_segment=args.frames_per_segment, batch_size=args.batch_size, target_T=args.target_T, 
         pad_mode=args.pad_mode, save_format=args.save_format,
         delete_frames=args.delete_frames, delete_video=args.delete_video,
         video_root=args.video_root)
