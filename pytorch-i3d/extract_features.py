@@ -83,7 +83,7 @@ def run(mode='rgb', root='', load_model='', save_dir='', frames_per_segment=16, 
     else:
         i3d = InceptionI3d(400, in_channels=3)
 
-    print(f"[Init] Loading weights from {load_model}")
+    print("[Init] Loading weights from {}".format(load_model))
     state_dict = torch.load(load_model)
     num_classes = state_dict['logits.conv3d.weight'].shape[0]
     i3d.replace_logits(num_classes)
@@ -93,17 +93,17 @@ def run(mode='rgb', root='', load_model='', save_dir='', frames_per_segment=16, 
     i3d.train(False)  # Set model to evaluate mode
     
     videos = sorted([d for d in os.listdir(root) if os.path.isdir(os.path.join(root, d))])
-    print(f"[Init] Found {len(videos)} video folders in {root}")
+    print("[Init] Found {} video folders in {}".format(len(videos), root))
 
     for step, vid in enumerate(videos):
-        print(f"\n[Run] Starting video {vid} ({step+1}/{len(videos)})")
+        print("\n[Run] Starting video {} ({}/{})".format(vid, step+1, len(videos)))
         
         save_path_base = os.path.join(save_dir, vid)
         if save_format in ['npy', 'both'] and os.path.exists(save_path_base+'.npy'):
-            print(f"[Run] {vid}.npy already exists. Skipping.")
+            print("[Run] {}.npy already exists. Skipping.".format(vid))
             continue
         if save_format in ['npz', 'both'] and os.path.exists(save_path_base+'.npz'):
-            print(f"[Run] {vid}.npz already exists. Skipping.")
+            print("[Run] {}.npz already exists. Skipping.".format(vid))
             continue
 
         vid_dir = os.path.join(root, vid)
@@ -111,14 +111,14 @@ def run(mode='rgb', root='', load_model='', save_dir='', frames_per_segment=16, 
         total_frames = len(frames_paths)
         
         if total_frames == 0:
-            print(f"[Run] Video {vid} has 0 frames. Skipping.")
+            print("[Run] Video {} has 0 frames. Skipping.".format(vid))
             continue
             
         num_segments = total_frames // frames_per_segment
-        print(f"[Run] Video {vid}: {total_frames} frames -> {num_segments} segments (size {frames_per_segment})")
+        print("[Run] Video {}: {} frames -> {} segments (size {})".format(vid, total_frames, num_segments, frames_per_segment))
         
         if num_segments == 0:
-            print(f"[Run] Video {vid} has fewer frames than {frames_per_segment}. Skipping.")
+            print("[Run] Video {} has fewer frames than {}. Skipping.".format(vid, frames_per_segment))
             continue
 
         segment_features = []
@@ -193,19 +193,19 @@ def run(mode='rgb', root='', load_model='', save_dir='', frames_per_segment=16, 
                      raw_features=features_raw, 
                      **metadata)
                      
-        print(f"[Run] Finished {vid}. Extracted {num_extracted_tokens} tokens. Final saved shape: {features_padded.shape}")
+        print("[Run] Finished {}. Extracted {} tokens. Final saved shape: {}".format(vid, num_extracted_tokens, features_padded.shape))
 
         if delete_frames:
-            print(f"[Cleanup] Deleting frames directory: {vid_dir}")
+            print("[Cleanup] Deleting frames directory: {}".format(vid_dir))
             shutil.rmtree(vid_dir)
         
         if delete_video and video_root:
             video_path = os.path.join(video_root, vid + ".mp4")
             if os.path.exists(video_path):
-                print(f"[Cleanup] Deleting video file: {video_path}")
+                print("[Cleanup] Deleting video file: {}".format(video_path))
                 os.remove(video_path)
             else:
-                print(f"[Cleanup] Video file not found for deletion: {video_path}")
+                print("[Cleanup] Video file not found for deletion: {}".format(video_path))
 
 if __name__ == '__main__':
     run(mode=args.mode, root=args.root, load_model=args.load_model, save_dir=args.save_dir,
