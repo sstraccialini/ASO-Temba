@@ -65,3 +65,11 @@ If you use our approach (code or methods) in your research, please consider citi
 This project is based on Mamba ([paper](https://arxiv.org/abs/2312.00752), [code](https://github.com/state-spaces/mamba)), Vision-Mamba ([paper](), [code](https://github.com/hustvl/Vim)), MS-TCT ([paper](https://openaccess.thecvf.com/content/CVPR2022/papers/Dai_MS-TCT_Multi-Scale_Temporal_ConvTransformer_for_Action_Detection_CVPR_2022_paper.pdf), [code](https://github.com/dairui01/MS-TCT)). Thanks for their wonderful works.
 
 
+
+
+
+# GUIDE
+
+## Download the dataset
+
+```git clone https://huggingface.co/datasets/thearkaprava/Temporal_Action_Detection```

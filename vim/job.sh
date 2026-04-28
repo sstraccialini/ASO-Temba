@@ -46,7 +46,7 @@ python MSTemba_main.py \
   -epochs 140 \
   --model mstemba \
   -skip 1 \
-  -rgb_root $BASE_HOME/ASO-Temba/data/TSU/i3d_features \
+  -rgb_root $BASE_HOME/ASO-Temba/data/tsu_features_i3d \
   -output_dir $BASE_HOME/ASO-Temba/outputs/tsu_i3d
 
 echo "Training done."
