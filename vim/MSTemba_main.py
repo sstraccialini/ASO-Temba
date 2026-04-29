@@ -42,6 +42,7 @@ parser.add_argument('-batch_size', type=str, default='False')
 parser.add_argument('-num_clips', type=str, default='False')
 parser.add_argument('-skip', type=str, default='False')
 parser.add_argument('-num_layer', type=str, default='False')
+parser.add_argument('-num_workers', type=int, default=4, help='Number of workers for DataLoader')
 parser.add_argument('-unisize', type=str, default='False')
 parser.add_argument('-alpha_l', type=float, default='1.0')
 parser.add_argument('-beta_l', type=float, default='1.0')
@@ -127,7 +128,7 @@ def load_data(train_split, val_split, root):
 
     if len(train_split) > 0:
         dataset = Dataset(train_split, 'training', root, batch_size, classes, int(args.num_clips), int(args.skip))
-        dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=4,
+        dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=args.num_workers,
                                                  pin_memory=True, collate_fn=collate_fn)
         dataloader.root = root
     else:
@@ -136,7 +137,7 @@ def load_data(train_split, val_split, root):
         dataloader = None
 
     val_dataset = Dataset(val_split, 'testing', root, batch_size, classes, int(args.num_clips), int(args.skip))
-    val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=1, shuffle=True, num_workers=4,
+    val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=1, shuffle=True, num_workers=args.num_workers,
                                                  pin_memory=True, collate_fn=collate_fn)
     val_dataloader.root = root
     dataloaders = {'train': dataloader, 'val': val_dataloader}

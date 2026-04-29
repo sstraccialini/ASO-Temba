@@ -46,6 +46,7 @@ python MSTemba_main.py \
   -epochs 140 \
   --model mstemba \
   -skip 1 \
+  -num_workers 1 \
   -rgb_root $BASE_HOME/ASO-Temba/data/tsu_features_i3d \
   -output_dir $BASE_HOME/ASO-Temba/outputs/tsu_i3d
 
