@@ -1,0 +1,30 @@
+ERROR: Unable to locate a modulefile for 'slurm'
+gnode04
+/home/3199302/.conda/envs/cv_project/bin/python
+MYID=3199302
+CONDA_PREFIX=/home/3199302/.conda/envs/cv_project
+PYTHONPATH=/mnt/beegfsstudents/home/3199302/ASO-Temba/mamba-1p1p1:
+LD_LIBRARY_PATH=/home/3199302/.conda/envs/cv_project/lib:
+Name: mamba-ssm
+Version: 1.1.1
+Summary: Mamba state-space model
+Home-page: https://github.com/state-spaces/mamba
+Author: Tri Dao, Albert Gu
+Author-email: tri@tridao.me, agu@cs.cmu.edu
+License: 
+Location: /mnt/beegfsstudents/home/3199302/.conda/envs/cv_project/lib/python3.10/site-packages
+Requires: causal-conv1d, einops, ninja, packaging, torch, transformers, triton
+Required-by: 
+======================
+/home/3199302/.conda/envs/cv_project/lib/python3.10/site-packages/timm/models/registry.py:4: FutureWarning: Importing from timm.models.registry is deprecated, please import via timm.models
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.models", FutureWarning)
+/home/3199302/.conda/envs/cv_project/lib/python3.10/site-packages/timm/models/layers/__init__.py:49: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+Random_SEED: 0
+Traceback (most recent call last):
+  File "/mnt/beegfsstudents/home/3199302/ASO-Temba/vim/MSTemba_main.py", line 121, in <module>
+    batch_size = int(args.batch_size)
+ValueError: invalid literal for int() with base 10: 'False'
+/var/spool/slurmd/job485227/slurm_script: line 42: -num_clips: command not found
+/var/spool/slurmd/job485227/slurm_script: line 48: --warmup-epochs: command not found
+Training done.
