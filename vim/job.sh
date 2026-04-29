@@ -43,7 +43,7 @@ python MSTemba_main.py \
   -comp_info False \
   --warmup-epochs 5 \
   -epochs 140 \
-  -unisize False \
+  -unisize True \
   -alpha_l 1 \
   -beta_l 0.05 \
   -batch_size 1 \
