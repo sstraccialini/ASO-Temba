@@ -34,18 +34,23 @@ echo "======================"
 python MSTemba_main.py \
   -dataset tsu \
   -mode rgb \
-  -train train \
-  -backbone i3d \
-  -gpu 0 \
-  -batch_size 1 \
+-backbone clip/i3d/ \
+  -model mstemba \
+  -train True \
+  # -gpu 0 \
+  # -batch_size 1 \
   -num_clips 2500 \
-  --opt adamw \
+  -skip 0 \
   --lr 4.5e-4 \
-  --sched cosine \
+  -comp_info False \
+  # --opt adamw \
+  # --sched cosine \
   --warmup-epochs 5 \
   -epochs 140 \
-  --model mstemba \
-  -skip 1 \
+  -unisize True \
+  -alpha_l 1 \
+  -beta_l 0.05 \
+  -batch_size 1 \
   -num_workers 1 \
   -rgb_root $BASE_HOME/ASO-Temba/data/tsu_features_i3d \
   -output_dir $BASE_HOME/ASO-Temba/outputs/tsu_i3d
