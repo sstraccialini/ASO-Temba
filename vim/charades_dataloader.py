@@ -9,13 +9,6 @@ from tqdm import tqdm
 import random
 from utils import *
 
-def trim_trailing_zeros(fts):
-    non_zero_rows = np.any(fts != 0, axis=1)
-    if not np.any(non_zero_rows):
-        return fts[:0]
-    last_non_zero_idx = np.where(non_zero_rows)[0][-1]
-    return fts[:last_non_zero_idx + 1]
-
 def make_dataset(split_file, split, root, num_classes=157):
     gamma = 0.5
     tau = 4
@@ -36,7 +29,6 @@ def make_dataset(split_file, split, root, num_classes=157):
             continue
 
         fts = np.load(os.path.join(root, vid + '.npy'))
-        fts = trim_trailing_zeros(fts)
         num_feat = fts.shape[0]
         label = np.zeros((num_feat, num_classes), np.float32)
         #
@@ -89,7 +81,6 @@ class Charades(data_utl.Dataset):
     def __getitem__(self, index):
         entry = self.data[index]
         feat = np.load(os.path.join(self.root, entry[0] + '.npy'))
-        feat = trim_trailing_zeros(feat)
         feat = feat.reshape((feat.shape[0], 1, 1, feat.shape[-1]))
         features = feat.astype(np.float32)
 
