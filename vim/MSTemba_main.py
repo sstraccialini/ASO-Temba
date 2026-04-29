@@ -490,16 +490,14 @@ def val_step(model, gpu, dataloader, epoch):
     
     # Calculate metrics for final output
     val_map = torch.sum(100 * apm.value()) / torch.nonzero(100 * apm.value()).size()[0]
-    vals = np.array(sampled_apm.value())
-    sample_val_map = vals[vals != 0].mean() * 100 if np.count_nonzero(vals) > 0 else 0.0
+    sample_val_map = torch.sum(100 * sampled_apm.value()) / torch.nonzero(100 * sampled_apm.value()).size()[0]
 
     # Calculate metrics for each block
     block_val_maps = []
     block_sample_val_maps = []
     for i in range(3):
         block_val_map = torch.sum(100 * block_apms[i].value()) / torch.nonzero(100 * block_apms[i].value()).size()[0]
-        block_vals = np.array(block_sampled_apms[i].value())
-        block_sample_val_map = block_vals[block_vals != 0].mean() * 100 if np.count_nonzero(block_vals) > 0 else 0.0
+        block_sample_val_map = torch.sum(100 * block_sampled_apms[i].value()) / torch.nonzero(100 * block_sampled_apms[i].value()).size()[0]
         block_val_maps.append(block_val_map)
         block_sample_val_maps.append(block_sample_val_map)
         
@@ -555,11 +553,11 @@ if __name__ == '__main__':
         classes = 157
         
     elif args.dataset == 'tsu':
-        train_split = '../data/TSU/Annotation_MS-TEMBA_smarthome.json'
+        train_split = '../data/smarthome.json'
         test_split = train_split
         rgb_root =  args.rgb_root 
         flow_root = '/flow_feat_path/' # optional
-        classes = 53
+        classes = 51
 
     if args.mode == 'flow':
         print('flow mode', flow_root)
