@@ -34,20 +34,16 @@ echo "======================"
 python MSTemba_main.py \
   -dataset tsu \
   -mode rgb \
-  -backbone clip/i3d/ \
+  -backbone i3d \
   -model mstemba \
   -train True \
-  # -gpu 0 \
-  # -batch_size 1 \
   -num_clips 2500 \
   -skip 0 \
   --lr 4.5e-4 \
   -comp_info False \
-  # --opt adamw \
-  # --sched cosine \
   --warmup-epochs 5 \
   -epochs 140 \
-  -unisize True \
+  -unisize False \
   -alpha_l 1 \
   -beta_l 0.05 \
   -batch_size 1 \
