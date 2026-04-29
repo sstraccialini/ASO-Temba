@@ -34,7 +34,7 @@ echo "======================"
 python MSTemba_main.py \
   -dataset tsu \
   -mode rgb \
--backbone clip/i3d/ \
+  -backbone clip/i3d/ \
   -model mstemba \
   -train True \
   # -gpu 0 \
