@@ -1,76 +1,0 @@
-ERROR: Unable to locate a modulefile for 'slurm'
-gnode02
-/home/3199302/.conda/envs/cv_project/bin/python
-MYID=3199302
-CONDA_PREFIX=/home/3199302/.conda/envs/cv_project
-PYTHONPATH=/mnt/beegfsstudents/home/3199302/ASO-Temba/mamba-1p1p1:
-LD_LIBRARY_PATH=/home/3199302/.conda/envs/cv_project/lib:
-Name: mamba-ssm
-Version: 1.1.1
-Summary: Mamba state-space model
-Home-page: https://github.com/state-spaces/mamba
-Author: Tri Dao, Albert Gu
-Author-email: tri@tridao.me, agu@cs.cmu.edu
-License: 
-Location: /mnt/beegfsstudents/home/3199302/.conda/envs/cv_project/lib/python3.10/site-packages
-Requires: causal-conv1d, einops, ninja, packaging, torch, transformers, triton
-Required-by: 
-======================
-/home/3199302/.conda/envs/cv_project/lib/python3.10/site-packages/timm/models/registry.py:4: FutureWarning: Importing from timm.models.registry is deprecated, please import via timm.models
-  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.models", FutureWarning)
-/home/3199302/.conda/envs/cv_project/lib/python3.10/site-packages/timm/models/layers/__init__.py:49: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
-  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
-Random_SEED: 0
-RGB mode /mnt/beegfsstudents/home/3199302/ASO-Temba/data/TSU/i3d_features
-load data /mnt/beegfsstudents/home/3199302/ASO-Temba/data/TSU/i3d_features
-split!!!! training
-  0%|          | 0/536 [00:00<?, ?it/s]  1%|          | 4/536 [00:00<00:13, 39.20it/s]  3%|▎         | 14/536 [00:00<00:07, 66.26it/s]  4%|▍         | 21/536 [00:00<00:08, 63.47it/s]  5%|▌         | 28/536 [00:00<00:08, 60.90it/s]  7%|▋         | 36/536 [00:00<00:07, 65.05it/s]  8%|▊         | 43/536 [00:00<00:07, 64.47it/s] 10%|▉         | 53/536 [00:00<00:06, 74.76it/s] 12%|█▏        | 66/536 [00:00<00:05, 82.39it/s] 14%|█▍        | 75/536 [00:01<00:07, 61.52it/s] 15%|█▌        | 82/536 [00:01<00:08, 53.74it/s] 18%|█▊        | 95/536 [00:01<00:06, 68.17it/s] 19%|█▉        | 103/536 [00:01<00:06, 69.03it/s] 21%|██        | 111/536 [00:01<00:06, 68.82it/s] 22%|██▏       | 119/536 [00:01<00:06, 66.77it/s] 24%|██▎       | 127/536 [00:01<00:06, 67.84it/s] 25%|██▌       | 134/536 [00:02<00:06, 63.88it/s] 26%|██▋       | 141/536 [00:02<00:06, 61.44it/s] 28%|██▊       | 148/536 [00:02<00:07, 54.24it/s] 29%|██▊       | 154/536 [00:02<00:07, 54.48it/s] 30%|██▉       | 160/536 [00:02<00:06, 54.31it/s] 31%|███▏      | 168/536 [00:02<00:06, 56.09it/s] 32%|███▏      | 174/536 [00:02<00:06, 56.96it/s] 34%|███▎      | 180/536 [00:02<00:06, 55.16it/s] 35%|███▌      | 188/536 [00:03<00:05, 59.12it/s] 36%|███▌      | 194/536 [00:03<00:06, 54.08it/s] 37%|███▋      | 200/536 [00:03<00:06, 51.27it/s] 39%|███▉      | 208/536 [00:03<00:05, 56.27it/s] 41%|████      | 218/536 [00:03<00:04, 64.77it/s] 43%|████▎     | 230/536 [00:03<00:04, 75.86it/s] 45%|████▍     | 240/536 [00:03<00:03, 81.41it/s] 46%|████▋     | 249/536 [00:03<00:04, 70.89it/s] 48%|████▊     | 258/536 [00:04<00:03, 75.37it/s] 50%|████▉     | 267/536 [00:04<00:03, 76.30it/s] 51%|█████▏    | 275/536 [00:04<00:03, 71.91it/s] 53%|█████▎    | 285/536 [00:04<00:03, 77.77it/s] 55%|█████▌    | 296/536 [00:04<00:02, 84.06it/s] 57%|█████▋    | 305/536 [00:04<00:02, 82.82it/s] 59%|█████▊    | 314/536 [00:04<00:02, 76.13it/s] 60%|██████    | 322/536 [00:04<00:02, 72.86it/s] 62%|██████▏   | 331/536 [00:04<00:02, 75.19it/s] 63%|██████▎   | 339/536 [00:05<00:02, 69.92it/s] 65%|██████▍   | 347/536 [00:05<00:03, 61.22it/s] 66%|██████▌   | 354/536 [00:05<00:03, 56.08it/s] 68%|██████▊   | 362/536 [00:05<00:02, 59.64it/s] 69%|██████▉   | 369/536 [00:05<00:02, 59.32it/s] 70%|███████   | 376/536 [00:05<00:02, 59.61it/s] 72%|███████▏  | 384/536 [00:05<00:02, 63.91it/s] 73%|███████▎  | 391/536 [00:06<00:02, 59.32it/s] 74%|███████▍  | 398/536 [00:06<00:02, 61.17it/s] 76%|███████▌  | 405/536 [00:06<00:02, 61.97it/s] 77%|███████▋  | 412/536 [00:06<00:01, 62.20it/s] 78%|███████▊  | 419/536 [00:06<00:02, 54.64it/s] 79%|███████▉  | 426/536 [00:06<00:01, 55.26it/s] 81%|████████  | 432/536 [00:06<00:01, 54.98it/s] 82%|████████▏ | 440/536 [00:06<00:01, 59.83it/s] 84%|████████▎ | 448/536 [00:06<00:01, 63.45it/s] 85%|████████▍ | 455/536 [00:07<00:01, 56.27it/s] 86%|████████▌ | 462/536 [00:07<00:01, 59.61it/s] 88%|████████▊ | 469/536 [00:07<00:01, 61.13it/s] 89%|████████▉ | 478/536 [00:07<00:00, 65.44it/s] 92%|█████████▏| 491/536 [00:07<00:00, 81.20it/s] 93%|█████████▎| 500/536 [00:07<00:00, 68.40it/s] 95%|█████████▍| 508/536 [00:07<00:00, 61.59it/s] 96%|█████████▌| 515/536 [00:08<00:00, 60.63it/s] 97%|█████████▋| 522/536 [00:08<00:00, 59.51it/s] 99%|█████████▊| 529/536 [00:08<00:00, 60.28it/s]100%|██████████| 536/536 [00:08<00:00, 64.35it/s]
-split!!!! testing
-  0%|          | 0/536 [00:00<?, ?it/s]  3%|▎         | 15/536 [00:00<00:03, 130.36it/s]  6%|▋         | 34/536 [00:00<00:03, 141.29it/s]  9%|▉         | 49/536 [00:00<00:04, 112.73it/s] 11%|█▏        | 61/536 [00:00<00:05, 84.08it/s]  16%|█▌        | 87/536 [00:00<00:03, 125.20it/s] 19%|█▉        | 102/536 [00:00<00:04, 104.01it/s] 21%|██▏       | 115/536 [00:01<00:04, 99.29it/s]  24%|██▍       | 128/536 [00:01<00:04, 101.53it/s] 28%|██▊       | 150/536 [00:01<00:03, 122.57it/s] 31%|███       | 167/536 [00:01<00:02, 128.80it/s] 34%|███▍      | 183/536 [00:01<00:02, 132.08it/s] 38%|███▊      | 202/536 [00:01<00:02, 145.62it/s] 41%|████      | 218/536 [00:01<00:02, 122.29it/s] 43%|████▎     | 232/536 [00:02<00:02, 109.92it/s] 46%|████▌     | 244/536 [00:02<00:02, 107.20it/s] 48%|████▊     | 256/536 [00:02<00:02, 108.00it/s] 50%|█████     | 269/536 [00:02<00:02, 108.97it/s] 52%|█████▏    | 281/536 [00:02<00:02, 108.28it/s] 55%|█████▍    | 293/536 [00:02<00:02, 98.74it/s]  57%|█████▋    | 304/536 [00:02<00:02, 94.97it/s] 60%|█████▉    | 319/536 [00:02<00:02, 106.84it/s] 62%|██████▎   | 335/536 [00:02<00:01, 117.25it/s] 67%|██████▋   | 358/536 [00:03<00:01, 139.38it/s] 70%|██████▉   | 373/536 [00:03<00:01, 140.50it/s] 72%|███████▏  | 388/536 [00:03<00:01, 131.22it/s] 75%|███████▌  | 403/536 [00:03<00:00, 135.16it/s] 79%|███████▊  | 422/536 [00:03<00:00, 148.28it/s] 82%|████████▏ | 441/536 [00:03<00:00, 158.96it/s] 85%|████████▌ | 458/536 [00:03<00:00, 146.72it/s] 88%|████████▊ | 474/536 [00:03<00:00, 127.71it/s] 91%|█████████ | 488/536 [00:04<00:00, 99.05it/s]  96%|█████████▌| 512/536 [00:04<00:00, 125.45it/s] 99%|█████████▉| 533/536 [00:04<00:00, 137.99it/s]100%|██████████| 536/536 [00:04<00:00, 119.77it/s]
-2026-04-26 22:53:56,762 [INFO] Arguments: Namespace(mode='rgb', train='eval', backbone='i3d', comp_info=None, gpu='0', dataset='tsu', rgb_root='/mnt/beegfsstudents/home/3199302/ASO-Temba/data/TSU/i3d_features', flow_root='no_root', type='original', epochs=140, model='mstemba', load_model='/mnt/beegfsstudents/home/3199302/ASO-Temba/outputs/tsu_i3d/best_model.pth', batch_size='1', num_clips='2500', skip='1', num_layer='False', unisize='False', alpha_l=1.0, beta_l=1.0, output_dir='/mnt/beegfsstudents/home/3199302/ASO-Temba/outputs/tsu_i3d_eval', model_ema=True, model_ema_decay=0.99996, model_ema_force_cpu=False, drop=0.0, drop_path=0.0, opt='adamw', opt_eps=1e-08, opt_betas=None, clip_grad=None, momentum=0.9, weight_decay=0.01, sched='cosine', lr=0.00045, lr_noise=None, lr_noise_pct=0.67, lr_noise_std=1.0, warmup_lr=1e-06, min_lr=1e-05, decay_epochs=30, warmup_epochs=5, cooldown_epochs=10, patience_epochs=10, decay_rate=0.1)
-2026-04-26 22:53:57,102 [INFO] Loading checkpoint from: /mnt/beegfsstudents/home/3199302/ASO-Temba/outputs/tsu_i3d/best_model.pth
-2026-04-26 22:53:57,556 [INFO] Running evaluation on testing subset...
-/home/3199302/.conda/envs/cv_project/lib/python3.10/site-packages/torch/nn/_reduction.py:42: UserWarning: size_average and reduce args will be deprecated, please use reduction='sum' instead.
-  warnings.warn(warning.format(ret))
-/mnt/beegfsstudents/home/3199302/ASO-Temba/vim/apmeter.py:88: UserWarning: TypedStorage is deprecated. It will be removed in the future and UntypedStorage will be the only storage class. This should only matter to you if you are using storages directly.  To access UntypedStorage directly, use tensor.untyped_storage() instead of tensor.storage()
-  if self.scores.storage().size() < self.scores.numel() + output.numel():
-2026-04-26 22:54:17,913 [INFO] Epoch 0, Block 1 Full-val-map: 1.4581
-2026-04-26 22:54:17,917 [INFO] Epoch 0, Block 1 sampled-val-map: 1.6036
-2026-04-26 22:54:17,947 [INFO] Block 1 Sampled AP values: tensor([ 3.1654,  0.2075,  0.6196,  0.2172,  0.1374,  2.4327,  0.5115,  0.7903,
-         0.0656,  5.0953,  1.3023,  0.9271,  0.3077,  0.0749,  0.2305,  0.7026,
-         1.1105,  0.0000,  0.1638,  0.1237,  4.3530,  0.0844,  0.0627,  0.0000,
-         0.1172,  0.0775,  0.8726,  0.2475,  0.2666,  0.2046,  1.4366,  0.2791,
-         0.2863,  0.2901,  0.0000,  0.0609,  0.6863, 20.8622,  0.1390,  0.1389,
-         0.4477,  0.0229,  0.7610,  0.7872,  0.2945,  0.0000,  4.6217,  5.5325,
-         1.3400,  2.6820,  7.8097,  0.3780,  5.2497])
-2026-04-26 22:54:20,766 [INFO] Epoch 0, Block 2 Full-val-map: 1.4931
-2026-04-26 22:54:20,770 [INFO] Epoch 0, Block 2 sampled-val-map: 1.6850
-2026-04-26 22:54:20,794 [INFO] Block 2 Sampled AP values: tensor([ 3.6831,  0.2315,  0.7294,  0.2964,  0.1778,  3.2977,  0.6222,  1.0892,
-         0.0501,  5.3895,  1.4907,  0.6337,  0.4994,  0.0287,  0.2096,  0.5365,
-         0.9043,  0.0000,  0.1457,  0.1477,  5.8938,  0.0758,  0.1094,  0.0000,
-         0.0465,  0.1190,  1.0679,  0.2558,  0.4491,  0.0973,  1.3709,  0.1685,
-         0.5015,  0.1919,  0.0000,  0.1262,  1.0433, 22.0637,  0.1240,  0.1043,
-         0.4042,  0.0326,  0.8193,  1.2163,  0.3357,  0.0000,  4.3349,  4.7986,
-         1.2280,  2.9896,  8.2513,  0.4319,  3.7510])
-2026-04-26 22:54:23,653 [INFO] Epoch 0, Block 3 Full-val-map: 1.5310
-2026-04-26 22:54:23,657 [INFO] Epoch 0, Block 3 sampled-val-map: 1.8987
-2026-04-26 22:54:23,682 [INFO] Block 3 Sampled AP values: tensor([ 4.3835,  0.4783,  1.3111,  0.8255,  0.2184,  3.2603,  0.5254,  0.9453,
-         0.0377,  6.7174,  2.0878,  0.6302,  0.5688,  0.0254,  0.3186,  0.1733,
-         0.9258,  0.0000,  0.2441,  0.0767,  0.4647,  0.0668,  0.5446,  0.0000,
-         0.0376,  0.1297,  1.3004,  1.5625,  0.1252,  1.0150,  3.9675,  0.2504,
-         0.1742,  0.1427,  0.0000,  0.0697,  0.0673, 24.0733,  1.7503,  0.1823,
-         0.5695,  0.1577,  1.7820,  2.0057,  0.3532,  0.0000,  5.0621,  5.2644,
-         1.5744,  1.5854,  9.3974,  0.4445,  5.1640])
-2026-04-26 22:54:23,686 [INFO] Epoch 0, Final Full-val-map: 1.8891
-2026-04-26 22:54:23,690 [INFO] Epoch 0, Final sampled-val-map: 2.4401
-2026-04-26 22:54:23,715 [INFO] Final Sampled AP values: tensor([ 4.5006,  0.4927,  1.3611,  0.5863,  0.1921,  4.8634,  0.7104,  1.6664,
-         0.0468,  7.4840,  5.2921,  1.6976,  0.9618,  0.0914,  0.3234,  0.3511,
-         0.9785,  0.0000,  0.1541,  0.0947,  3.6593,  0.0565,  5.5343,  0.0000,
-         0.0267,  0.2880,  4.6464,  0.4016,  0.3597,  5.3068,  4.0982,  0.4842,
-         0.5359,  0.1676,  0.0000,  0.0624,  0.0759, 25.9339,  0.6560,  0.1372,
-         0.5399,  0.0351,  1.8348,  3.0116,  1.1646,  0.0000,  6.2795,  4.6740,
-         1.6733,  1.7236,  9.7716,  0.4319,  4.1466])
-2026-04-26 22:54:23,722 [INFO] --- EVALUATION RESULTS ---
-2026-04-26 22:54:23,725 [INFO] Full Validation mAP: 1.8891
-2026-04-26 22:54:23,729 [INFO] Sampled Validation mAP: 2.4401
-Evaluation done.

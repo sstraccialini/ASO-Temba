@@ -42,7 +42,6 @@ parser.add_argument('-batch_size', type=str, default='False')
 parser.add_argument('-num_clips', type=str, default='False')
 parser.add_argument('-skip', type=str, default='False')
 parser.add_argument('-num_layer', type=str, default='False')
-parser.add_argument('-num_workers', type=int, default=4, help='Number of workers for DataLoader')
 parser.add_argument('-unisize', type=str, default='False')
 parser.add_argument('-alpha_l', type=float, default='1.0')
 parser.add_argument('-beta_l', type=float, default='1.0')
@@ -128,7 +127,7 @@ def load_data(train_split, val_split, root):
 
     if len(train_split) > 0:
         dataset = Dataset(train_split, 'training', root, batch_size, classes, int(args.num_clips), int(args.skip))
-        dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=args.num_workers,
+        dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=4,
                                                  pin_memory=True, collate_fn=collate_fn)
         dataloader.root = root
     else:
@@ -137,7 +136,7 @@ def load_data(train_split, val_split, root):
         dataloader = None
 
     val_dataset = Dataset(val_split, 'testing', root, batch_size, classes, int(args.num_clips), int(args.skip))
-    val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=1, shuffle=True, num_workers=args.num_workers,
+    val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=1, shuffle=True, num_workers=4,
                                                  pin_memory=True, collate_fn=collate_fn)
     val_dataloader.root = root
     dataloaders = {'train': dataloader, 'val': val_dataloader}
@@ -205,8 +204,8 @@ def run(models, criterion, num_epochs=50):
             if Best_val_map < val_map:
                 Best_val_map = val_map
                 logging.info(f"Epoch {epoch}, Best Sampled Val Map Update {Best_val_map:.4f}")
-                # pickle.dump(prob_val, open(os.path.join(args.output_dir, f'{epoch}.pkl'), 'wb'), pickle.HIGHEST_PROTOCOL)
-                # logging.info(f"Logit saved at: {args.output_dir}/{epoch}.pkl")
+                pickle.dump(prob_val, open(os.path.join(args.output_dir, f'{epoch}.pkl'), 'wb'), pickle.HIGHEST_PROTOCOL)
+                logging.info(f"Logit saved at: {args.output_dir}/{epoch}.pkl")
                 
                 # Save best model
                 torch.save(model.state_dict(), os.path.join(args.output_dir, 'best_model.pth'))
@@ -219,8 +218,8 @@ def run(models, criterion, num_epochs=50):
                     Best_block_sample_val_maps[i] = block_sample_val_maps[i]
                     logging.info(f"Epoch {epoch}, Block {i+1} Best Sampled Val Map Update {Best_block_sample_val_maps[i]:.4f}")
                     block_dir = os.path.join(args.output_dir, f'block_{i+1}')
-                    # torch.save(model.state_dict(), os.path.join(block_dir, 'best_model.pth'))
-                    # logging.info(f"Block {i+1} Best model saved at: {block_dir}/best_model.pth")
+                    torch.save(model.state_dict(), os.path.join(block_dir, 'best_model.pth'))
+                    logging.info(f"Block {i+1} Best model saved at: {block_dir}/best_model.pth")
                     writer.add_scalar(f'Block_{i+1}/Best_sampled_val_map', Best_block_sample_val_maps[i], epoch)
     
     writer.close()
@@ -509,7 +508,7 @@ def val_step(model, gpu, dataloader, epoch):
         
         # Save block probabilities
         block_dir = os.path.join(args.output_dir, f'block_{i+1}')
-        # pickle.dump(block_full_probs[i], open(os.path.join(block_dir, f'{epoch}.pkl'), 'wb'), pickle.HIGHEST_PROTOCOL)
+        pickle.dump(block_full_probs[i], open(os.path.join(block_dir, f'{epoch}.pkl'), 'wb'), pickle.HIGHEST_PROTOCOL)
         
         block_apms[i].reset()
         block_sampled_apms[i].reset()
@@ -546,7 +545,7 @@ if __name__ == '__main__':
         from charades_dataloader import mt_collate_fn as collate_fn
     
     if args.dataset == 'charades':
-        train_split = '/data/asinha13/projects/MAD/MS-TCT/data/charades.json'
+        train_split = '../data/charades.json'
         test_split = train_split
         rgb_root =  args.rgb_root 
         flow_root = '/flow_feat_path/' # optional
@@ -609,37 +608,3 @@ if __name__ == '__main__':
         logging.info(f"Number of parameters: {n_parameters}")
 
         run([(model, 0, dataloaders, optimizer, lr_scheduler, args.comp_info)], criterion, num_epochs=int(args.epochs))
-
-    # elif args.train == 'eval':
-    #     if args.backbone == 'i3d':
-    #         in_feat_dim = 1024
-    #     elif args.backbone == 'clip':
-    #         in_feat_dim = 768
-
-    #     # Create model using timm's create_model function
-    #     model = create_model(
-    #         args.model,
-    #         pretrained=False,
-    #         num_classes=classes,
-    #         drop_rate=args.drop,
-    #         drop_path_rate=args.drop_path,
-    #         drop_block_rate=None,
-    #         in_feat_dim=in_feat_dim
-    #     )
-        
-    #     if args.load_model is not None and args.load_model != 'False':
-    #         logging.info(f"Loading checkpoint from: {args.load_model}")
-    #         ckpt = torch.load(args.load_model, map_location='cpu')
-    #         model.load_state_dict(ckpt)
-            
-    #     model.cuda()
-        
-    #     logging.info('Running evaluation on testing subset...')
-    #     # dataloaders['val'] uses the testing split via `test_split` logic inside `load_data()`
-    #     full_probs, epoch_loss, val_map, sample_val_map, block_val_maps, block_sample_val_maps = val_step(
-    #         model, 0, dataloaders['val'], 0
-    #     )
-        
-    #     logging.info("--- EVALUATION RESULTS ---")
-    #     logging.info(f"Full Validation mAP: {val_map:.4f}")
-    #     logging.info(f"Sampled Validation mAP: {sample_val_map:.4f}")

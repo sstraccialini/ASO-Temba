@@ -131,27 +131,3 @@ class collate_fn_unisize():
 
         return default_collate(new_batch)
 
-def mt_collate_fn(batch):
-    """
-    Collate function to dynamically pad features across the batch to the maximum
-    sequence length in the batch.
-    """
-    max_len = max([b[0].shape[0] for b in batch])
-    new_batch = []
-    for b in batch:
-        f = np.zeros((max_len, b[0].shape[1], b[0].shape[2], b[0].shape[3]), np.float32)
-        m = np.zeros((max_len,), np.float32)
-        l = np.zeros((max_len, b[1].shape[1]), np.float32)
-        h = np.zeros((max_len, b[2].shape[1]), np.float32)
-        
-        seq_len = b[0].shape[0]
-        f[:seq_len] = b[0]
-        m[:seq_len] = 1
-        l[:seq_len, :] = b[1]
-        h[:seq_len, :] = b[2]
-
-        new_batch.append([video_to_tensor(f), torch.from_numpy(m), torch.from_numpy(l), b[4], torch.from_numpy(h)])
-
-    return default_collate(new_batch)
-
-

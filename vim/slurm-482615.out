@@ -1,1214 +1,0 @@
-ERROR: Unable to locate a modulefile for 'slurm'
-gnode04
-/home/3199302/.conda/envs/cv_project/bin/python
-MYID=3199302
-CONDA_PREFIX=/home/3199302/.conda/envs/cv_project
-PYTHONPATH=/mnt/beegfsstudents/home/3199302/ASO-Temba/mamba-1p1p1:
-LD_LIBRARY_PATH=/home/3199302/.conda/envs/cv_project/lib:
-Name: mamba-ssm
-Version: 1.1.1
-Summary: Mamba state-space model
-Home-page: https://github.com/state-spaces/mamba
-Author: Tri Dao, Albert Gu
-Author-email: tri@tridao.me, agu@cs.cmu.edu
-License: 
-Location: /mnt/beegfsstudents/home/3199302/.conda/envs/cv_project/lib/python3.10/site-packages
-Requires: causal-conv1d, einops, ninja, packaging, torch, transformers, triton
-Required-by: 
-======================
-/home/3199302/.conda/envs/cv_project/lib/python3.10/site-packages/timm/models/registry.py:4: FutureWarning: Importing from timm.models.registry is deprecated, please import via timm.models
-  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.models", FutureWarning)
-/home/3199302/.conda/envs/cv_project/lib/python3.10/site-packages/timm/models/layers/__init__.py:49: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
-  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
-Random_SEED: 0
-RGB mode /mnt/beegfsstudents/home/3199302/ASO-Temba/data/TSU/i3d_features
-load data /mnt/beegfsstudents/home/3199302/ASO-Temba/data/TSU/i3d_features
-split!!!! training
-  0%|          | 0/536 [00:00<?, ?it/s]  1%|          | 3/536 [00:00<00:26, 19.77it/s]  1%|▏         | 7/536 [00:00<00:21, 24.27it/s]  3%|▎         | 14/536 [00:00<00:14, 36.37it/s]  4%|▎         | 19/536 [00:00<00:15, 32.33it/s]  4%|▍         | 23/536 [00:00<00:17, 29.99it/s]  5%|▌         | 27/536 [00:00<00:17, 28.53it/s]  6%|▌         | 32/536 [00:01<00:16, 31.46it/s]  7%|▋         | 40/536 [00:01<00:12, 39.54it/s]  8%|▊         | 45/536 [00:01<00:13, 36.27it/s] 10%|▉         | 52/536 [00:01<00:11, 42.72it/s] 11%|█         | 57/536 [00:01<00:10, 43.86it/s] 12%|█▏        | 66/536 [00:01<00:10, 45.62it/s] 13%|█▎        | 71/536 [00:01<00:13, 35.74it/s] 14%|█▍        | 75/536 [00:02<00:15, 29.51it/s] 15%|█▍        | 79/536 [00:02<00:18, 24.91it/s] 15%|█▌        | 82/536 [00:02<00:18, 23.95it/s] 17%|█▋        | 89/536 [00:02<00:14, 31.66it/s] 18%|█▊        | 95/536 [00:02<00:11, 37.34it/s] 19%|█▊        | 100/536 [00:02<00:11, 36.76it/s] 20%|█▉        | 105/536 [00:03<00:12, 35.60it/s] 20%|██        | 109/536 [00:03<00:12, 34.40it/s] 21%|██        | 113/536 [00:03<00:13, 31.12it/s] 22%|██▏       | 117/536 [00:03<00:13, 31.93it/s] 23%|██▎       | 122/536 [00:03<00:11, 34.57it/s] 24%|██▎       | 127/536 [00:03<00:10, 37.22it/s] 24%|██▍       | 131/536 [00:03<00:11, 36.78it/s] 25%|██▌       | 135/536 [00:04<00:12, 31.34it/s] 26%|██▌       | 139/536 [00:04<00:15, 26.12it/s] 27%|██▋       | 143/536 [00:04<00:13, 28.10it/s] 27%|██▋       | 147/536 [00:04<00:13, 27.86it/s] 28%|██▊       | 150/536 [00:04<00:15, 24.45it/s] 29%|██▊       | 154/536 [00:04<00:14, 25.82it/s] 29%|██▉       | 158/536 [00:04<00:14, 26.23it/s] 30%|███       | 162/536 [00:05<00:13, 28.40it/s] 31%|███       | 165/536 [00:05<00:13, 27.72it/s] 32%|███▏      | 169/536 [00:05<00:12, 28.27it/s] 32%|███▏      | 172/536 [00:05<00:13, 27.84it/s] 33%|███▎      | 176/536 [00:05<00:11, 30.78it/s] 34%|███▎      | 180/536 [00:05<00:11, 30.42it/s] 35%|███▍      | 185/536 [00:05<00:10, 34.74it/s] 35%|███▌      | 189/536 [00:05<00:10, 33.22it/s] 36%|███▌      | 193/536 [00:06<00:12, 26.80it/s] 37%|███▋      | 196/536 [00:06<00:13, 25.02it/s] 37%|███▋      | 199/536 [00:06<00:13, 24.33it/s] 38%|███▊      | 203/536 [00:06<00:12, 26.53it/s] 39%|███▉      | 208/536 [00:06<00:11, 28.85it/s] 40%|████      | 215/536 [00:06<00:09, 34.59it/s] 41%|████      | 219/536 [00:06<00:09, 33.74it/s] 43%|████▎     | 229/536 [00:07<00:06, 48.42it/s] 44%|████▍     | 236/536 [00:07<00:05, 53.00it/s] 45%|████▌     | 242/536 [00:07<00:06, 42.80it/s] 46%|████▌     | 247/536 [00:07<00:08, 35.90it/s] 48%|████▊     | 257/536 [00:07<00:06, 44.72it/s] 49%|████▉     | 262/536 [00:07<00:06, 43.53it/s] 50%|████▉     | 267/536 [00:08<00:06, 42.12it/s] 51%|█████     | 272/536 [00:08<00:06, 41.96it/s] 52%|█████▏    | 277/536 [00:08<00:06, 38.15it/s] 53%|█████▎    | 283/536 [00:08<00:05, 42.32it/s] 54%|█████▍    | 290/536 [00:08<00:05, 48.88it/s] 55%|█████▌    | 296/536 [00:08<00:05, 43.86it/s] 56%|█████▌    | 301/536 [00:08<00:05, 41.17it/s] 57%|█████▋    | 306/536 [00:08<00:05, 39.92it/s] 58%|█████▊    | 311/536 [00:09<00:06, 36.03it/s] 59%|█████▉    | 316/536 [00:09<00:06, 34.11it/s] 60%|█████▉    | 320/536 [00:09<00:06, 34.27it/s] 60%|██████    | 324/536 [00:09<00:06, 34.78it/s] 61%|██████▏   | 329/536 [00:09<00:05, 37.99it/s] 62%|██████▏   | 333/536 [00:09<00:05, 34.89it/s] 63%|██████▎   | 339/536 [00:09<00:05, 38.24it/s] 64%|██████▍   | 343/536 [00:10<00:05, 35.69it/s] 65%|██████▍   | 347/536 [00:10<00:06, 28.42it/s] 65%|██████▌   | 351/536 [00:10<00:06, 27.11it/s] 66%|██████▌   | 354/536 [00:10<00:06, 26.07it/s] 67%|██████▋   | 359/536 [00:10<00:05, 30.32it/s] 68%|██████▊   | 363/536 [00:10<00:05, 29.26it/s] 68%|██████▊   | 367/536 [00:10<00:06, 27.42it/s] 69%|██████▉   | 371/536 [00:11<00:05, 28.89it/s] 70%|██████▉   | 375/536 [00:11<00:05, 28.60it/s] 71%|███████   | 381/536 [00:11<00:04, 34.96it/s] 72%|███████▏  | 385/536 [00:11<00:05, 28.42it/s] 73%|███████▎  | 389/536 [00:11<00:04, 30.47it/s] 73%|███████▎  | 393/536 [00:11<00:06, 23.50it/s] 74%|███████▍  | 399/536 [00:12<00:04, 29.04it/s] 75%|███████▌  | 404/536 [00:12<00:04, 31.69it/s] 76%|███████▌  | 408/536 [00:12<00:04, 31.68it/s] 77%|███████▋  | 412/536 [00:12<00:04, 28.25it/s] 78%|███████▊  | 416/536 [00:12<00:04, 24.69it/s] 78%|███████▊  | 420/536 [00:12<00:04, 27.16it/s] 79%|███████▉  | 424/536 [00:12<00:03, 29.22it/s] 80%|███████▉  | 428/536 [00:13<00:04, 25.82it/s] 80%|████████  | 431/536 [00:13<00:04, 25.94it/s] 82%|████████▏ | 437/536 [00:13<00:03, 31.45it/s] 82%|████████▏ | 442/536 [00:13<00:02, 32.18it/s] 84%|████████▎ | 448/536 [00:13<00:02, 36.46it/s] 84%|████████▍ | 452/536 [00:13<00:02, 28.07it/s] 86%|████████▌ | 460/536 [00:14<00:02, 35.60it/s] 87%|████████▋ | 464/536 [00:14<00:02, 26.86it/s] 88%|████████▊ | 469/536 [00:14<00:02, 30.79it/s] 88%|████████▊ | 473/536 [00:14<00:01, 32.15it/s] 89%|████████▉ | 478/536 [00:14<00:01, 32.10it/s] 90%|█████████ | 484/536 [00:14<00:01, 36.75it/s] 92%|█████████▏| 492/536 [00:14<00:01, 42.33it/s] 93%|█████████▎| 497/536 [00:15<00:01, 37.94it/s] 93%|█████████▎| 501/536 [00:15<00:01, 32.26it/s] 94%|█████████▍| 505/536 [00:15<00:01, 29.44it/s] 95%|█████████▍| 509/536 [00:15<00:00, 27.57it/s] 96%|█████████▌| 513/536 [00:15<00:00, 29.10it/s] 96%|█████████▋| 517/536 [00:15<00:00, 27.74it/s] 97%|█████████▋| 521/536 [00:16<00:00, 29.15it/s] 98%|█████████▊| 525/536 [00:16<00:00, 30.05it/s] 99%|█████████▉| 530/536 [00:16<00:00, 32.38it/s]100%|██████████| 536/536 [00:16<00:00, 32.76it/s]
-split!!!! testing
-  0%|          | 0/536 [00:00<?, ?it/s]  2%|▏         | 11/536 [00:00<00:05, 94.50it/s]  4%|▍         | 21/536 [00:00<00:06, 75.78it/s]  6%|▌         | 30/536 [00:00<00:06, 76.34it/s]  7%|▋         | 38/536 [00:00<00:07, 62.69it/s]  8%|▊         | 45/536 [00:00<00:08, 56.61it/s] 10%|▉         | 51/536 [00:00<00:10, 45.93it/s] 10%|█         | 56/536 [00:01<00:10, 45.52it/s] 11%|█▏        | 61/536 [00:01<00:13, 35.40it/s] 15%|█▌        | 83/536 [00:01<00:06, 71.08it/s] 17%|█▋        | 92/536 [00:01<00:08, 53.82it/s] 18%|█▊        | 99/536 [00:01<00:08, 52.94it/s] 20%|█▉        | 106/536 [00:01<00:07, 54.38it/s] 21%|██        | 113/536 [00:02<00:08, 50.44it/s] 22%|██▏       | 119/536 [00:02<00:08, 51.09it/s] 23%|██▎       | 125/536 [00:02<00:08, 47.29it/s] 26%|██▌       | 140/536 [00:02<00:05, 69.95it/s] 28%|██▊       | 148/536 [00:02<00:05, 67.07it/s] 30%|███       | 161/536 [00:02<00:05, 74.66it/s] 32%|███▏      | 169/536 [00:02<00:05, 73.27it/s] 33%|███▎      | 177/536 [00:02<00:04, 73.79it/s] 35%|███▍      | 185/536 [00:03<00:05, 63.05it/s] 37%|███▋      | 198/536 [00:03<00:04, 78.54it/s] 39%|███▊      | 207/536 [00:03<00:04, 77.39it/s] 40%|████      | 216/536 [00:03<00:05, 53.79it/s] 42%|████▏     | 225/536 [00:03<00:05, 58.66it/s] 43%|████▎     | 232/536 [00:03<00:06, 50.08it/s] 44%|████▍     | 238/536 [00:04<00:07, 41.36it/s] 47%|████▋     | 253/536 [00:04<00:04, 60.87it/s] 49%|████▊     | 261/536 [00:04<00:05, 54.80it/s] 50%|█████     | 269/536 [00:04<00:04, 55.20it/s] 52%|█████▏    | 278/536 [00:04<00:04, 60.05it/s] 53%|█████▎    | 285/536 [00:04<00:04, 59.09it/s] 54%|█████▍    | 292/536 [00:05<00:04, 51.23it/s] 56%|█████▌    | 298/536 [00:05<00:05, 43.53it/s] 57%|█████▋    | 303/536 [00:05<00:05, 44.22it/s] 58%|█████▊    | 312/536 [00:05<00:04, 52.07it/s] 60%|█████▉    | 321/536 [00:05<00:03, 55.77it/s] 62%|██████▎   | 335/536 [00:05<00:02, 67.93it/s] 64%|██████▍   | 343/536 [00:05<00:02, 68.01it/s] 67%|██████▋   | 358/536 [00:05<00:02, 85.17it/s] 69%|██████▉   | 369/536 [00:06<00:02, 83.37it/s] 71%|███████   | 378/536 [00:06<00:02, 78.27it/s] 72%|███████▏  | 386/536 [00:06<00:01, 76.25it/s] 74%|███████▍  | 398/536 [00:06<00:01, 79.21it/s] 76%|███████▌  | 407/536 [00:06<00:01, 75.85it/s] 79%|███████▊  | 422/536 [00:06<00:01, 86.92it/s] 81%|████████  | 435/536 [00:06<00:01, 93.99it/s] 83%|████████▎ | 445/536 [00:07<00:01, 79.36it/s] 85%|████████▌ | 456/536 [00:07<00:01, 79.40it/s] 87%|████████▋ | 466/536 [00:07<00:00, 73.66it/s] 88%|████████▊ | 474/536 [00:07<00:01, 60.45it/s] 90%|████████▉ | 481/536 [00:07<00:01, 49.56it/s] 91%|█████████ | 487/536 [00:08<00:01, 39.65it/s] 93%|█████████▎| 496/536 [00:08<00:00, 43.19it/s] 97%|█████████▋| 520/536 [00:08<00:00, 78.55it/s] 99%|█████████▉| 531/536 [00:08<00:00, 79.47it/s]100%|██████████| 536/536 [00:08<00:00, 61.69it/s]
-2026-04-24 20:04:18,585 [INFO] Arguments: Namespace(mode='rgb', train='train', backbone='i3d', comp_info=None, gpu='0', dataset='tsu', rgb_root='/mnt/beegfsstudents/home/3199302/ASO-Temba/data/TSU/i3d_features', flow_root='no_root', type='original', epochs=50, model='mstemba', load_model='False', batch_size='4', num_clips='8', skip='1', num_layer='False', unisize='False', alpha_l=1.0, beta_l=1.0, output_dir='/mnt/beegfsstudents/home/3199302/ASO-Temba/outputs/tsu_i3d', model_ema=True, model_ema_decay=0.99996, model_ema_force_cpu=False, drop=0.0, drop_path=0.0, opt='adamw', opt_eps=1e-08, opt_betas=None, clip_grad=None, momentum=0.9, weight_decay=0.01, sched='cosine', lr=0.0005, lr_noise=None, lr_noise_pct=0.67, lr_noise_std=1.0, warmup_lr=1e-06, min_lr=1e-05, decay_epochs=30, warmup_epochs=5, cooldown_epochs=10, patience_epochs=10, decay_rate=0.1)
-2026-04-24 20:04:19,270 [INFO] Number of parameters: 16492460
-2026-04-24 20:04:19,280 [INFO] Epoch 0/49
-2026-04-24 20:04:19,283 [INFO] ----------
-/home/3199302/.conda/envs/cv_project/lib/python3.10/site-packages/torch/nn/_reduction.py:42: UserWarning: size_average and reduce args will be deprecated, please use reduction='sum' instead.
-  warnings.warn(warning.format(ret))
-/mnt/beegfsstudents/home/3199302/ASO-Temba/vim/apmeter.py:88: UserWarning: TypedStorage is deprecated. It will be removed in the future and UntypedStorage will be the only storage class. This should only matter to you if you are using storages directly.  To access UntypedStorage directly, use tensor.untyped_storage() instead of tensor.storage()
-  if self.scores.storage().size() < self.scores.numel() + output.numel():
-/home/3199302/.conda/envs/cv_project/lib/python3.10/site-packages/torch/nn/_reduction.py:42: UserWarning: size_average and reduce args will be deprecated, please use reduction='sum' instead.
-  warnings.warn(warning.format(ret))
-2026-04-24 20:04:40,026 [INFO] Epoch 0, train-map: 2.4338
-2026-04-24 20:04:40,035 [INFO] Epoch 0, Block 1 train-map: 2.5758
-2026-04-24 20:04:40,044 [INFO] Epoch 0, Block 2 train-map: 1.6640
-2026-04-24 20:04:40,052 [INFO] Epoch 0, Block 3 train-map: 2.7135
-2026-04-24 20:04:40,056 [INFO] Epoch 0, Diversity Loss: 1.977139
-2026-04-24 20:04:40,060 [INFO] Epoch 0 - Train MAP: 2.43, Train Loss: 266.3067
-2026-04-24 20:04:45,550 [INFO] Epoch 0, Block 1 Full-val-map: 3.1655
-2026-04-24 20:04:45,554 [INFO] Epoch 0, Block 1 sampled-val-map: 0.0000
-2026-04-24 20:04:45,557 [INFO] Block 1 Sampled AP values: 0
-2026-04-24 20:04:45,585 [INFO] Epoch 0, Block 2 Full-val-map: 2.4673
-2026-04-24 20:04:45,588 [INFO] Epoch 0, Block 2 sampled-val-map: 0.0000
-2026-04-24 20:04:45,592 [INFO] Block 2 Sampled AP values: 0
-2026-04-24 20:04:45,618 [INFO] Epoch 0, Block 3 Full-val-map: 2.3532
-2026-04-24 20:04:45,622 [INFO] Epoch 0, Block 3 sampled-val-map: 0.0000
-2026-04-24 20:04:45,625 [INFO] Block 3 Sampled AP values: 0
-2026-04-24 20:04:45,637 [INFO] Epoch 0, Final Full-val-map: 2.6271
-2026-04-24 20:04:45,640 [INFO] Epoch 0, Final sampled-val-map: 0.0000
-2026-04-24 20:04:45,644 [INFO] Final Sampled AP values: 0
-2026-04-24 20:04:45,649 [INFO] Epoch 0 - Val MAP: 2.63, Val Loss: 249.0604
-2026-04-24 20:04:45,652 [INFO] Epoch 0 - Sampled Val MAP: 0.00
-2026-04-24 20:04:45,735 [INFO] Epoch 0, Total_Time 26.46, Epoch_time 26.45
-2026-04-24 20:04:45,747 [INFO] Epoch 0, Best Sampled Val Map Update 2.6271
-2026-04-24 20:04:45,758 [INFO] Logit saved at: /mnt/beegfsstudents/home/3199302/ASO-Temba/outputs/tsu_i3d/0.pkl
-2026-04-24 20:04:45,950 [INFO] Best model saved at: /mnt/beegfsstudents/home/3199302/ASO-Temba/outputs/tsu_i3d/best_model.pth
-2026-04-24 20:04:45,953 [INFO] Epoch 1/49
-2026-04-24 20:04:45,957 [INFO] ----------
-2026-04-24 20:04:55,243 [INFO] Epoch 1, train-map: 4.5112
-2026-04-24 20:04:55,252 [INFO] Epoch 1, Block 1 train-map: 3.1375
-2026-04-24 20:04:55,260 [INFO] Epoch 1, Block 2 train-map: 3.6704
-2026-04-24 20:04:55,269 [INFO] Epoch 1, Block 3 train-map: 3.5427
-2026-04-24 20:04:55,273 [INFO] Epoch 1, Diversity Loss: 0.653560
-2026-04-24 20:04:55,276 [INFO] Epoch 1 - Train MAP: 4.51, Train Loss: 127.5312
-2026-04-24 20:05:00,724 [INFO] Epoch 1, Block 1 Full-val-map: 3.1720
-2026-04-24 20:05:00,727 [INFO] Epoch 1, Block 1 sampled-val-map: 0.0000
-2026-04-24 20:05:00,731 [INFO] Block 1 Sampled AP values: 0
-2026-04-24 20:05:00,758 [INFO] Epoch 1, Block 2 Full-val-map: 2.4806
-2026-04-24 20:05:00,762 [INFO] Epoch 1, Block 2 sampled-val-map: 0.0000
-2026-04-24 20:05:00,765 [INFO] Block 2 Sampled AP values: 0
-2026-04-24 20:05:00,792 [INFO] Epoch 1, Block 3 Full-val-map: 2.4113
-2026-04-24 20:05:00,796 [INFO] Epoch 1, Block 3 sampled-val-map: 0.0000
-2026-04-24 20:05:00,800 [INFO] Block 3 Sampled AP values: 0
-2026-04-24 20:05:00,810 [INFO] Epoch 1, Final Full-val-map: 2.6548
-2026-04-24 20:05:00,813 [INFO] Epoch 1, Final sampled-val-map: 0.0000
-2026-04-24 20:05:00,817 [INFO] Final Sampled AP values: 0
-2026-04-24 20:05:00,821 [INFO] Epoch 1 - Val MAP: 2.65, Val Loss: 95.4833
-2026-04-24 20:05:00,825 [INFO] Epoch 1 - Sampled Val MAP: 0.00
-2026-04-24 20:05:00,853 [INFO] Epoch 1, Total_Time 41.58, Epoch_time 14.90
-2026-04-24 20:05:00,864 [INFO] Epoch 1, Best Sampled Val Map Update 2.6548
-2026-04-24 20:05:00,873 [INFO] Logit saved at: /mnt/beegfsstudents/home/3199302/ASO-Temba/outputs/tsu_i3d/1.pkl
-2026-04-24 20:05:01,073 [INFO] Best model saved at: /mnt/beegfsstudents/home/3199302/ASO-Temba/outputs/tsu_i3d/best_model.pth
-2026-04-24 20:05:01,076 [INFO] Epoch 2/49
-2026-04-24 20:05:01,080 [INFO] ----------
-2026-04-24 20:05:10,438 [INFO] Epoch 2, train-map: 3.6956
-2026-04-24 20:05:10,447 [INFO] Epoch 2, Block 1 train-map: 2.4022
-2026-04-24 20:05:10,455 [INFO] Epoch 2, Block 2 train-map: 1.9960
-2026-04-24 20:05:10,464 [INFO] Epoch 2, Block 3 train-map: 1.7552
-2026-04-24 20:05:10,467 [INFO] Epoch 2, Diversity Loss: 0.147772
-2026-04-24 20:05:10,471 [INFO] Epoch 2 - Train MAP: 3.70, Train Loss: 63.2065
-2026-04-24 20:05:15,938 [INFO] Epoch 2, Block 1 Full-val-map: 3.2705
-2026-04-24 20:05:15,941 [INFO] Epoch 2, Block 1 sampled-val-map: 0.0000
-2026-04-24 20:05:15,945 [INFO] Block 1 Sampled AP values: 0
-2026-04-24 20:05:15,971 [INFO] Epoch 2, Block 2 Full-val-map: 2.5009
-2026-04-24 20:05:15,975 [INFO] Epoch 2, Block 2 sampled-val-map: 0.0000
-2026-04-24 20:05:15,979 [INFO] Block 2 Sampled AP values: 0
-2026-04-24 20:05:16,005 [INFO] Epoch 2, Block 3 Full-val-map: 2.4225
-2026-04-24 20:05:16,009 [INFO] Epoch 2, Block 3 sampled-val-map: 0.0000
-2026-04-24 20:05:16,012 [INFO] Block 3 Sampled AP values: 0
-2026-04-24 20:05:16,023 [INFO] Epoch 2, Final Full-val-map: 2.6450
-2026-04-24 20:05:16,027 [INFO] Epoch 2, Final sampled-val-map: 0.0000
-2026-04-24 20:05:16,030 [INFO] Final Sampled AP values: 0
-2026-04-24 20:05:16,035 [INFO] Epoch 2 - Val MAP: 2.64, Val Loss: 62.4948
-2026-04-24 20:05:16,038 [INFO] Epoch 2 - Sampled Val MAP: 0.00
-2026-04-24 20:05:16,067 [INFO] Epoch 2, Total_Time 56.79, Epoch_time 14.99
-2026-04-24 20:05:16,078 [INFO] Epoch 3/49
-2026-04-24 20:05:16,081 [INFO] ----------
-2026-04-24 20:05:25,390 [INFO] Epoch 3, train-map: 2.6799
-2026-04-24 20:05:25,399 [INFO] Epoch 3, Block 1 train-map: 2.8567
-2026-04-24 20:05:25,407 [INFO] Epoch 3, Block 2 train-map: 1.4501
-2026-04-24 20:05:25,416 [INFO] Epoch 3, Block 3 train-map: 2.2537
-2026-04-24 20:05:25,420 [INFO] Epoch 3, Diversity Loss: 0.131311
-2026-04-24 20:05:25,424 [INFO] Epoch 3 - Train MAP: 2.68, Train Loss: 48.5221
-2026-04-24 20:05:30,852 [INFO] Epoch 3, Block 1 Full-val-map: 3.2673
-2026-04-24 20:05:30,856 [INFO] Epoch 3, Block 1 sampled-val-map: 0.0000
-2026-04-24 20:05:30,860 [INFO] Block 1 Sampled AP values: 0
-2026-04-24 20:05:30,887 [INFO] Epoch 3, Block 2 Full-val-map: 2.5077
-2026-04-24 20:05:30,891 [INFO] Epoch 3, Block 2 sampled-val-map: 0.0000
-2026-04-24 20:05:30,895 [INFO] Block 2 Sampled AP values: 0
-2026-04-24 20:05:30,923 [INFO] Epoch 3, Block 3 Full-val-map: 2.3954
-2026-04-24 20:05:30,927 [INFO] Epoch 3, Block 3 sampled-val-map: 0.0000
-2026-04-24 20:05:30,930 [INFO] Block 3 Sampled AP values: 0
-2026-04-24 20:05:30,941 [INFO] Epoch 3, Final Full-val-map: 2.5916
-2026-04-24 20:05:30,944 [INFO] Epoch 3, Final sampled-val-map: 0.0000
-2026-04-24 20:05:30,947 [INFO] Final Sampled AP values: 0
-2026-04-24 20:05:30,952 [INFO] Epoch 3 - Val MAP: 2.59, Val Loss: 48.5594
-2026-04-24 20:05:30,956 [INFO] Epoch 3 - Sampled Val MAP: 0.00
-2026-04-24 20:05:30,984 [INFO] Epoch 3, Total_Time 71.71, Epoch_time 14.91
-2026-04-24 20:05:30,994 [INFO] Epoch 4/49
-2026-04-24 20:05:30,998 [INFO] ----------
-2026-04-24 20:05:41,684 [INFO] Epoch 4, train-map: 1.4696
-2026-04-24 20:05:41,693 [INFO] Epoch 4, Block 1 train-map: 1.8130
-2026-04-24 20:05:41,702 [INFO] Epoch 4, Block 2 train-map: 1.5189
-2026-04-24 20:05:41,711 [INFO] Epoch 4, Block 3 train-map: 1.6052
-2026-04-24 20:05:41,715 [INFO] Epoch 4, Diversity Loss: 0.092315
-2026-04-24 20:05:41,719 [INFO] Epoch 4 - Train MAP: 1.47, Train Loss: 38.9236
-2026-04-24 20:05:47,206 [INFO] Epoch 4, Block 1 Full-val-map: 3.4167
-2026-04-24 20:05:47,210 [INFO] Epoch 4, Block 1 sampled-val-map: 0.0000
-2026-04-24 20:05:47,213 [INFO] Block 1 Sampled AP values: 0
-2026-04-24 20:05:47,241 [INFO] Epoch 4, Block 2 Full-val-map: 2.5232
-2026-04-24 20:05:47,245 [INFO] Epoch 4, Block 2 sampled-val-map: 0.0000
-2026-04-24 20:05:47,248 [INFO] Block 2 Sampled AP values: 0
-2026-04-24 20:05:47,275 [INFO] Epoch 4, Block 3 Full-val-map: 2.4006
-2026-04-24 20:05:47,279 [INFO] Epoch 4, Block 3 sampled-val-map: 0.0000
-2026-04-24 20:05:47,282 [INFO] Block 3 Sampled AP values: 0
-2026-04-24 20:05:47,293 [INFO] Epoch 4, Final Full-val-map: 2.5459
-2026-04-24 20:05:47,297 [INFO] Epoch 4, Final sampled-val-map: 0.0000
-2026-04-24 20:05:47,300 [INFO] Final Sampled AP values: 0
-2026-04-24 20:05:47,305 [INFO] Epoch 4 - Val MAP: 2.55, Val Loss: 38.9609
-2026-04-24 20:05:47,308 [INFO] Epoch 4 - Sampled Val MAP: 0.00
-2026-04-24 20:05:47,337 [INFO] Epoch 4, Total_Time 88.06, Epoch_time 16.34
-2026-04-24 20:05:47,348 [INFO] Epoch 5/49
-2026-04-24 20:05:47,352 [INFO] ----------
-2026-04-24 20:05:58,043 [INFO] Epoch 5, train-map: 3.7592
-2026-04-24 20:05:58,052 [INFO] Epoch 5, Block 1 train-map: 2.4782
-2026-04-24 20:05:58,060 [INFO] Epoch 5, Block 2 train-map: 3.2537
-2026-04-24 20:05:58,069 [INFO] Epoch 5, Block 3 train-map: 2.2106
-2026-04-24 20:05:58,072 [INFO] Epoch 5, Diversity Loss: 0.037963
-2026-04-24 20:05:58,077 [INFO] Epoch 5 - Train MAP: 3.76, Train Loss: 24.9765
-2026-04-24 20:06:03,538 [INFO] Epoch 5, Block 1 Full-val-map: 4.2891
-2026-04-24 20:06:03,542 [INFO] Epoch 5, Block 1 sampled-val-map: 0.0000
-2026-04-24 20:06:03,546 [INFO] Block 1 Sampled AP values: 0
-2026-04-24 20:06:03,574 [INFO] Epoch 5, Block 2 Full-val-map: 2.5805
-2026-04-24 20:06:03,578 [INFO] Epoch 5, Block 2 sampled-val-map: 0.0000
-2026-04-24 20:06:03,582 [INFO] Block 2 Sampled AP values: 0
-2026-04-24 20:06:03,609 [INFO] Epoch 5, Block 3 Full-val-map: 2.6578
-2026-04-24 20:06:03,613 [INFO] Epoch 5, Block 3 sampled-val-map: 0.0000
-2026-04-24 20:06:03,617 [INFO] Block 3 Sampled AP values: 0
-2026-04-24 20:06:03,628 [INFO] Epoch 5, Final Full-val-map: 2.6770
-2026-04-24 20:06:03,631 [INFO] Epoch 5, Final sampled-val-map: 0.0000
-2026-04-24 20:06:03,635 [INFO] Final Sampled AP values: 0
-2026-04-24 20:06:03,641 [INFO] Epoch 5 - Val MAP: 2.68, Val Loss: 23.6546
-2026-04-24 20:06:03,645 [INFO] Epoch 5 - Sampled Val MAP: 0.00
-2026-04-24 20:06:03,677 [INFO] Epoch 5, Total_Time 104.40, Epoch_time 16.33
-2026-04-24 20:06:03,690 [INFO] Epoch 5, Best Sampled Val Map Update 2.6770
-2026-04-24 20:06:03,700 [INFO] Logit saved at: /mnt/beegfsstudents/home/3199302/ASO-Temba/outputs/tsu_i3d/5.pkl
-2026-04-24 20:06:03,897 [INFO] Best model saved at: /mnt/beegfsstudents/home/3199302/ASO-Temba/outputs/tsu_i3d/best_model.pth
-2026-04-24 20:06:03,900 [INFO] Epoch 6/49
-2026-04-24 20:06:03,904 [INFO] ----------
-2026-04-24 20:06:14,634 [INFO] Epoch 6, train-map: 1.8891
-2026-04-24 20:06:14,643 [INFO] Epoch 6, Block 1 train-map: 2.5482
-2026-04-24 20:06:14,651 [INFO] Epoch 6, Block 2 train-map: 2.1389
-2026-04-24 20:06:14,660 [INFO] Epoch 6, Block 3 train-map: 2.0080
-2026-04-24 20:06:14,663 [INFO] Epoch 6, Diversity Loss: 0.167496
-2026-04-24 20:06:14,668 [INFO] Epoch 6 - Train MAP: 1.89, Train Loss: 28.3852
-2026-04-24 20:06:20,117 [INFO] Epoch 6, Block 1 Full-val-map: 3.3782
-2026-04-24 20:06:20,121 [INFO] Epoch 6, Block 1 sampled-val-map: 0.0000
-2026-04-24 20:06:20,125 [INFO] Block 1 Sampled AP values: 0
-2026-04-24 20:06:20,152 [INFO] Epoch 6, Block 2 Full-val-map: 2.3625
-2026-04-24 20:06:20,155 [INFO] Epoch 6, Block 2 sampled-val-map: 0.0000
-2026-04-24 20:06:20,159 [INFO] Block 2 Sampled AP values: 0
-2026-04-24 20:06:20,186 [INFO] Epoch 6, Block 3 Full-val-map: 2.7042
-2026-04-24 20:06:20,189 [INFO] Epoch 6, Block 3 sampled-val-map: 0.0000
-2026-04-24 20:06:20,193 [INFO] Block 3 Sampled AP values: 0
-2026-04-24 20:06:20,204 [INFO] Epoch 6, Final Full-val-map: 2.4750
-2026-04-24 20:06:20,207 [INFO] Epoch 6, Final sampled-val-map: 0.0000
-2026-04-24 20:06:20,210 [INFO] Final Sampled AP values: 0
-2026-04-24 20:06:20,215 [INFO] Epoch 6 - Val MAP: 2.47, Val Loss: 17.0810
-2026-04-24 20:06:20,219 [INFO] Epoch 6 - Sampled Val MAP: 0.00
-2026-04-24 20:06:20,249 [INFO] Epoch 6, Total_Time 120.97, Epoch_time 16.35
-2026-04-24 20:06:20,261 [INFO] Epoch 7/49
-2026-04-24 20:06:20,264 [INFO] ----------
-2026-04-24 20:06:30,853 [INFO] Epoch 7, train-map: 3.1383
-2026-04-24 20:06:30,861 [INFO] Epoch 7, Block 1 train-map: 2.8725
-2026-04-24 20:06:30,870 [INFO] Epoch 7, Block 2 train-map: 3.3464
-2026-04-24 20:06:30,878 [INFO] Epoch 7, Block 3 train-map: 3.3735
-2026-04-24 20:06:30,882 [INFO] Epoch 7, Diversity Loss: nan
-2026-04-24 20:06:30,885 [INFO] Epoch 7 - Train MAP: 3.14, Train Loss: nan
-2026-04-24 20:06:36,277 [INFO] Epoch 7, Block 1 Full-val-map: 3.0123
-2026-04-24 20:06:36,280 [INFO] Epoch 7, Block 1 sampled-val-map: 0.0000
-2026-04-24 20:06:36,284 [INFO] Block 1 Sampled AP values: 0
-2026-04-24 20:06:36,305 [INFO] Epoch 7, Block 2 Full-val-map: 3.0123
-2026-04-24 20:06:36,308 [INFO] Epoch 7, Block 2 sampled-val-map: 0.0000
-2026-04-24 20:06:36,311 [INFO] Block 2 Sampled AP values: 0
-2026-04-24 20:06:36,332 [INFO] Epoch 7, Block 3 Full-val-map: 3.0123
-2026-04-24 20:06:36,336 [INFO] Epoch 7, Block 3 sampled-val-map: 0.0000
-2026-04-24 20:06:36,339 [INFO] Block 3 Sampled AP values: 0
-2026-04-24 20:06:36,350 [INFO] Epoch 7, Final Full-val-map: 3.0123
-2026-04-24 20:06:36,353 [INFO] Epoch 7, Final sampled-val-map: 0.0000
-2026-04-24 20:06:36,357 [INFO] Final Sampled AP values: 0
-2026-04-24 20:06:36,361 [INFO] Epoch 7 - Val MAP: 3.01, Val Loss: nan
-2026-04-24 20:06:36,365 [INFO] Epoch 7 - Sampled Val MAP: 0.00
-2026-04-24 20:06:36,392 [INFO] Epoch 7, Total_Time 137.12, Epoch_time 16.13
-2026-04-24 20:06:36,403 [INFO] Epoch 7, Best Sampled Val Map Update 3.0123
-2026-04-24 20:06:36,414 [INFO] Logit saved at: /mnt/beegfsstudents/home/3199302/ASO-Temba/outputs/tsu_i3d/7.pkl
-2026-04-24 20:06:36,598 [INFO] Best model saved at: /mnt/beegfsstudents/home/3199302/ASO-Temba/outputs/tsu_i3d/best_model.pth
-2026-04-24 20:06:36,601 [INFO] Epoch 8/49
-2026-04-24 20:06:36,604 [INFO] ----------
-2026-04-24 20:06:45,828 [INFO] Epoch 8, train-map: 2.4366
-2026-04-24 20:06:45,835 [INFO] Epoch 8, Block 1 train-map: 2.4366
-2026-04-24 20:06:45,843 [INFO] Epoch 8, Block 2 train-map: 2.4366
-2026-04-24 20:06:45,850 [INFO] Epoch 8, Block 3 train-map: 2.4366
-2026-04-24 20:06:45,854 [INFO] Epoch 8, Diversity Loss: nan
-2026-04-24 20:06:45,858 [INFO] Epoch 8 - Train MAP: 2.44, Train Loss: nan
-2026-04-24 20:06:51,211 [INFO] Epoch 8, Block 1 Full-val-map: 2.8688
-2026-04-24 20:06:51,215 [INFO] Epoch 8, Block 1 sampled-val-map: 0.0000
-2026-04-24 20:06:51,219 [INFO] Block 1 Sampled AP values: 0
-2026-04-24 20:06:51,241 [INFO] Epoch 8, Block 2 Full-val-map: 2.8688
-2026-04-24 20:06:51,245 [INFO] Epoch 8, Block 2 sampled-val-map: 0.0000
-2026-04-24 20:06:51,249 [INFO] Block 2 Sampled AP values: 0
-2026-04-24 20:06:51,272 [INFO] Epoch 8, Block 3 Full-val-map: 2.8688
-2026-04-24 20:06:51,276 [INFO] Epoch 8, Block 3 sampled-val-map: 0.0000
-2026-04-24 20:06:51,280 [INFO] Block 3 Sampled AP values: 0
-2026-04-24 20:06:51,291 [INFO] Epoch 8, Final Full-val-map: 2.8688
-2026-04-24 20:06:51,295 [INFO] Epoch 8, Final sampled-val-map: 0.0000
-2026-04-24 20:06:51,299 [INFO] Final Sampled AP values: 0
-2026-04-24 20:06:51,305 [INFO] Epoch 8 - Val MAP: 2.87, Val Loss: nan
-2026-04-24 20:06:51,309 [INFO] Epoch 8 - Sampled Val MAP: 0.00
-2026-04-24 20:06:51,340 [INFO] Epoch 8, Total_Time 152.07, Epoch_time 14.74
-2026-04-24 20:06:51,352 [INFO] Epoch 9/49
-2026-04-24 20:06:51,356 [INFO] ----------
-2026-04-24 20:07:00,669 [INFO] Epoch 9, train-map: 2.0913
-2026-04-24 20:07:00,677 [INFO] Epoch 9, Block 1 train-map: 2.0913
-2026-04-24 20:07:00,685 [INFO] Epoch 9, Block 2 train-map: 2.0913
-2026-04-24 20:07:00,693 [INFO] Epoch 9, Block 3 train-map: 2.0913
-2026-04-24 20:07:00,696 [INFO] Epoch 9, Diversity Loss: nan
-2026-04-24 20:07:00,700 [INFO] Epoch 9 - Train MAP: 2.09, Train Loss: nan
-2026-04-24 20:07:06,125 [INFO] Epoch 9, Block 1 Full-val-map: 3.0744
-2026-04-24 20:07:06,129 [INFO] Epoch 9, Block 1 sampled-val-map: 0.0000
-2026-04-24 20:07:06,133 [INFO] Block 1 Sampled AP values: 0
-2026-04-24 20:07:06,154 [INFO] Epoch 9, Block 2 Full-val-map: 3.0744
-2026-04-24 20:07:06,158 [INFO] Epoch 9, Block 2 sampled-val-map: 0.0000
-2026-04-24 20:07:06,162 [INFO] Block 2 Sampled AP values: 0
-2026-04-24 20:07:06,183 [INFO] Epoch 9, Block 3 Full-val-map: 3.0744
-2026-04-24 20:07:06,187 [INFO] Epoch 9, Block 3 sampled-val-map: 0.0000
-2026-04-24 20:07:06,191 [INFO] Block 3 Sampled AP values: 0
-2026-04-24 20:07:06,202 [INFO] Epoch 9, Final Full-val-map: 3.0744
-2026-04-24 20:07:06,206 [INFO] Epoch 9, Final sampled-val-map: 0.0000
-2026-04-24 20:07:06,210 [INFO] Final Sampled AP values: 0
-2026-04-24 20:07:06,215 [INFO] Epoch 9 - Val MAP: 3.07, Val Loss: nan
-2026-04-24 20:07:06,218 [INFO] Epoch 9 - Sampled Val MAP: 0.00
-2026-04-24 20:07:06,245 [INFO] Epoch 9, Total_Time 166.97, Epoch_time 14.89
-2026-04-24 20:07:06,257 [INFO] Epoch 9, Best Sampled Val Map Update 3.0744
-2026-04-24 20:07:06,266 [INFO] Logit saved at: /mnt/beegfsstudents/home/3199302/ASO-Temba/outputs/tsu_i3d/9.pkl
-2026-04-24 20:07:06,463 [INFO] Best model saved at: /mnt/beegfsstudents/home/3199302/ASO-Temba/outputs/tsu_i3d/best_model.pth
-2026-04-24 20:07:06,466 [INFO] Epoch 10/49
-2026-04-24 20:07:06,470 [INFO] ----------
-2026-04-24 20:07:15,813 [INFO] Epoch 10, train-map: 2.8814
-2026-04-24 20:07:15,820 [INFO] Epoch 10, Block 1 train-map: 2.8814
-2026-04-24 20:07:15,828 [INFO] Epoch 10, Block 2 train-map: 2.8814
-2026-04-24 20:07:15,836 [INFO] Epoch 10, Block 3 train-map: 2.8814
-2026-04-24 20:07:15,839 [INFO] Epoch 10, Diversity Loss: nan
-2026-04-24 20:07:15,843 [INFO] Epoch 10 - Train MAP: 2.88, Train Loss: nan
-2026-04-24 20:07:21,247 [INFO] Epoch 10, Block 1 Full-val-map: 3.2601
-2026-04-24 20:07:21,252 [INFO] Epoch 10, Block 1 sampled-val-map: 0.0000
-2026-04-24 20:07:21,256 [INFO] Block 1 Sampled AP values: 0
-2026-04-24 20:07:21,280 [INFO] Epoch 10, Block 2 Full-val-map: 3.2601
-2026-04-24 20:07:21,284 [INFO] Epoch 10, Block 2 sampled-val-map: 0.0000
-2026-04-24 20:07:21,288 [INFO] Block 2 Sampled AP values: 0
-2026-04-24 20:07:21,310 [INFO] Epoch 10, Block 3 Full-val-map: 3.2601
-2026-04-24 20:07:21,315 [INFO] Epoch 10, Block 3 sampled-val-map: 0.0000
-2026-04-24 20:07:21,319 [INFO] Block 3 Sampled AP values: 0
-2026-04-24 20:07:21,331 [INFO] Epoch 10, Final Full-val-map: 3.2601
-2026-04-24 20:07:21,335 [INFO] Epoch 10, Final sampled-val-map: 0.0000
-2026-04-24 20:07:21,339 [INFO] Final Sampled AP values: 0
-2026-04-24 20:07:21,345 [INFO] Epoch 10 - Val MAP: 3.26, Val Loss: nan
-2026-04-24 20:07:21,350 [INFO] Epoch 10 - Sampled Val MAP: 0.00
-2026-04-24 20:07:21,382 [INFO] Epoch 10, Total_Time 182.11, Epoch_time 14.92
-2026-04-24 20:07:21,396 [INFO] Epoch 10, Best Sampled Val Map Update 3.2601
-2026-04-24 20:07:21,406 [INFO] Logit saved at: /mnt/beegfsstudents/home/3199302/ASO-Temba/outputs/tsu_i3d/10.pkl
-2026-04-24 20:07:21,615 [INFO] Best model saved at: /mnt/beegfsstudents/home/3199302/ASO-Temba/outputs/tsu_i3d/best_model.pth
-2026-04-24 20:07:21,619 [INFO] Epoch 11/49
-2026-04-24 20:07:21,623 [INFO] ----------
-2026-04-24 20:07:30,857 [INFO] Epoch 11, train-map: 2.5945
-2026-04-24 20:07:30,865 [INFO] Epoch 11, Block 1 train-map: 2.5945
-2026-04-24 20:07:30,873 [INFO] Epoch 11, Block 2 train-map: 2.5945
-2026-04-24 20:07:30,882 [INFO] Epoch 11, Block 3 train-map: 2.5945
-2026-04-24 20:07:30,886 [INFO] Epoch 11, Diversity Loss: nan
-2026-04-24 20:07:30,890 [INFO] Epoch 11 - Train MAP: 2.59, Train Loss: nan
-2026-04-24 20:07:36,236 [INFO] Epoch 11, Block 1 Full-val-map: 4.2426
-2026-04-24 20:07:36,240 [INFO] Epoch 11, Block 1 sampled-val-map: 0.0000
-2026-04-24 20:07:36,243 [INFO] Block 1 Sampled AP values: 0
-2026-04-24 20:07:36,264 [INFO] Epoch 11, Block 2 Full-val-map: 4.2426
-2026-04-24 20:07:36,268 [INFO] Epoch 11, Block 2 sampled-val-map: 0.0000
-2026-04-24 20:07:36,271 [INFO] Block 2 Sampled AP values: 0
-2026-04-24 20:07:36,292 [INFO] Epoch 11, Block 3 Full-val-map: 4.2426
-2026-04-24 20:07:36,295 [INFO] Epoch 11, Block 3 sampled-val-map: 0.0000
-2026-04-24 20:07:36,299 [INFO] Block 3 Sampled AP values: 0
-2026-04-24 20:07:36,310 [INFO] Epoch 11, Final Full-val-map: 4.2426
-2026-04-24 20:07:36,313 [INFO] Epoch 11, Final sampled-val-map: 0.0000
-2026-04-24 20:07:36,316 [INFO] Final Sampled AP values: 0
-2026-04-24 20:07:36,321 [INFO] Epoch 11 - Val MAP: 4.24, Val Loss: nan
-2026-04-24 20:07:36,325 [INFO] Epoch 11 - Sampled Val MAP: 0.00
-2026-04-24 20:07:36,352 [INFO] Epoch 11, Total_Time 197.08, Epoch_time 14.73
-2026-04-24 20:07:36,364 [INFO] Epoch 11, Best Sampled Val Map Update 4.2426
-2026-04-24 20:07:36,373 [INFO] Logit saved at: /mnt/beegfsstudents/home/3199302/ASO-Temba/outputs/tsu_i3d/11.pkl
-2026-04-24 20:07:36,569 [INFO] Best model saved at: /mnt/beegfsstudents/home/3199302/ASO-Temba/outputs/tsu_i3d/best_model.pth
-2026-04-24 20:07:36,573 [INFO] Epoch 12/49
-2026-04-24 20:07:36,576 [INFO] ----------
-2026-04-24 20:07:45,876 [INFO] Epoch 12, train-map: 2.7184
-2026-04-24 20:07:45,884 [INFO] Epoch 12, Block 1 train-map: 2.7184
-2026-04-24 20:07:45,891 [INFO] Epoch 12, Block 2 train-map: 2.7184
-2026-04-24 20:07:45,899 [INFO] Epoch 12, Block 3 train-map: 2.7184
-2026-04-24 20:07:45,903 [INFO] Epoch 12, Diversity Loss: nan
-2026-04-24 20:07:45,907 [INFO] Epoch 12 - Train MAP: 2.72, Train Loss: nan
-2026-04-24 20:07:51,380 [INFO] Epoch 12, Block 1 Full-val-map: 3.0680
-2026-04-24 20:07:51,383 [INFO] Epoch 12, Block 1 sampled-val-map: 0.0000
-2026-04-24 20:07:51,387 [INFO] Block 1 Sampled AP values: 0
-2026-04-24 20:07:51,408 [INFO] Epoch 12, Block 2 Full-val-map: 3.0680
-2026-04-24 20:07:51,411 [INFO] Epoch 12, Block 2 sampled-val-map: 0.0000
-2026-04-24 20:07:51,414 [INFO] Block 2 Sampled AP values: 0
-2026-04-24 20:07:51,435 [INFO] Epoch 12, Block 3 Full-val-map: 3.0680
-2026-04-24 20:07:51,438 [INFO] Epoch 12, Block 3 sampled-val-map: 0.0000
-2026-04-24 20:07:51,442 [INFO] Block 3 Sampled AP values: 0
-2026-04-24 20:07:51,453 [INFO] Epoch 12, Final Full-val-map: 3.0680
-2026-04-24 20:07:51,456 [INFO] Epoch 12, Final sampled-val-map: 0.0000
-2026-04-24 20:07:51,460 [INFO] Final Sampled AP values: 0
-2026-04-24 20:07:51,465 [INFO] Epoch 12 - Val MAP: 3.07, Val Loss: nan
-2026-04-24 20:07:51,469 [INFO] Epoch 12 - Sampled Val MAP: 0.00
-2026-04-24 20:07:51,496 [INFO] Epoch 12, Total_Time 212.22, Epoch_time 14.92
-2026-04-24 20:07:51,507 [INFO] Epoch 13/49
-2026-04-24 20:07:51,511 [INFO] ----------
-2026-04-24 20:08:00,821 [INFO] Epoch 13, train-map: 2.1692
-2026-04-24 20:08:00,829 [INFO] Epoch 13, Block 1 train-map: 2.1692
-2026-04-24 20:08:00,837 [INFO] Epoch 13, Block 2 train-map: 2.1692
-2026-04-24 20:08:00,844 [INFO] Epoch 13, Block 3 train-map: 2.1692
-2026-04-24 20:08:00,849 [INFO] Epoch 13, Diversity Loss: nan
-2026-04-24 20:08:00,853 [INFO] Epoch 13 - Train MAP: 2.17, Train Loss: nan
-2026-04-24 20:08:06,261 [INFO] Epoch 13, Block 1 Full-val-map: 2.3606
-2026-04-24 20:08:06,265 [INFO] Epoch 13, Block 1 sampled-val-map: 0.0000
-2026-04-24 20:08:06,269 [INFO] Block 1 Sampled AP values: 0
-2026-04-24 20:08:06,290 [INFO] Epoch 13, Block 2 Full-val-map: 2.3606
-2026-04-24 20:08:06,294 [INFO] Epoch 13, Block 2 sampled-val-map: 0.0000
-2026-04-24 20:08:06,298 [INFO] Block 2 Sampled AP values: 0
-2026-04-24 20:08:06,319 [INFO] Epoch 13, Block 3 Full-val-map: 2.3606
-2026-04-24 20:08:06,322 [INFO] Epoch 13, Block 3 sampled-val-map: 0.0000
-2026-04-24 20:08:06,326 [INFO] Block 3 Sampled AP values: 0
-2026-04-24 20:08:06,337 [INFO] Epoch 13, Final Full-val-map: 2.3606
-2026-04-24 20:08:06,340 [INFO] Epoch 13, Final sampled-val-map: 0.0000
-2026-04-24 20:08:06,344 [INFO] Final Sampled AP values: 0
-2026-04-24 20:08:06,349 [INFO] Epoch 13 - Val MAP: 2.36, Val Loss: nan
-2026-04-24 20:08:06,352 [INFO] Epoch 13 - Sampled Val MAP: 0.00
-2026-04-24 20:08:06,381 [INFO] Epoch 13, Total_Time 227.11, Epoch_time 14.87
-2026-04-24 20:08:06,393 [INFO] Epoch 14/49
-2026-04-24 20:08:06,396 [INFO] ----------
-2026-04-24 20:08:15,712 [INFO] Epoch 14, train-map: 2.3810
-2026-04-24 20:08:15,720 [INFO] Epoch 14, Block 1 train-map: 2.3810
-2026-04-24 20:08:15,728 [INFO] Epoch 14, Block 2 train-map: 2.3810
-2026-04-24 20:08:15,735 [INFO] Epoch 14, Block 3 train-map: 2.3810
-2026-04-24 20:08:15,739 [INFO] Epoch 14, Diversity Loss: nan
-2026-04-24 20:08:15,743 [INFO] Epoch 14 - Train MAP: 2.38, Train Loss: nan
-2026-04-24 20:08:21,131 [INFO] Epoch 14, Block 1 Full-val-map: 2.5466
-2026-04-24 20:08:21,135 [INFO] Epoch 14, Block 1 sampled-val-map: 0.0000
-2026-04-24 20:08:21,138 [INFO] Block 1 Sampled AP values: 0
-2026-04-24 20:08:21,159 [INFO] Epoch 14, Block 2 Full-val-map: 2.5466
-2026-04-24 20:08:21,162 [INFO] Epoch 14, Block 2 sampled-val-map: 0.0000
-2026-04-24 20:08:21,166 [INFO] Block 2 Sampled AP values: 0
-2026-04-24 20:08:21,187 [INFO] Epoch 14, Block 3 Full-val-map: 2.5466
-2026-04-24 20:08:21,191 [INFO] Epoch 14, Block 3 sampled-val-map: 0.0000
-2026-04-24 20:08:21,194 [INFO] Block 3 Sampled AP values: 0
-2026-04-24 20:08:21,205 [INFO] Epoch 14, Final Full-val-map: 2.5466
-2026-04-24 20:08:21,208 [INFO] Epoch 14, Final sampled-val-map: 0.0000
-2026-04-24 20:08:21,211 [INFO] Final Sampled AP values: 0
-2026-04-24 20:08:21,216 [INFO] Epoch 14 - Val MAP: 2.55, Val Loss: nan
-2026-04-24 20:08:21,219 [INFO] Epoch 14 - Sampled Val MAP: 0.00
-2026-04-24 20:08:21,246 [INFO] Epoch 14, Total_Time 241.97, Epoch_time 14.85
-2026-04-24 20:08:21,258 [INFO] Epoch 15/49
-2026-04-24 20:08:21,261 [INFO] ----------
-2026-04-24 20:08:30,592 [INFO] Epoch 15, train-map: 2.6380
-2026-04-24 20:08:30,599 [INFO] Epoch 15, Block 1 train-map: 2.6380
-2026-04-24 20:08:30,607 [INFO] Epoch 15, Block 2 train-map: 2.6380
-2026-04-24 20:08:30,614 [INFO] Epoch 15, Block 3 train-map: 2.6380
-2026-04-24 20:08:30,618 [INFO] Epoch 15, Diversity Loss: nan
-2026-04-24 20:08:30,622 [INFO] Epoch 15 - Train MAP: 2.64, Train Loss: nan
-2026-04-24 20:08:36,008 [INFO] Epoch 15, Block 1 Full-val-map: 2.5880
-2026-04-24 20:08:36,012 [INFO] Epoch 15, Block 1 sampled-val-map: 0.0000
-2026-04-24 20:08:36,016 [INFO] Block 1 Sampled AP values: 0
-2026-04-24 20:08:36,037 [INFO] Epoch 15, Block 2 Full-val-map: 2.5880
-2026-04-24 20:08:36,041 [INFO] Epoch 15, Block 2 sampled-val-map: 0.0000
-2026-04-24 20:08:36,045 [INFO] Block 2 Sampled AP values: 0
-2026-04-24 20:08:36,066 [INFO] Epoch 15, Block 3 Full-val-map: 2.5880
-2026-04-24 20:08:36,069 [INFO] Epoch 15, Block 3 sampled-val-map: 0.0000
-2026-04-24 20:08:36,072 [INFO] Block 3 Sampled AP values: 0
-2026-04-24 20:08:36,082 [INFO] Epoch 15, Final Full-val-map: 2.5880
-2026-04-24 20:08:36,086 [INFO] Epoch 15, Final sampled-val-map: 0.0000
-2026-04-24 20:08:36,090 [INFO] Final Sampled AP values: 0
-2026-04-24 20:08:36,095 [INFO] Epoch 15 - Val MAP: 2.59, Val Loss: nan
-2026-04-24 20:08:36,099 [INFO] Epoch 15 - Sampled Val MAP: 0.00
-2026-04-24 20:08:36,128 [INFO] Epoch 15, Total_Time 256.85, Epoch_time 14.87
-2026-04-24 20:08:36,140 [INFO] Epoch 16/49
-2026-04-24 20:08:36,143 [INFO] ----------
-2026-04-24 20:08:45,432 [INFO] Epoch 16, train-map: 1.7966
-2026-04-24 20:08:45,440 [INFO] Epoch 16, Block 1 train-map: 1.7966
-2026-04-24 20:08:45,448 [INFO] Epoch 16, Block 2 train-map: 1.7966
-2026-04-24 20:08:45,455 [INFO] Epoch 16, Block 3 train-map: 1.7966
-2026-04-24 20:08:45,459 [INFO] Epoch 16, Diversity Loss: nan
-2026-04-24 20:08:45,463 [INFO] Epoch 16 - Train MAP: 1.80, Train Loss: nan
-2026-04-24 20:08:50,878 [INFO] Epoch 16, Block 1 Full-val-map: 3.1152
-2026-04-24 20:08:50,882 [INFO] Epoch 16, Block 1 sampled-val-map: 0.0000
-2026-04-24 20:08:50,886 [INFO] Block 1 Sampled AP values: 0
-2026-04-24 20:08:50,907 [INFO] Epoch 16, Block 2 Full-val-map: 3.1152
-2026-04-24 20:08:50,911 [INFO] Epoch 16, Block 2 sampled-val-map: 0.0000
-2026-04-24 20:08:50,914 [INFO] Block 2 Sampled AP values: 0
-2026-04-24 20:08:50,935 [INFO] Epoch 16, Block 3 Full-val-map: 3.1152
-2026-04-24 20:08:50,939 [INFO] Epoch 16, Block 3 sampled-val-map: 0.0000
-2026-04-24 20:08:50,942 [INFO] Block 3 Sampled AP values: 0
-2026-04-24 20:08:50,954 [INFO] Epoch 16, Final Full-val-map: 3.1152
-2026-04-24 20:08:50,958 [INFO] Epoch 16, Final sampled-val-map: 0.0000
-2026-04-24 20:08:50,961 [INFO] Final Sampled AP values: 0
-2026-04-24 20:08:50,967 [INFO] Epoch 16 - Val MAP: 3.12, Val Loss: nan
-2026-04-24 20:08:50,971 [INFO] Epoch 16 - Sampled Val MAP: 0.00
-2026-04-24 20:08:51,002 [INFO] Epoch 16, Total_Time 271.73, Epoch_time 14.86
-2026-04-24 20:08:51,013 [INFO] Epoch 17/49
-2026-04-24 20:08:51,016 [INFO] ----------
-2026-04-24 20:09:00,356 [INFO] Epoch 17, train-map: 2.3692
-2026-04-24 20:09:00,364 [INFO] Epoch 17, Block 1 train-map: 2.3692
-2026-04-24 20:09:00,371 [INFO] Epoch 17, Block 2 train-map: 2.3692
-2026-04-24 20:09:00,379 [INFO] Epoch 17, Block 3 train-map: 2.3692
-2026-04-24 20:09:00,383 [INFO] Epoch 17, Diversity Loss: nan
-2026-04-24 20:09:00,386 [INFO] Epoch 17 - Train MAP: 2.37, Train Loss: nan
-2026-04-24 20:09:05,804 [INFO] Epoch 17, Block 1 Full-val-map: 2.2759
-2026-04-24 20:09:05,807 [INFO] Epoch 17, Block 1 sampled-val-map: 0.0000
-2026-04-24 20:09:05,811 [INFO] Block 1 Sampled AP values: 0
-2026-04-24 20:09:05,832 [INFO] Epoch 17, Block 2 Full-val-map: 2.2759
-2026-04-24 20:09:05,835 [INFO] Epoch 17, Block 2 sampled-val-map: 0.0000
-2026-04-24 20:09:05,838 [INFO] Block 2 Sampled AP values: 0
-2026-04-24 20:09:05,860 [INFO] Epoch 17, Block 3 Full-val-map: 2.2759
-2026-04-24 20:09:05,864 [INFO] Epoch 17, Block 3 sampled-val-map: 0.0000
-2026-04-24 20:09:05,868 [INFO] Block 3 Sampled AP values: 0
-2026-04-24 20:09:05,879 [INFO] Epoch 17, Final Full-val-map: 2.2759
-2026-04-24 20:09:05,882 [INFO] Epoch 17, Final sampled-val-map: 0.0000
-2026-04-24 20:09:05,886 [INFO] Final Sampled AP values: 0
-2026-04-24 20:09:05,891 [INFO] Epoch 17 - Val MAP: 2.28, Val Loss: nan
-2026-04-24 20:09:05,895 [INFO] Epoch 17 - Sampled Val MAP: 0.00
-2026-04-24 20:09:05,923 [INFO] Epoch 17, Total_Time 286.65, Epoch_time 14.91
-2026-04-24 20:09:05,935 [INFO] Epoch 18/49
-2026-04-24 20:09:05,938 [INFO] ----------
-2026-04-24 20:09:15,289 [INFO] Epoch 18, train-map: 2.5523
-2026-04-24 20:09:15,297 [INFO] Epoch 18, Block 1 train-map: 2.5523
-2026-04-24 20:09:15,304 [INFO] Epoch 18, Block 2 train-map: 2.5523
-2026-04-24 20:09:15,312 [INFO] Epoch 18, Block 3 train-map: 2.5523
-2026-04-24 20:09:15,316 [INFO] Epoch 18, Diversity Loss: nan
-2026-04-24 20:09:15,320 [INFO] Epoch 18 - Train MAP: 2.55, Train Loss: nan
-2026-04-24 20:09:20,742 [INFO] Epoch 18, Block 1 Full-val-map: 3.2744
-2026-04-24 20:09:20,747 [INFO] Epoch 18, Block 1 sampled-val-map: 0.0000
-2026-04-24 20:09:20,751 [INFO] Block 1 Sampled AP values: 0
-2026-04-24 20:09:20,774 [INFO] Epoch 18, Block 2 Full-val-map: 3.2744
-2026-04-24 20:09:20,778 [INFO] Epoch 18, Block 2 sampled-val-map: 0.0000
-2026-04-24 20:09:20,782 [INFO] Block 2 Sampled AP values: 0
-2026-04-24 20:09:20,804 [INFO] Epoch 18, Block 3 Full-val-map: 3.2744
-2026-04-24 20:09:20,808 [INFO] Epoch 18, Block 3 sampled-val-map: 0.0000
-2026-04-24 20:09:20,812 [INFO] Block 3 Sampled AP values: 0
-2026-04-24 20:09:20,823 [INFO] Epoch 18, Final Full-val-map: 3.2744
-2026-04-24 20:09:20,826 [INFO] Epoch 18, Final sampled-val-map: 0.0000
-2026-04-24 20:09:20,830 [INFO] Final Sampled AP values: 0
-2026-04-24 20:09:20,835 [INFO] Epoch 18 - Val MAP: 3.27, Val Loss: nan
-2026-04-24 20:09:20,839 [INFO] Epoch 18 - Sampled Val MAP: 0.00
-2026-04-24 20:09:20,866 [INFO] Epoch 18, Total_Time 301.59, Epoch_time 14.93
-2026-04-24 20:09:20,877 [INFO] Epoch 19/49
-2026-04-24 20:09:20,880 [INFO] ----------
-2026-04-24 20:09:30,252 [INFO] Epoch 19, train-map: 2.7799
-2026-04-24 20:09:30,260 [INFO] Epoch 19, Block 1 train-map: 2.7799
-2026-04-24 20:09:30,268 [INFO] Epoch 19, Block 2 train-map: 2.7799
-2026-04-24 20:09:30,276 [INFO] Epoch 19, Block 3 train-map: 2.7799
-2026-04-24 20:09:30,279 [INFO] Epoch 19, Diversity Loss: nan
-2026-04-24 20:09:30,284 [INFO] Epoch 19 - Train MAP: 2.78, Train Loss: nan
-2026-04-24 20:09:35,723 [INFO] Epoch 19, Block 1 Full-val-map: 2.5789
-2026-04-24 20:09:35,727 [INFO] Epoch 19, Block 1 sampled-val-map: 0.0000
-2026-04-24 20:09:35,731 [INFO] Block 1 Sampled AP values: 0
-2026-04-24 20:09:35,752 [INFO] Epoch 19, Block 2 Full-val-map: 2.5789
-2026-04-24 20:09:35,756 [INFO] Epoch 19, Block 2 sampled-val-map: 0.0000
-2026-04-24 20:09:35,759 [INFO] Block 2 Sampled AP values: 0
-2026-04-24 20:09:35,780 [INFO] Epoch 19, Block 3 Full-val-map: 2.5789
-2026-04-24 20:09:35,785 [INFO] Epoch 19, Block 3 sampled-val-map: 0.0000
-2026-04-24 20:09:35,788 [INFO] Block 3 Sampled AP values: 0
-2026-04-24 20:09:35,799 [INFO] Epoch 19, Final Full-val-map: 2.5789
-2026-04-24 20:09:35,802 [INFO] Epoch 19, Final sampled-val-map: 0.0000
-2026-04-24 20:09:35,806 [INFO] Final Sampled AP values: 0
-2026-04-24 20:09:35,811 [INFO] Epoch 19 - Val MAP: 2.58, Val Loss: nan
-2026-04-24 20:09:35,814 [INFO] Epoch 19 - Sampled Val MAP: 0.00
-2026-04-24 20:09:35,841 [INFO] Epoch 19, Total_Time 316.57, Epoch_time 14.96
-2026-04-24 20:09:35,853 [INFO] Epoch 20/49
-2026-04-24 20:09:35,857 [INFO] ----------
-2026-04-24 20:09:45,240 [INFO] Epoch 20, train-map: 2.0503
-2026-04-24 20:09:45,248 [INFO] Epoch 20, Block 1 train-map: 2.0503
-2026-04-24 20:09:45,255 [INFO] Epoch 20, Block 2 train-map: 2.0503
-2026-04-24 20:09:45,263 [INFO] Epoch 20, Block 3 train-map: 2.0503
-2026-04-24 20:09:45,267 [INFO] Epoch 20, Diversity Loss: nan
-2026-04-24 20:09:45,270 [INFO] Epoch 20 - Train MAP: 2.05, Train Loss: nan
-2026-04-24 20:09:50,686 [INFO] Epoch 20, Block 1 Full-val-map: 2.5470
-2026-04-24 20:09:50,690 [INFO] Epoch 20, Block 1 sampled-val-map: 0.0000
-2026-04-24 20:09:50,693 [INFO] Block 1 Sampled AP values: 0
-2026-04-24 20:09:50,715 [INFO] Epoch 20, Block 2 Full-val-map: 2.5470
-2026-04-24 20:09:50,719 [INFO] Epoch 20, Block 2 sampled-val-map: 0.0000
-2026-04-24 20:09:50,723 [INFO] Block 2 Sampled AP values: 0
-2026-04-24 20:09:50,744 [INFO] Epoch 20, Block 3 Full-val-map: 2.5470
-2026-04-24 20:09:50,748 [INFO] Epoch 20, Block 3 sampled-val-map: 0.0000
-2026-04-24 20:09:50,751 [INFO] Block 3 Sampled AP values: 0
-2026-04-24 20:09:50,762 [INFO] Epoch 20, Final Full-val-map: 2.5470
-2026-04-24 20:09:50,765 [INFO] Epoch 20, Final sampled-val-map: 0.0000
-2026-04-24 20:09:50,769 [INFO] Final Sampled AP values: 0
-2026-04-24 20:09:50,774 [INFO] Epoch 20 - Val MAP: 2.55, Val Loss: nan
-2026-04-24 20:09:50,778 [INFO] Epoch 20 - Sampled Val MAP: 0.00
-2026-04-24 20:09:50,806 [INFO] Epoch 20, Total_Time 331.53, Epoch_time 14.95
-2026-04-24 20:09:50,817 [INFO] Epoch 21/49
-2026-04-24 20:09:50,820 [INFO] ----------
-2026-04-24 20:10:00,206 [INFO] Epoch 21, train-map: 2.8085
-2026-04-24 20:10:00,214 [INFO] Epoch 21, Block 1 train-map: 2.8085
-2026-04-24 20:10:00,222 [INFO] Epoch 21, Block 2 train-map: 2.8085
-2026-04-24 20:10:00,230 [INFO] Epoch 21, Block 3 train-map: 2.8085
-2026-04-24 20:10:00,233 [INFO] Epoch 21, Diversity Loss: nan
-2026-04-24 20:10:00,237 [INFO] Epoch 21 - Train MAP: 2.81, Train Loss: nan
-2026-04-24 20:10:05,653 [INFO] Epoch 21, Block 1 Full-val-map: 2.8193
-2026-04-24 20:10:05,657 [INFO] Epoch 21, Block 1 sampled-val-map: 0.0000
-2026-04-24 20:10:05,660 [INFO] Block 1 Sampled AP values: 0
-2026-04-24 20:10:05,681 [INFO] Epoch 21, Block 2 Full-val-map: 2.8193
-2026-04-24 20:10:05,684 [INFO] Epoch 21, Block 2 sampled-val-map: 0.0000
-2026-04-24 20:10:05,687 [INFO] Block 2 Sampled AP values: 0
-2026-04-24 20:10:05,708 [INFO] Epoch 21, Block 3 Full-val-map: 2.8193
-2026-04-24 20:10:05,711 [INFO] Epoch 21, Block 3 sampled-val-map: 0.0000
-2026-04-24 20:10:05,715 [INFO] Block 3 Sampled AP values: 0
-2026-04-24 20:10:05,725 [INFO] Epoch 21, Final Full-val-map: 2.8193
-2026-04-24 20:10:05,728 [INFO] Epoch 21, Final sampled-val-map: 0.0000
-2026-04-24 20:10:05,732 [INFO] Final Sampled AP values: 0
-2026-04-24 20:10:05,737 [INFO] Epoch 21 - Val MAP: 2.82, Val Loss: nan
-2026-04-24 20:10:05,740 [INFO] Epoch 21 - Sampled Val MAP: 0.00
-2026-04-24 20:10:05,768 [INFO] Epoch 21, Total_Time 346.49, Epoch_time 14.95
-2026-04-24 20:10:05,779 [INFO] Epoch 22/49
-2026-04-24 20:10:05,783 [INFO] ----------
-2026-04-24 20:10:15,154 [INFO] Epoch 22, train-map: 2.4038
-2026-04-24 20:10:15,162 [INFO] Epoch 22, Block 1 train-map: 2.4038
-2026-04-24 20:10:15,170 [INFO] Epoch 22, Block 2 train-map: 2.4038
-2026-04-24 20:10:15,177 [INFO] Epoch 22, Block 3 train-map: 2.4038
-2026-04-24 20:10:15,181 [INFO] Epoch 22, Diversity Loss: nan
-2026-04-24 20:10:15,185 [INFO] Epoch 22 - Train MAP: 2.40, Train Loss: nan
-2026-04-24 20:10:20,612 [INFO] Epoch 22, Block 1 Full-val-map: 3.2220
-2026-04-24 20:10:20,616 [INFO] Epoch 22, Block 1 sampled-val-map: 0.0000
-2026-04-24 20:10:20,619 [INFO] Block 1 Sampled AP values: 0
-2026-04-24 20:10:20,642 [INFO] Epoch 22, Block 2 Full-val-map: 3.2220
-2026-04-24 20:10:20,645 [INFO] Epoch 22, Block 2 sampled-val-map: 0.0000
-2026-04-24 20:10:20,649 [INFO] Block 2 Sampled AP values: 0
-2026-04-24 20:10:20,669 [INFO] Epoch 22, Block 3 Full-val-map: 3.2220
-2026-04-24 20:10:20,673 [INFO] Epoch 22, Block 3 sampled-val-map: 0.0000
-2026-04-24 20:10:20,677 [INFO] Block 3 Sampled AP values: 0
-2026-04-24 20:10:20,688 [INFO] Epoch 22, Final Full-val-map: 3.2220
-2026-04-24 20:10:20,691 [INFO] Epoch 22, Final sampled-val-map: 0.0000
-2026-04-24 20:10:20,695 [INFO] Final Sampled AP values: 0
-2026-04-24 20:10:20,700 [INFO] Epoch 22 - Val MAP: 3.22, Val Loss: nan
-2026-04-24 20:10:20,704 [INFO] Epoch 22 - Sampled Val MAP: 0.00
-2026-04-24 20:10:20,732 [INFO] Epoch 22, Total_Time 361.46, Epoch_time 14.95
-2026-04-24 20:10:20,743 [INFO] Epoch 23/49
-2026-04-24 20:10:20,747 [INFO] ----------
-2026-04-24 20:10:30,035 [INFO] Epoch 23, train-map: 2.8038
-2026-04-24 20:10:30,043 [INFO] Epoch 23, Block 1 train-map: 2.8038
-2026-04-24 20:10:30,050 [INFO] Epoch 23, Block 2 train-map: 2.8038
-2026-04-24 20:10:30,057 [INFO] Epoch 23, Block 3 train-map: 2.8038
-2026-04-24 20:10:30,061 [INFO] Epoch 23, Diversity Loss: nan
-2026-04-24 20:10:30,065 [INFO] Epoch 23 - Train MAP: 2.80, Train Loss: nan
-2026-04-24 20:10:35,481 [INFO] Epoch 23, Block 1 Full-val-map: 2.8499
-2026-04-24 20:10:35,485 [INFO] Epoch 23, Block 1 sampled-val-map: 0.0000
-2026-04-24 20:10:35,488 [INFO] Block 1 Sampled AP values: 0
-2026-04-24 20:10:35,510 [INFO] Epoch 23, Block 2 Full-val-map: 2.8499
-2026-04-24 20:10:35,513 [INFO] Epoch 23, Block 2 sampled-val-map: 0.0000
-2026-04-24 20:10:35,517 [INFO] Block 2 Sampled AP values: 0
-2026-04-24 20:10:35,538 [INFO] Epoch 23, Block 3 Full-val-map: 2.8499
-2026-04-24 20:10:35,541 [INFO] Epoch 23, Block 3 sampled-val-map: 0.0000
-2026-04-24 20:10:35,544 [INFO] Block 3 Sampled AP values: 0
-2026-04-24 20:10:35,555 [INFO] Epoch 23, Final Full-val-map: 2.8499
-2026-04-24 20:10:35,559 [INFO] Epoch 23, Final sampled-val-map: 0.0000
-2026-04-24 20:10:35,562 [INFO] Final Sampled AP values: 0
-2026-04-24 20:10:35,567 [INFO] Epoch 23 - Val MAP: 2.85, Val Loss: nan
-2026-04-24 20:10:35,571 [INFO] Epoch 23 - Sampled Val MAP: 0.00
-2026-04-24 20:10:35,599 [INFO] Epoch 23, Total_Time 376.32, Epoch_time 14.86
-2026-04-24 20:10:35,610 [INFO] Epoch 24/49
-2026-04-24 20:10:35,614 [INFO] ----------
-2026-04-24 20:10:44,992 [INFO] Epoch 24, train-map: 2.8487
-2026-04-24 20:10:45,000 [INFO] Epoch 24, Block 1 train-map: 2.8487
-2026-04-24 20:10:45,007 [INFO] Epoch 24, Block 2 train-map: 2.8487
-2026-04-24 20:10:45,014 [INFO] Epoch 24, Block 3 train-map: 2.8487
-2026-04-24 20:10:45,018 [INFO] Epoch 24, Diversity Loss: nan
-2026-04-24 20:10:45,022 [INFO] Epoch 24 - Train MAP: 2.85, Train Loss: nan
-2026-04-24 20:10:50,506 [INFO] Epoch 24, Block 1 Full-val-map: 2.7949
-2026-04-24 20:10:50,509 [INFO] Epoch 24, Block 1 sampled-val-map: 0.0000
-2026-04-24 20:10:50,513 [INFO] Block 1 Sampled AP values: 0
-2026-04-24 20:10:50,535 [INFO] Epoch 24, Block 2 Full-val-map: 2.7949
-2026-04-24 20:10:50,539 [INFO] Epoch 24, Block 2 sampled-val-map: 0.0000
-2026-04-24 20:10:50,542 [INFO] Block 2 Sampled AP values: 0
-2026-04-24 20:10:50,563 [INFO] Epoch 24, Block 3 Full-val-map: 2.7949
-2026-04-24 20:10:50,566 [INFO] Epoch 24, Block 3 sampled-val-map: 0.0000
-2026-04-24 20:10:50,570 [INFO] Block 3 Sampled AP values: 0
-2026-04-24 20:10:50,581 [INFO] Epoch 24, Final Full-val-map: 2.7949
-2026-04-24 20:10:50,585 [INFO] Epoch 24, Final sampled-val-map: 0.0000
-2026-04-24 20:10:50,588 [INFO] Final Sampled AP values: 0
-2026-04-24 20:10:50,593 [INFO] Epoch 24 - Val MAP: 2.79, Val Loss: nan
-2026-04-24 20:10:50,597 [INFO] Epoch 24 - Sampled Val MAP: 0.00
-2026-04-24 20:10:50,626 [INFO] Epoch 24, Total_Time 391.35, Epoch_time 15.02
-2026-04-24 20:10:50,637 [INFO] Epoch 25/49
-2026-04-24 20:10:50,641 [INFO] ----------
-2026-04-24 20:11:00,014 [INFO] Epoch 25, train-map: 3.1394
-2026-04-24 20:11:00,022 [INFO] Epoch 25, Block 1 train-map: 3.1394
-2026-04-24 20:11:00,029 [INFO] Epoch 25, Block 2 train-map: 3.1394
-2026-04-24 20:11:00,037 [INFO] Epoch 25, Block 3 train-map: 3.1394
-2026-04-24 20:11:00,041 [INFO] Epoch 25, Diversity Loss: nan
-2026-04-24 20:11:00,045 [INFO] Epoch 25 - Train MAP: 3.14, Train Loss: nan
-2026-04-24 20:11:05,438 [INFO] Epoch 25, Block 1 Full-val-map: 2.4249
-2026-04-24 20:11:05,441 [INFO] Epoch 25, Block 1 sampled-val-map: 0.0000
-2026-04-24 20:11:05,444 [INFO] Block 1 Sampled AP values: 0
-2026-04-24 20:11:05,466 [INFO] Epoch 25, Block 2 Full-val-map: 2.4249
-2026-04-24 20:11:05,469 [INFO] Epoch 25, Block 2 sampled-val-map: 0.0000
-2026-04-24 20:11:05,473 [INFO] Block 2 Sampled AP values: 0
-2026-04-24 20:11:05,493 [INFO] Epoch 25, Block 3 Full-val-map: 2.4249
-2026-04-24 20:11:05,497 [INFO] Epoch 25, Block 3 sampled-val-map: 0.0000
-2026-04-24 20:11:05,501 [INFO] Block 3 Sampled AP values: 0
-2026-04-24 20:11:05,511 [INFO] Epoch 25, Final Full-val-map: 2.4249
-2026-04-24 20:11:05,515 [INFO] Epoch 25, Final sampled-val-map: 0.0000
-2026-04-24 20:11:05,518 [INFO] Final Sampled AP values: 0
-2026-04-24 20:11:05,523 [INFO] Epoch 25 - Val MAP: 2.42, Val Loss: nan
-2026-04-24 20:11:05,527 [INFO] Epoch 25 - Sampled Val MAP: 0.00
-2026-04-24 20:11:05,554 [INFO] Epoch 25, Total_Time 406.28, Epoch_time 14.92
-2026-04-24 20:11:05,565 [INFO] Epoch 26/49
-2026-04-24 20:11:05,569 [INFO] ----------
-2026-04-24 20:11:14,903 [INFO] Epoch 26, train-map: 2.4772
-2026-04-24 20:11:14,911 [INFO] Epoch 26, Block 1 train-map: 2.4772
-2026-04-24 20:11:14,919 [INFO] Epoch 26, Block 2 train-map: 2.4772
-2026-04-24 20:11:14,926 [INFO] Epoch 26, Block 3 train-map: 2.4772
-2026-04-24 20:11:14,929 [INFO] Epoch 26, Diversity Loss: nan
-2026-04-24 20:11:14,933 [INFO] Epoch 26 - Train MAP: 2.48, Train Loss: nan
-2026-04-24 20:11:20,396 [INFO] Epoch 26, Block 1 Full-val-map: 3.8280
-2026-04-24 20:11:20,400 [INFO] Epoch 26, Block 1 sampled-val-map: 0.0000
-2026-04-24 20:11:20,404 [INFO] Block 1 Sampled AP values: 0
-2026-04-24 20:11:20,426 [INFO] Epoch 26, Block 2 Full-val-map: 3.8280
-2026-04-24 20:11:20,430 [INFO] Epoch 26, Block 2 sampled-val-map: 0.0000
-2026-04-24 20:11:20,433 [INFO] Block 2 Sampled AP values: 0
-2026-04-24 20:11:20,454 [INFO] Epoch 26, Block 3 Full-val-map: 3.8280
-2026-04-24 20:11:20,458 [INFO] Epoch 26, Block 3 sampled-val-map: 0.0000
-2026-04-24 20:11:20,461 [INFO] Block 3 Sampled AP values: 0
-2026-04-24 20:11:20,472 [INFO] Epoch 26, Final Full-val-map: 3.8280
-2026-04-24 20:11:20,475 [INFO] Epoch 26, Final sampled-val-map: 0.0000
-2026-04-24 20:11:20,479 [INFO] Final Sampled AP values: 0
-2026-04-24 20:11:20,484 [INFO] Epoch 26 - Val MAP: 3.83, Val Loss: nan
-2026-04-24 20:11:20,487 [INFO] Epoch 26 - Sampled Val MAP: 0.00
-2026-04-24 20:11:20,515 [INFO] Epoch 26, Total_Time 421.24, Epoch_time 14.95
-2026-04-24 20:11:20,526 [INFO] Epoch 27/49
-2026-04-24 20:11:20,529 [INFO] ----------
-2026-04-24 20:11:29,949 [INFO] Epoch 27, train-map: 2.4829
-2026-04-24 20:11:29,957 [INFO] Epoch 27, Block 1 train-map: 2.4829
-2026-04-24 20:11:29,965 [INFO] Epoch 27, Block 2 train-map: 2.4829
-2026-04-24 20:11:29,973 [INFO] Epoch 27, Block 3 train-map: 2.4829
-2026-04-24 20:11:29,976 [INFO] Epoch 27, Diversity Loss: nan
-2026-04-24 20:11:29,980 [INFO] Epoch 27 - Train MAP: 2.48, Train Loss: nan
-2026-04-24 20:11:35,489 [INFO] Epoch 27, Block 1 Full-val-map: 4.1355
-2026-04-24 20:11:35,493 [INFO] Epoch 27, Block 1 sampled-val-map: 0.0000
-2026-04-24 20:11:35,496 [INFO] Block 1 Sampled AP values: 0
-2026-04-24 20:11:35,517 [INFO] Epoch 27, Block 2 Full-val-map: 4.1355
-2026-04-24 20:11:35,521 [INFO] Epoch 27, Block 2 sampled-val-map: 0.0000
-2026-04-24 20:11:35,524 [INFO] Block 2 Sampled AP values: 0
-2026-04-24 20:11:35,544 [INFO] Epoch 27, Block 3 Full-val-map: 4.1355
-2026-04-24 20:11:35,548 [INFO] Epoch 27, Block 3 sampled-val-map: 0.0000
-2026-04-24 20:11:35,551 [INFO] Block 3 Sampled AP values: 0
-2026-04-24 20:11:35,562 [INFO] Epoch 27, Final Full-val-map: 4.1355
-2026-04-24 20:11:35,565 [INFO] Epoch 27, Final sampled-val-map: 0.0000
-2026-04-24 20:11:35,569 [INFO] Final Sampled AP values: 0
-2026-04-24 20:11:35,574 [INFO] Epoch 27 - Val MAP: 4.14, Val Loss: nan
-2026-04-24 20:11:35,577 [INFO] Epoch 27 - Sampled Val MAP: 0.00
-2026-04-24 20:11:35,605 [INFO] Epoch 27, Total_Time 436.33, Epoch_time 15.08
-2026-04-24 20:11:35,617 [INFO] Epoch 28/49
-2026-04-24 20:11:35,621 [INFO] ----------
-2026-04-24 20:11:44,897 [INFO] Epoch 28, train-map: 4.7769
-2026-04-24 20:11:44,904 [INFO] Epoch 28, Block 1 train-map: 4.7769
-2026-04-24 20:11:44,912 [INFO] Epoch 28, Block 2 train-map: 4.7769
-2026-04-24 20:11:44,920 [INFO] Epoch 28, Block 3 train-map: 4.7769
-2026-04-24 20:11:44,923 [INFO] Epoch 28, Diversity Loss: nan
-2026-04-24 20:11:44,927 [INFO] Epoch 28 - Train MAP: 4.78, Train Loss: nan
-2026-04-24 20:11:50,382 [INFO] Epoch 28, Block 1 Full-val-map: 4.2492
-2026-04-24 20:11:50,386 [INFO] Epoch 28, Block 1 sampled-val-map: 0.0000
-2026-04-24 20:11:50,390 [INFO] Block 1 Sampled AP values: 0
-2026-04-24 20:11:50,411 [INFO] Epoch 28, Block 2 Full-val-map: 4.2492
-2026-04-24 20:11:50,414 [INFO] Epoch 28, Block 2 sampled-val-map: 0.0000
-2026-04-24 20:11:50,418 [INFO] Block 2 Sampled AP values: 0
-2026-04-24 20:11:50,439 [INFO] Epoch 28, Block 3 Full-val-map: 4.2492
-2026-04-24 20:11:50,443 [INFO] Epoch 28, Block 3 sampled-val-map: 0.0000
-2026-04-24 20:11:50,446 [INFO] Block 3 Sampled AP values: 0
-2026-04-24 20:11:50,457 [INFO] Epoch 28, Final Full-val-map: 4.2492
-2026-04-24 20:11:50,461 [INFO] Epoch 28, Final sampled-val-map: 0.0000
-2026-04-24 20:11:50,464 [INFO] Final Sampled AP values: 0
-2026-04-24 20:11:50,469 [INFO] Epoch 28 - Val MAP: 4.25, Val Loss: nan
-2026-04-24 20:11:50,473 [INFO] Epoch 28 - Sampled Val MAP: 0.00
-2026-04-24 20:11:50,501 [INFO] Epoch 28, Total_Time 451.23, Epoch_time 14.88
-2026-04-24 20:11:50,513 [INFO] Epoch 28, Best Sampled Val Map Update 4.2492
-2026-04-24 20:11:50,522 [INFO] Logit saved at: /mnt/beegfsstudents/home/3199302/ASO-Temba/outputs/tsu_i3d/28.pkl
-2026-04-24 20:11:50,718 [INFO] Best model saved at: /mnt/beegfsstudents/home/3199302/ASO-Temba/outputs/tsu_i3d/best_model.pth
-2026-04-24 20:11:50,722 [INFO] Epoch 29/49
-2026-04-24 20:11:50,725 [INFO] ----------
-2026-04-24 20:12:00,076 [INFO] Epoch 29, train-map: 2.2614
-2026-04-24 20:12:00,084 [INFO] Epoch 29, Block 1 train-map: 2.2614
-2026-04-24 20:12:00,092 [INFO] Epoch 29, Block 2 train-map: 2.2614
-2026-04-24 20:12:00,100 [INFO] Epoch 29, Block 3 train-map: 2.2614
-2026-04-24 20:12:00,103 [INFO] Epoch 29, Diversity Loss: nan
-2026-04-24 20:12:00,107 [INFO] Epoch 29 - Train MAP: 2.26, Train Loss: nan
-2026-04-24 20:12:05,537 [INFO] Epoch 29, Block 1 Full-val-map: 3.2720
-2026-04-24 20:12:05,541 [INFO] Epoch 29, Block 1 sampled-val-map: 0.0000
-2026-04-24 20:12:05,544 [INFO] Block 1 Sampled AP values: 0
-2026-04-24 20:12:05,566 [INFO] Epoch 29, Block 2 Full-val-map: 3.2720
-2026-04-24 20:12:05,570 [INFO] Epoch 29, Block 2 sampled-val-map: 0.0000
-2026-04-24 20:12:05,574 [INFO] Block 2 Sampled AP values: 0
-2026-04-24 20:12:05,595 [INFO] Epoch 29, Block 3 Full-val-map: 3.2720
-2026-04-24 20:12:05,599 [INFO] Epoch 29, Block 3 sampled-val-map: 0.0000
-2026-04-24 20:12:05,603 [INFO] Block 3 Sampled AP values: 0
-2026-04-24 20:12:05,614 [INFO] Epoch 29, Final Full-val-map: 3.2720
-2026-04-24 20:12:05,618 [INFO] Epoch 29, Final sampled-val-map: 0.0000
-2026-04-24 20:12:05,622 [INFO] Final Sampled AP values: 0
-2026-04-24 20:12:05,627 [INFO] Epoch 29 - Val MAP: 3.27, Val Loss: nan
-2026-04-24 20:12:05,631 [INFO] Epoch 29 - Sampled Val MAP: 0.00
-2026-04-24 20:12:05,661 [INFO] Epoch 29, Total_Time 466.39, Epoch_time 14.94
-2026-04-24 20:12:05,673 [INFO] Epoch 30/49
-2026-04-24 20:12:05,677 [INFO] ----------
-2026-04-24 20:12:15,040 [INFO] Epoch 30, train-map: 2.5990
-2026-04-24 20:12:15,048 [INFO] Epoch 30, Block 1 train-map: 2.5990
-2026-04-24 20:12:15,056 [INFO] Epoch 30, Block 2 train-map: 2.5990
-2026-04-24 20:12:15,063 [INFO] Epoch 30, Block 3 train-map: 2.5990
-2026-04-24 20:12:15,067 [INFO] Epoch 30, Diversity Loss: nan
-2026-04-24 20:12:15,071 [INFO] Epoch 30 - Train MAP: 2.60, Train Loss: nan
-2026-04-24 20:12:20,538 [INFO] Epoch 30, Block 1 Full-val-map: 2.4820
-2026-04-24 20:12:20,542 [INFO] Epoch 30, Block 1 sampled-val-map: 0.0000
-2026-04-24 20:12:20,545 [INFO] Block 1 Sampled AP values: 0
-2026-04-24 20:12:20,567 [INFO] Epoch 30, Block 2 Full-val-map: 2.4820
-2026-04-24 20:12:20,570 [INFO] Epoch 30, Block 2 sampled-val-map: 0.0000
-2026-04-24 20:12:20,574 [INFO] Block 2 Sampled AP values: 0
-2026-04-24 20:12:20,594 [INFO] Epoch 30, Block 3 Full-val-map: 2.4820
-2026-04-24 20:12:20,598 [INFO] Epoch 30, Block 3 sampled-val-map: 0.0000
-2026-04-24 20:12:20,601 [INFO] Block 3 Sampled AP values: 0
-2026-04-24 20:12:20,611 [INFO] Epoch 30, Final Full-val-map: 2.4820
-2026-04-24 20:12:20,615 [INFO] Epoch 30, Final sampled-val-map: 0.0000
-2026-04-24 20:12:20,618 [INFO] Final Sampled AP values: 0
-2026-04-24 20:12:20,623 [INFO] Epoch 30 - Val MAP: 2.48, Val Loss: nan
-2026-04-24 20:12:20,626 [INFO] Epoch 30 - Sampled Val MAP: 0.00
-2026-04-24 20:12:20,653 [INFO] Epoch 30, Total_Time 481.38, Epoch_time 14.98
-2026-04-24 20:12:20,664 [INFO] Epoch 31/49
-2026-04-24 20:12:20,667 [INFO] ----------
-2026-04-24 20:12:29,991 [INFO] Epoch 31, train-map: 3.9748
-2026-04-24 20:12:29,998 [INFO] Epoch 31, Block 1 train-map: 3.9748
-2026-04-24 20:12:30,006 [INFO] Epoch 31, Block 2 train-map: 3.9748
-2026-04-24 20:12:30,013 [INFO] Epoch 31, Block 3 train-map: 3.9748
-2026-04-24 20:12:30,017 [INFO] Epoch 31, Diversity Loss: nan
-2026-04-24 20:12:30,021 [INFO] Epoch 31 - Train MAP: 3.97, Train Loss: nan
-2026-04-24 20:12:35,489 [INFO] Epoch 31, Block 1 Full-val-map: 2.5225
-2026-04-24 20:12:35,493 [INFO] Epoch 31, Block 1 sampled-val-map: 0.0000
-2026-04-24 20:12:35,497 [INFO] Block 1 Sampled AP values: 0
-2026-04-24 20:12:35,520 [INFO] Epoch 31, Block 2 Full-val-map: 2.5225
-2026-04-24 20:12:35,524 [INFO] Epoch 31, Block 2 sampled-val-map: 0.0000
-2026-04-24 20:12:35,528 [INFO] Block 2 Sampled AP values: 0
-2026-04-24 20:12:35,551 [INFO] Epoch 31, Block 3 Full-val-map: 2.5225
-2026-04-24 20:12:35,555 [INFO] Epoch 31, Block 3 sampled-val-map: 0.0000
-2026-04-24 20:12:35,559 [INFO] Block 3 Sampled AP values: 0
-2026-04-24 20:12:35,570 [INFO] Epoch 31, Final Full-val-map: 2.5225
-2026-04-24 20:12:35,574 [INFO] Epoch 31, Final sampled-val-map: 0.0000
-2026-04-24 20:12:35,579 [INFO] Final Sampled AP values: 0
-2026-04-24 20:12:35,584 [INFO] Epoch 31 - Val MAP: 2.52, Val Loss: nan
-2026-04-24 20:12:35,588 [INFO] Epoch 31 - Sampled Val MAP: 0.00
-2026-04-24 20:12:35,619 [INFO] Epoch 31, Total_Time 496.34, Epoch_time 14.96
-2026-04-24 20:12:35,631 [INFO] Epoch 32/49
-2026-04-24 20:12:35,635 [INFO] ----------
-2026-04-24 20:12:45,038 [INFO] Epoch 32, train-map: 2.5611
-2026-04-24 20:12:45,046 [INFO] Epoch 32, Block 1 train-map: 2.5611
-2026-04-24 20:12:45,055 [INFO] Epoch 32, Block 2 train-map: 2.5611
-2026-04-24 20:12:45,063 [INFO] Epoch 32, Block 3 train-map: 2.5611
-2026-04-24 20:12:45,067 [INFO] Epoch 32, Diversity Loss: nan
-2026-04-24 20:12:45,072 [INFO] Epoch 32 - Train MAP: 2.56, Train Loss: nan
-2026-04-24 20:12:50,585 [INFO] Epoch 32, Block 1 Full-val-map: 3.0092
-2026-04-24 20:12:50,588 [INFO] Epoch 32, Block 1 sampled-val-map: 0.0000
-2026-04-24 20:12:50,592 [INFO] Block 1 Sampled AP values: 0
-2026-04-24 20:12:50,614 [INFO] Epoch 32, Block 2 Full-val-map: 3.0092
-2026-04-24 20:12:50,618 [INFO] Epoch 32, Block 2 sampled-val-map: 0.0000
-2026-04-24 20:12:50,621 [INFO] Block 2 Sampled AP values: 0
-2026-04-24 20:12:50,643 [INFO] Epoch 32, Block 3 Full-val-map: 3.0092
-2026-04-24 20:12:50,646 [INFO] Epoch 32, Block 3 sampled-val-map: 0.0000
-2026-04-24 20:12:50,650 [INFO] Block 3 Sampled AP values: 0
-2026-04-24 20:12:50,661 [INFO] Epoch 32, Final Full-val-map: 3.0092
-2026-04-24 20:12:50,664 [INFO] Epoch 32, Final sampled-val-map: 0.0000
-2026-04-24 20:12:50,668 [INFO] Final Sampled AP values: 0
-2026-04-24 20:12:50,673 [INFO] Epoch 32 - Val MAP: 3.01, Val Loss: nan
-2026-04-24 20:12:50,676 [INFO] Epoch 32 - Sampled Val MAP: 0.00
-2026-04-24 20:12:50,704 [INFO] Epoch 32, Total_Time 511.43, Epoch_time 15.07
-2026-04-24 20:12:50,716 [INFO] Epoch 33/49
-2026-04-24 20:12:50,720 [INFO] ----------
-2026-04-24 20:13:00,063 [INFO] Epoch 33, train-map: 2.9281
-2026-04-24 20:13:00,070 [INFO] Epoch 33, Block 1 train-map: 2.9281
-2026-04-24 20:13:00,078 [INFO] Epoch 33, Block 2 train-map: 2.9281
-2026-04-24 20:13:00,085 [INFO] Epoch 33, Block 3 train-map: 2.9281
-2026-04-24 20:13:00,089 [INFO] Epoch 33, Diversity Loss: nan
-2026-04-24 20:13:00,093 [INFO] Epoch 33 - Train MAP: 2.93, Train Loss: nan
-2026-04-24 20:13:05,532 [INFO] Epoch 33, Block 1 Full-val-map: 2.6599
-2026-04-24 20:13:05,536 [INFO] Epoch 33, Block 1 sampled-val-map: 0.0000
-2026-04-24 20:13:05,540 [INFO] Block 1 Sampled AP values: 0
-2026-04-24 20:13:05,561 [INFO] Epoch 33, Block 2 Full-val-map: 2.6599
-2026-04-24 20:13:05,565 [INFO] Epoch 33, Block 2 sampled-val-map: 0.0000
-2026-04-24 20:13:05,568 [INFO] Block 2 Sampled AP values: 0
-2026-04-24 20:13:05,589 [INFO] Epoch 33, Block 3 Full-val-map: 2.6599
-2026-04-24 20:13:05,592 [INFO] Epoch 33, Block 3 sampled-val-map: 0.0000
-2026-04-24 20:13:05,596 [INFO] Block 3 Sampled AP values: 0
-2026-04-24 20:13:05,606 [INFO] Epoch 33, Final Full-val-map: 2.6599
-2026-04-24 20:13:05,610 [INFO] Epoch 33, Final sampled-val-map: 0.0000
-2026-04-24 20:13:05,613 [INFO] Final Sampled AP values: 0
-2026-04-24 20:13:05,618 [INFO] Epoch 33 - Val MAP: 2.66, Val Loss: nan
-2026-04-24 20:13:05,621 [INFO] Epoch 33 - Sampled Val MAP: 0.00
-2026-04-24 20:13:05,650 [INFO] Epoch 33, Total_Time 526.38, Epoch_time 14.93
-2026-04-24 20:13:05,663 [INFO] Epoch 34/49
-2026-04-24 20:13:05,666 [INFO] ----------
-2026-04-24 20:13:15,027 [INFO] Epoch 34, train-map: 2.9920
-2026-04-24 20:13:15,035 [INFO] Epoch 34, Block 1 train-map: 2.9920
-2026-04-24 20:13:15,043 [INFO] Epoch 34, Block 2 train-map: 2.9920
-2026-04-24 20:13:15,051 [INFO] Epoch 34, Block 3 train-map: 2.9920
-2026-04-24 20:13:15,056 [INFO] Epoch 34, Diversity Loss: nan
-2026-04-24 20:13:15,060 [INFO] Epoch 34 - Train MAP: 2.99, Train Loss: nan
-2026-04-24 20:13:20,482 [INFO] Epoch 34, Block 1 Full-val-map: 4.2309
-2026-04-24 20:13:20,486 [INFO] Epoch 34, Block 1 sampled-val-map: 0.0000
-2026-04-24 20:13:20,489 [INFO] Block 1 Sampled AP values: 0
-2026-04-24 20:13:20,511 [INFO] Epoch 34, Block 2 Full-val-map: 4.2309
-2026-04-24 20:13:20,515 [INFO] Epoch 34, Block 2 sampled-val-map: 0.0000
-2026-04-24 20:13:20,519 [INFO] Block 2 Sampled AP values: 0
-2026-04-24 20:13:20,540 [INFO] Epoch 34, Block 3 Full-val-map: 4.2309
-2026-04-24 20:13:20,544 [INFO] Epoch 34, Block 3 sampled-val-map: 0.0000
-2026-04-24 20:13:20,547 [INFO] Block 3 Sampled AP values: 0
-2026-04-24 20:13:20,558 [INFO] Epoch 34, Final Full-val-map: 4.2309
-2026-04-24 20:13:20,561 [INFO] Epoch 34, Final sampled-val-map: 0.0000
-2026-04-24 20:13:20,564 [INFO] Final Sampled AP values: 0
-2026-04-24 20:13:20,570 [INFO] Epoch 34 - Val MAP: 4.23, Val Loss: nan
-2026-04-24 20:13:20,573 [INFO] Epoch 34 - Sampled Val MAP: 0.00
-2026-04-24 20:13:20,601 [INFO] Epoch 34, Total_Time 541.33, Epoch_time 14.94
-2026-04-24 20:13:20,612 [INFO] Epoch 35/49
-2026-04-24 20:13:20,615 [INFO] ----------
-2026-04-24 20:13:29,978 [INFO] Epoch 35, train-map: 1.9838
-2026-04-24 20:13:29,986 [INFO] Epoch 35, Block 1 train-map: 1.9838
-2026-04-24 20:13:29,994 [INFO] Epoch 35, Block 2 train-map: 1.9838
-2026-04-24 20:13:30,002 [INFO] Epoch 35, Block 3 train-map: 1.9838
-2026-04-24 20:13:30,005 [INFO] Epoch 35, Diversity Loss: nan
-2026-04-24 20:13:30,009 [INFO] Epoch 35 - Train MAP: 1.98, Train Loss: nan
-2026-04-24 20:13:35,434 [INFO] Epoch 35, Block 1 Full-val-map: 2.8894
-2026-04-24 20:13:35,438 [INFO] Epoch 35, Block 1 sampled-val-map: 0.0000
-2026-04-24 20:13:35,441 [INFO] Block 1 Sampled AP values: 0
-2026-04-24 20:13:35,463 [INFO] Epoch 35, Block 2 Full-val-map: 2.8894
-2026-04-24 20:13:35,467 [INFO] Epoch 35, Block 2 sampled-val-map: 0.0000
-2026-04-24 20:13:35,470 [INFO] Block 2 Sampled AP values: 0
-2026-04-24 20:13:35,491 [INFO] Epoch 35, Block 3 Full-val-map: 2.8894
-2026-04-24 20:13:35,494 [INFO] Epoch 35, Block 3 sampled-val-map: 0.0000
-2026-04-24 20:13:35,498 [INFO] Block 3 Sampled AP values: 0
-2026-04-24 20:13:35,509 [INFO] Epoch 35, Final Full-val-map: 2.8894
-2026-04-24 20:13:35,512 [INFO] Epoch 35, Final sampled-val-map: 0.0000
-2026-04-24 20:13:35,516 [INFO] Final Sampled AP values: 0
-2026-04-24 20:13:35,521 [INFO] Epoch 35 - Val MAP: 2.89, Val Loss: nan
-2026-04-24 20:13:35,525 [INFO] Epoch 35 - Sampled Val MAP: 0.00
-2026-04-24 20:13:35,552 [INFO] Epoch 35, Total_Time 556.28, Epoch_time 14.94
-2026-04-24 20:13:35,564 [INFO] Epoch 36/49
-2026-04-24 20:13:35,567 [INFO] ----------
-2026-04-24 20:13:44,981 [INFO] Epoch 36, train-map: 2.1919
-2026-04-24 20:13:44,989 [INFO] Epoch 36, Block 1 train-map: 2.1919
-2026-04-24 20:13:44,997 [INFO] Epoch 36, Block 2 train-map: 2.1919
-2026-04-24 20:13:45,004 [INFO] Epoch 36, Block 3 train-map: 2.1919
-2026-04-24 20:13:45,008 [INFO] Epoch 36, Diversity Loss: nan
-2026-04-24 20:13:45,011 [INFO] Epoch 36 - Train MAP: 2.19, Train Loss: nan
-2026-04-24 20:13:50,500 [INFO] Epoch 36, Block 1 Full-val-map: 2.6316
-2026-04-24 20:13:50,504 [INFO] Epoch 36, Block 1 sampled-val-map: 0.0000
-2026-04-24 20:13:50,508 [INFO] Block 1 Sampled AP values: 0
-2026-04-24 20:13:50,530 [INFO] Epoch 36, Block 2 Full-val-map: 2.6316
-2026-04-24 20:13:50,534 [INFO] Epoch 36, Block 2 sampled-val-map: 0.0000
-2026-04-24 20:13:50,538 [INFO] Block 2 Sampled AP values: 0
-2026-04-24 20:13:50,559 [INFO] Epoch 36, Block 3 Full-val-map: 2.6316
-2026-04-24 20:13:50,563 [INFO] Epoch 36, Block 3 sampled-val-map: 0.0000
-2026-04-24 20:13:50,567 [INFO] Block 3 Sampled AP values: 0
-2026-04-24 20:13:50,579 [INFO] Epoch 36, Final Full-val-map: 2.6316
-2026-04-24 20:13:50,582 [INFO] Epoch 36, Final sampled-val-map: 0.0000
-2026-04-24 20:13:50,586 [INFO] Final Sampled AP values: 0
-2026-04-24 20:13:50,591 [INFO] Epoch 36 - Val MAP: 2.63, Val Loss: nan
-2026-04-24 20:13:50,595 [INFO] Epoch 36 - Sampled Val MAP: 0.00
-2026-04-24 20:13:50,624 [INFO] Epoch 36, Total_Time 571.35, Epoch_time 15.06
-2026-04-24 20:13:50,636 [INFO] Epoch 37/49
-2026-04-24 20:13:50,639 [INFO] ----------
-2026-04-24 20:14:00,020 [INFO] Epoch 37, train-map: 1.6461
-2026-04-24 20:14:00,028 [INFO] Epoch 37, Block 1 train-map: 1.6461
-2026-04-24 20:14:00,035 [INFO] Epoch 37, Block 2 train-map: 1.6461
-2026-04-24 20:14:00,043 [INFO] Epoch 37, Block 3 train-map: 1.6461
-2026-04-24 20:14:00,046 [INFO] Epoch 37, Diversity Loss: nan
-2026-04-24 20:14:00,050 [INFO] Epoch 37 - Train MAP: 1.65, Train Loss: nan
-2026-04-24 20:14:05,512 [INFO] Epoch 37, Block 1 Full-val-map: 3.0735
-2026-04-24 20:14:05,516 [INFO] Epoch 37, Block 1 sampled-val-map: 0.0000
-2026-04-24 20:14:05,520 [INFO] Block 1 Sampled AP values: 0
-2026-04-24 20:14:05,543 [INFO] Epoch 37, Block 2 Full-val-map: 3.0735
-2026-04-24 20:14:05,548 [INFO] Epoch 37, Block 2 sampled-val-map: 0.0000
-2026-04-24 20:14:05,552 [INFO] Block 2 Sampled AP values: 0
-2026-04-24 20:14:05,578 [INFO] Epoch 37, Block 3 Full-val-map: 3.0735
-2026-04-24 20:14:05,582 [INFO] Epoch 37, Block 3 sampled-val-map: 0.0000
-2026-04-24 20:14:05,586 [INFO] Block 3 Sampled AP values: 0
-2026-04-24 20:14:05,598 [INFO] Epoch 37, Final Full-val-map: 3.0735
-2026-04-24 20:14:05,602 [INFO] Epoch 37, Final sampled-val-map: 0.0000
-2026-04-24 20:14:05,606 [INFO] Final Sampled AP values: 0
-2026-04-24 20:14:05,611 [INFO] Epoch 37 - Val MAP: 3.07, Val Loss: nan
-2026-04-24 20:14:05,616 [INFO] Epoch 37 - Sampled Val MAP: 0.00
-2026-04-24 20:14:05,645 [INFO] Epoch 37, Total_Time 586.37, Epoch_time 15.01
-2026-04-24 20:14:05,658 [INFO] Epoch 38/49
-2026-04-24 20:14:05,661 [INFO] ----------
-2026-04-24 20:14:15,000 [INFO] Epoch 38, train-map: 3.3046
-2026-04-24 20:14:15,008 [INFO] Epoch 38, Block 1 train-map: 3.3046
-2026-04-24 20:14:15,015 [INFO] Epoch 38, Block 2 train-map: 3.3046
-2026-04-24 20:14:15,023 [INFO] Epoch 38, Block 3 train-map: 3.3046
-2026-04-24 20:14:15,026 [INFO] Epoch 38, Diversity Loss: nan
-2026-04-24 20:14:15,031 [INFO] Epoch 38 - Train MAP: 3.30, Train Loss: nan
-2026-04-24 20:14:20,450 [INFO] Epoch 38, Block 1 Full-val-map: 2.5339
-2026-04-24 20:14:20,454 [INFO] Epoch 38, Block 1 sampled-val-map: 0.0000
-2026-04-24 20:14:20,457 [INFO] Block 1 Sampled AP values: 0
-2026-04-24 20:14:20,479 [INFO] Epoch 38, Block 2 Full-val-map: 2.5339
-2026-04-24 20:14:20,482 [INFO] Epoch 38, Block 2 sampled-val-map: 0.0000
-2026-04-24 20:14:20,486 [INFO] Block 2 Sampled AP values: 0
-2026-04-24 20:14:20,507 [INFO] Epoch 38, Block 3 Full-val-map: 2.5339
-2026-04-24 20:14:20,510 [INFO] Epoch 38, Block 3 sampled-val-map: 0.0000
-2026-04-24 20:14:20,513 [INFO] Block 3 Sampled AP values: 0
-2026-04-24 20:14:20,523 [INFO] Epoch 38, Final Full-val-map: 2.5339
-2026-04-24 20:14:20,527 [INFO] Epoch 38, Final sampled-val-map: 0.0000
-2026-04-24 20:14:20,530 [INFO] Final Sampled AP values: 0
-2026-04-24 20:14:20,535 [INFO] Epoch 38 - Val MAP: 2.53, Val Loss: nan
-2026-04-24 20:14:20,538 [INFO] Epoch 38 - Sampled Val MAP: 0.00
-2026-04-24 20:14:20,565 [INFO] Epoch 38, Total_Time 601.29, Epoch_time 14.91
-2026-04-24 20:14:20,575 [INFO] Epoch 39/49
-2026-04-24 20:14:20,578 [INFO] ----------
-2026-04-24 20:14:29,986 [INFO] Epoch 39, train-map: 3.1087
-2026-04-24 20:14:29,994 [INFO] Epoch 39, Block 1 train-map: 3.1087
-2026-04-24 20:14:30,002 [INFO] Epoch 39, Block 2 train-map: 3.1087
-2026-04-24 20:14:30,009 [INFO] Epoch 39, Block 3 train-map: 3.1087
-2026-04-24 20:14:30,013 [INFO] Epoch 39, Diversity Loss: nan
-2026-04-24 20:14:30,016 [INFO] Epoch 39 - Train MAP: 3.11, Train Loss: nan
-2026-04-24 20:14:35,499 [INFO] Epoch 39, Block 1 Full-val-map: 2.6498
-2026-04-24 20:14:35,503 [INFO] Epoch 39, Block 1 sampled-val-map: 0.0000
-2026-04-24 20:14:35,507 [INFO] Block 1 Sampled AP values: 0
-2026-04-24 20:14:35,528 [INFO] Epoch 39, Block 2 Full-val-map: 2.6498
-2026-04-24 20:14:35,532 [INFO] Epoch 39, Block 2 sampled-val-map: 0.0000
-2026-04-24 20:14:35,535 [INFO] Block 2 Sampled AP values: 0
-2026-04-24 20:14:35,556 [INFO] Epoch 39, Block 3 Full-val-map: 2.6498
-2026-04-24 20:14:35,560 [INFO] Epoch 39, Block 3 sampled-val-map: 0.0000
-2026-04-24 20:14:35,563 [INFO] Block 3 Sampled AP values: 0
-2026-04-24 20:14:35,574 [INFO] Epoch 39, Final Full-val-map: 2.6498
-2026-04-24 20:14:35,577 [INFO] Epoch 39, Final sampled-val-map: 0.0000
-2026-04-24 20:14:35,581 [INFO] Final Sampled AP values: 0
-2026-04-24 20:14:35,586 [INFO] Epoch 39 - Val MAP: 2.65, Val Loss: nan
-2026-04-24 20:14:35,590 [INFO] Epoch 39 - Sampled Val MAP: 0.00
-2026-04-24 20:14:35,617 [INFO] Epoch 39, Total_Time 616.34, Epoch_time 15.04
-2026-04-24 20:14:35,629 [INFO] Epoch 40/49
-2026-04-24 20:14:35,632 [INFO] ----------
-2026-04-24 20:14:44,955 [INFO] Epoch 40, train-map: 2.2072
-2026-04-24 20:14:44,963 [INFO] Epoch 40, Block 1 train-map: 2.2072
-2026-04-24 20:14:44,971 [INFO] Epoch 40, Block 2 train-map: 2.2072
-2026-04-24 20:14:44,978 [INFO] Epoch 40, Block 3 train-map: 2.2072
-2026-04-24 20:14:44,982 [INFO] Epoch 40, Diversity Loss: nan
-2026-04-24 20:14:44,986 [INFO] Epoch 40 - Train MAP: 2.21, Train Loss: nan
-2026-04-24 20:14:50,380 [INFO] Epoch 40, Block 1 Full-val-map: 2.3360
-2026-04-24 20:14:50,384 [INFO] Epoch 40, Block 1 sampled-val-map: 0.0000
-2026-04-24 20:14:50,387 [INFO] Block 1 Sampled AP values: 0
-2026-04-24 20:14:50,409 [INFO] Epoch 40, Block 2 Full-val-map: 2.3360
-2026-04-24 20:14:50,413 [INFO] Epoch 40, Block 2 sampled-val-map: 0.0000
-2026-04-24 20:14:50,416 [INFO] Block 2 Sampled AP values: 0
-2026-04-24 20:14:50,437 [INFO] Epoch 40, Block 3 Full-val-map: 2.3360
-2026-04-24 20:14:50,441 [INFO] Epoch 40, Block 3 sampled-val-map: 0.0000
-2026-04-24 20:14:50,445 [INFO] Block 3 Sampled AP values: 0
-2026-04-24 20:14:50,455 [INFO] Epoch 40, Final Full-val-map: 2.3360
-2026-04-24 20:14:50,459 [INFO] Epoch 40, Final sampled-val-map: 0.0000
-2026-04-24 20:14:50,462 [INFO] Final Sampled AP values: 0
-2026-04-24 20:14:50,467 [INFO] Epoch 40 - Val MAP: 2.34, Val Loss: nan
-2026-04-24 20:14:50,471 [INFO] Epoch 40 - Sampled Val MAP: 0.00
-2026-04-24 20:14:50,500 [INFO] Epoch 40, Total_Time 631.23, Epoch_time 14.87
-2026-04-24 20:14:50,511 [INFO] Epoch 41/49
-2026-04-24 20:14:50,514 [INFO] ----------
-2026-04-24 20:14:59,926 [INFO] Epoch 41, train-map: 2.2164
-2026-04-24 20:14:59,934 [INFO] Epoch 41, Block 1 train-map: 2.2164
-2026-04-24 20:14:59,941 [INFO] Epoch 41, Block 2 train-map: 2.2164
-2026-04-24 20:14:59,949 [INFO] Epoch 41, Block 3 train-map: 2.2164
-2026-04-24 20:14:59,953 [INFO] Epoch 41, Diversity Loss: nan
-2026-04-24 20:14:59,957 [INFO] Epoch 41 - Train MAP: 2.22, Train Loss: nan
-2026-04-24 20:15:05,422 [INFO] Epoch 41, Block 1 Full-val-map: 3.1427
-2026-04-24 20:15:05,426 [INFO] Epoch 41, Block 1 sampled-val-map: 0.0000
-2026-04-24 20:15:05,430 [INFO] Block 1 Sampled AP values: 0
-2026-04-24 20:15:05,451 [INFO] Epoch 41, Block 2 Full-val-map: 3.1427
-2026-04-24 20:15:05,455 [INFO] Epoch 41, Block 2 sampled-val-map: 0.0000
-2026-04-24 20:15:05,458 [INFO] Block 2 Sampled AP values: 0
-2026-04-24 20:15:05,479 [INFO] Epoch 41, Block 3 Full-val-map: 3.1427
-2026-04-24 20:15:05,483 [INFO] Epoch 41, Block 3 sampled-val-map: 0.0000
-2026-04-24 20:15:05,486 [INFO] Block 3 Sampled AP values: 0
-2026-04-24 20:15:05,498 [INFO] Epoch 41, Final Full-val-map: 3.1427
-2026-04-24 20:15:05,502 [INFO] Epoch 41, Final sampled-val-map: 0.0000
-2026-04-24 20:15:05,505 [INFO] Final Sampled AP values: 0
-2026-04-24 20:15:05,510 [INFO] Epoch 41 - Val MAP: 3.14, Val Loss: nan
-2026-04-24 20:15:05,514 [INFO] Epoch 41 - Sampled Val MAP: 0.00
-2026-04-24 20:15:05,541 [INFO] Epoch 41, Total_Time 646.27, Epoch_time 15.03
-2026-04-24 20:15:05,552 [INFO] Epoch 42/49
-2026-04-24 20:15:05,555 [INFO] ----------
-2026-04-24 20:15:14,894 [INFO] Epoch 42, train-map: 3.2130
-2026-04-24 20:15:14,902 [INFO] Epoch 42, Block 1 train-map: 3.2130
-2026-04-24 20:15:14,910 [INFO] Epoch 42, Block 2 train-map: 3.2130
-2026-04-24 20:15:14,917 [INFO] Epoch 42, Block 3 train-map: 3.2130
-2026-04-24 20:15:14,921 [INFO] Epoch 42, Diversity Loss: nan
-2026-04-24 20:15:14,925 [INFO] Epoch 42 - Train MAP: 3.21, Train Loss: nan
-2026-04-24 20:15:20,478 [INFO] Epoch 42, Block 1 Full-val-map: 3.5019
-2026-04-24 20:15:20,482 [INFO] Epoch 42, Block 1 sampled-val-map: 0.0000
-2026-04-24 20:15:20,485 [INFO] Block 1 Sampled AP values: 0
-2026-04-24 20:15:20,506 [INFO] Epoch 42, Block 2 Full-val-map: 3.5019
-2026-04-24 20:15:20,509 [INFO] Epoch 42, Block 2 sampled-val-map: 0.0000
-2026-04-24 20:15:20,513 [INFO] Block 2 Sampled AP values: 0
-2026-04-24 20:15:20,533 [INFO] Epoch 42, Block 3 Full-val-map: 3.5019
-2026-04-24 20:15:20,537 [INFO] Epoch 42, Block 3 sampled-val-map: 0.0000
-2026-04-24 20:15:20,541 [INFO] Block 3 Sampled AP values: 0
-2026-04-24 20:15:20,552 [INFO] Epoch 42, Final Full-val-map: 3.5019
-2026-04-24 20:15:20,555 [INFO] Epoch 42, Final sampled-val-map: 0.0000
-2026-04-24 20:15:20,558 [INFO] Final Sampled AP values: 0
-2026-04-24 20:15:20,563 [INFO] Epoch 42 - Val MAP: 3.50, Val Loss: nan
-2026-04-24 20:15:20,567 [INFO] Epoch 42 - Sampled Val MAP: 0.00
-2026-04-24 20:15:20,596 [INFO] Epoch 42, Total_Time 661.32, Epoch_time 15.04
-2026-04-24 20:15:20,609 [INFO] Epoch 43/49
-2026-04-24 20:15:20,612 [INFO] ----------
-2026-04-24 20:15:30,008 [INFO] Epoch 43, train-map: 2.6101
-2026-04-24 20:15:30,016 [INFO] Epoch 43, Block 1 train-map: 2.6101
-2026-04-24 20:15:30,024 [INFO] Epoch 43, Block 2 train-map: 2.6101
-2026-04-24 20:15:30,031 [INFO] Epoch 43, Block 3 train-map: 2.6101
-2026-04-24 20:15:30,035 [INFO] Epoch 43, Diversity Loss: nan
-2026-04-24 20:15:30,039 [INFO] Epoch 43 - Train MAP: 2.61, Train Loss: nan
-2026-04-24 20:15:35,526 [INFO] Epoch 43, Block 1 Full-val-map: 2.5536
-2026-04-24 20:15:35,529 [INFO] Epoch 43, Block 1 sampled-val-map: 0.0000
-2026-04-24 20:15:35,533 [INFO] Block 1 Sampled AP values: 0
-2026-04-24 20:15:35,555 [INFO] Epoch 43, Block 2 Full-val-map: 2.5536
-2026-04-24 20:15:35,559 [INFO] Epoch 43, Block 2 sampled-val-map: 0.0000
-2026-04-24 20:15:35,563 [INFO] Block 2 Sampled AP values: 0
-2026-04-24 20:15:35,584 [INFO] Epoch 43, Block 3 Full-val-map: 2.5536
-2026-04-24 20:15:35,588 [INFO] Epoch 43, Block 3 sampled-val-map: 0.0000
-2026-04-24 20:15:35,592 [INFO] Block 3 Sampled AP values: 0
-2026-04-24 20:15:35,602 [INFO] Epoch 43, Final Full-val-map: 2.5536
-2026-04-24 20:15:35,606 [INFO] Epoch 43, Final sampled-val-map: 0.0000
-2026-04-24 20:15:35,610 [INFO] Final Sampled AP values: 0
-2026-04-24 20:15:35,615 [INFO] Epoch 43 - Val MAP: 2.55, Val Loss: nan
-2026-04-24 20:15:35,619 [INFO] Epoch 43 - Sampled Val MAP: 0.00
-2026-04-24 20:15:35,647 [INFO] Epoch 43, Total_Time 676.37, Epoch_time 15.04
-2026-04-24 20:15:35,659 [INFO] Epoch 44/49
-2026-04-24 20:15:35,662 [INFO] ----------
-2026-04-24 20:15:44,989 [INFO] Epoch 44, train-map: 2.7562
-2026-04-24 20:15:44,997 [INFO] Epoch 44, Block 1 train-map: 2.7562
-2026-04-24 20:15:45,004 [INFO] Epoch 44, Block 2 train-map: 2.7562
-2026-04-24 20:15:45,011 [INFO] Epoch 44, Block 3 train-map: 2.7562
-2026-04-24 20:15:45,015 [INFO] Epoch 44, Diversity Loss: nan
-2026-04-24 20:15:45,019 [INFO] Epoch 44 - Train MAP: 2.76, Train Loss: nan
-2026-04-24 20:15:50,424 [INFO] Epoch 44, Block 1 Full-val-map: 2.6127
-2026-04-24 20:15:50,428 [INFO] Epoch 44, Block 1 sampled-val-map: 0.0000
-2026-04-24 20:15:50,431 [INFO] Block 1 Sampled AP values: 0
-2026-04-24 20:15:50,453 [INFO] Epoch 44, Block 2 Full-val-map: 2.6127
-2026-04-24 20:15:50,456 [INFO] Epoch 44, Block 2 sampled-val-map: 0.0000
-2026-04-24 20:15:50,460 [INFO] Block 2 Sampled AP values: 0
-2026-04-24 20:15:50,481 [INFO] Epoch 44, Block 3 Full-val-map: 2.6127
-2026-04-24 20:15:50,485 [INFO] Epoch 44, Block 3 sampled-val-map: 0.0000
-2026-04-24 20:15:50,488 [INFO] Block 3 Sampled AP values: 0
-2026-04-24 20:15:50,500 [INFO] Epoch 44, Final Full-val-map: 2.6127
-2026-04-24 20:15:50,503 [INFO] Epoch 44, Final sampled-val-map: 0.0000
-2026-04-24 20:15:50,507 [INFO] Final Sampled AP values: 0
-2026-04-24 20:15:50,512 [INFO] Epoch 44 - Val MAP: 2.61, Val Loss: nan
-2026-04-24 20:15:50,516 [INFO] Epoch 44 - Sampled Val MAP: 0.00
-2026-04-24 20:15:50,545 [INFO] Epoch 44, Total_Time 691.27, Epoch_time 14.89
-2026-04-24 20:15:50,557 [INFO] Epoch 45/49
-2026-04-24 20:15:50,561 [INFO] ----------
-2026-04-24 20:15:59,913 [INFO] Epoch 45, train-map: 3.5973
-2026-04-24 20:15:59,921 [INFO] Epoch 45, Block 1 train-map: 3.5973
-2026-04-24 20:15:59,929 [INFO] Epoch 45, Block 2 train-map: 3.5973
-2026-04-24 20:15:59,937 [INFO] Epoch 45, Block 3 train-map: 3.5973
-2026-04-24 20:15:59,941 [INFO] Epoch 45, Diversity Loss: nan
-2026-04-24 20:15:59,945 [INFO] Epoch 45 - Train MAP: 3.60, Train Loss: nan
-2026-04-24 20:16:05,349 [INFO] Epoch 45, Block 1 Full-val-map: 3.0469
-2026-04-24 20:16:05,352 [INFO] Epoch 45, Block 1 sampled-val-map: 0.0000
-2026-04-24 20:16:05,356 [INFO] Block 1 Sampled AP values: 0
-2026-04-24 20:16:05,378 [INFO] Epoch 45, Block 2 Full-val-map: 3.0469
-2026-04-24 20:16:05,381 [INFO] Epoch 45, Block 2 sampled-val-map: 0.0000
-2026-04-24 20:16:05,385 [INFO] Block 2 Sampled AP values: 0
-2026-04-24 20:16:05,406 [INFO] Epoch 45, Block 3 Full-val-map: 3.0469
-2026-04-24 20:16:05,409 [INFO] Epoch 45, Block 3 sampled-val-map: 0.0000
-2026-04-24 20:16:05,412 [INFO] Block 3 Sampled AP values: 0
-2026-04-24 20:16:05,423 [INFO] Epoch 45, Final Full-val-map: 3.0469
-2026-04-24 20:16:05,427 [INFO] Epoch 45, Final sampled-val-map: 0.0000
-2026-04-24 20:16:05,430 [INFO] Final Sampled AP values: 0
-2026-04-24 20:16:05,435 [INFO] Epoch 45 - Val MAP: 3.05, Val Loss: nan
-2026-04-24 20:16:05,439 [INFO] Epoch 45 - Sampled Val MAP: 0.00
-2026-04-24 20:16:05,466 [INFO] Epoch 45, Total_Time 706.19, Epoch_time 14.91
-2026-04-24 20:16:05,478 [INFO] Epoch 46/49
-2026-04-24 20:16:05,481 [INFO] ----------
-2026-04-24 20:16:14,715 [INFO] Epoch 46, train-map: 2.6399
-2026-04-24 20:16:14,723 [INFO] Epoch 46, Block 1 train-map: 2.6399
-2026-04-24 20:16:14,730 [INFO] Epoch 46, Block 2 train-map: 2.6399
-2026-04-24 20:16:14,738 [INFO] Epoch 46, Block 3 train-map: 2.6399
-2026-04-24 20:16:14,741 [INFO] Epoch 46, Diversity Loss: nan
-2026-04-24 20:16:14,745 [INFO] Epoch 46 - Train MAP: 2.64, Train Loss: nan
-2026-04-24 20:16:20,135 [INFO] Epoch 46, Block 1 Full-val-map: 3.0046
-2026-04-24 20:16:20,139 [INFO] Epoch 46, Block 1 sampled-val-map: 0.0000
-2026-04-24 20:16:20,142 [INFO] Block 1 Sampled AP values: 0
-2026-04-24 20:16:20,164 [INFO] Epoch 46, Block 2 Full-val-map: 3.0046
-2026-04-24 20:16:20,168 [INFO] Epoch 46, Block 2 sampled-val-map: 0.0000
-2026-04-24 20:16:20,171 [INFO] Block 2 Sampled AP values: 0
-2026-04-24 20:16:20,192 [INFO] Epoch 46, Block 3 Full-val-map: 3.0046
-2026-04-24 20:16:20,195 [INFO] Epoch 46, Block 3 sampled-val-map: 0.0000
-2026-04-24 20:16:20,199 [INFO] Block 3 Sampled AP values: 0
-2026-04-24 20:16:20,210 [INFO] Epoch 46, Final Full-val-map: 3.0046
-2026-04-24 20:16:20,213 [INFO] Epoch 46, Final sampled-val-map: 0.0000
-2026-04-24 20:16:20,217 [INFO] Final Sampled AP values: 0
-2026-04-24 20:16:20,222 [INFO] Epoch 46 - Val MAP: 3.00, Val Loss: nan
-2026-04-24 20:16:20,225 [INFO] Epoch 46 - Sampled Val MAP: 0.00
-2026-04-24 20:16:20,252 [INFO] Epoch 46, Total_Time 720.98, Epoch_time 14.77
-2026-04-24 20:16:20,262 [INFO] Epoch 47/49
-2026-04-24 20:16:20,266 [INFO] ----------
-2026-04-24 20:16:29,550 [INFO] Epoch 47, train-map: 1.7730
-2026-04-24 20:16:29,558 [INFO] Epoch 47, Block 1 train-map: 1.7730
-2026-04-24 20:16:29,565 [INFO] Epoch 47, Block 2 train-map: 1.7730
-2026-04-24 20:16:29,573 [INFO] Epoch 47, Block 3 train-map: 1.7730
-2026-04-24 20:16:29,577 [INFO] Epoch 47, Diversity Loss: nan
-2026-04-24 20:16:29,581 [INFO] Epoch 47 - Train MAP: 1.77, Train Loss: nan
-2026-04-24 20:16:35,031 [INFO] Epoch 47, Block 1 Full-val-map: 3.1991
-2026-04-24 20:16:35,035 [INFO] Epoch 47, Block 1 sampled-val-map: 0.0000
-2026-04-24 20:16:35,038 [INFO] Block 1 Sampled AP values: 0
-2026-04-24 20:16:35,060 [INFO] Epoch 47, Block 2 Full-val-map: 3.1991
-2026-04-24 20:16:35,064 [INFO] Epoch 47, Block 2 sampled-val-map: 0.0000
-2026-04-24 20:16:35,068 [INFO] Block 2 Sampled AP values: 0
-2026-04-24 20:16:35,088 [INFO] Epoch 47, Block 3 Full-val-map: 3.1991
-2026-04-24 20:16:35,092 [INFO] Epoch 47, Block 3 sampled-val-map: 0.0000
-2026-04-24 20:16:35,095 [INFO] Block 3 Sampled AP values: 0
-2026-04-24 20:16:35,107 [INFO] Epoch 47, Final Full-val-map: 3.1991
-2026-04-24 20:16:35,111 [INFO] Epoch 47, Final sampled-val-map: 0.0000
-2026-04-24 20:16:35,114 [INFO] Final Sampled AP values: 0
-2026-04-24 20:16:35,119 [INFO] Epoch 47 - Val MAP: 3.20, Val Loss: nan
-2026-04-24 20:16:35,123 [INFO] Epoch 47 - Sampled Val MAP: 0.00
-2026-04-24 20:16:35,151 [INFO] Epoch 47, Total_Time 735.88, Epoch_time 14.89
-2026-04-24 20:16:35,163 [INFO] Epoch 48/49
-2026-04-24 20:16:35,167 [INFO] ----------
-2026-04-24 20:16:44,479 [INFO] Epoch 48, train-map: 2.7960
-2026-04-24 20:16:44,487 [INFO] Epoch 48, Block 1 train-map: 2.7960
-2026-04-24 20:16:44,494 [INFO] Epoch 48, Block 2 train-map: 2.7960
-2026-04-24 20:16:44,501 [INFO] Epoch 48, Block 3 train-map: 2.7960
-2026-04-24 20:16:44,504 [INFO] Epoch 48, Diversity Loss: nan
-2026-04-24 20:16:44,508 [INFO] Epoch 48 - Train MAP: 2.80, Train Loss: nan
-2026-04-24 20:16:49,881 [INFO] Epoch 48, Block 1 Full-val-map: 3.4251
-2026-04-24 20:16:49,884 [INFO] Epoch 48, Block 1 sampled-val-map: 0.0000
-2026-04-24 20:16:49,888 [INFO] Block 1 Sampled AP values: 0
-2026-04-24 20:16:49,910 [INFO] Epoch 48, Block 2 Full-val-map: 3.4251
-2026-04-24 20:16:49,914 [INFO] Epoch 48, Block 2 sampled-val-map: 0.0000
-2026-04-24 20:16:49,918 [INFO] Block 2 Sampled AP values: 0
-2026-04-24 20:16:49,939 [INFO] Epoch 48, Block 3 Full-val-map: 3.4251
-2026-04-24 20:16:49,943 [INFO] Epoch 48, Block 3 sampled-val-map: 0.0000
-2026-04-24 20:16:49,946 [INFO] Block 3 Sampled AP values: 0
-2026-04-24 20:16:49,957 [INFO] Epoch 48, Final Full-val-map: 3.4251
-2026-04-24 20:16:49,960 [INFO] Epoch 48, Final sampled-val-map: 0.0000
-2026-04-24 20:16:49,964 [INFO] Final Sampled AP values: 0
-2026-04-24 20:16:49,969 [INFO] Epoch 48 - Val MAP: 3.43, Val Loss: nan
-2026-04-24 20:16:49,973 [INFO] Epoch 48 - Sampled Val MAP: 0.00
-2026-04-24 20:16:50,002 [INFO] Epoch 48, Total_Time 750.73, Epoch_time 14.84
-2026-04-24 20:16:50,014 [INFO] Epoch 49/49
-2026-04-24 20:16:50,018 [INFO] ----------
-2026-04-24 20:16:59,363 [INFO] Epoch 49, train-map: 2.6358
-2026-04-24 20:16:59,369 [INFO] Epoch 49, Block 1 train-map: 2.6358
-2026-04-24 20:16:59,377 [INFO] Epoch 49, Block 2 train-map: 2.6358
-2026-04-24 20:16:59,385 [INFO] Epoch 49, Block 3 train-map: 2.6358
-2026-04-24 20:16:59,388 [INFO] Epoch 49, Diversity Loss: nan
-2026-04-24 20:16:59,392 [INFO] Epoch 49 - Train MAP: 2.64, Train Loss: nan
-2026-04-24 20:17:04,864 [INFO] Epoch 49, Block 1 Full-val-map: 4.9933
-2026-04-24 20:17:04,868 [INFO] Epoch 49, Block 1 sampled-val-map: 0.0000
-2026-04-24 20:17:04,872 [INFO] Block 1 Sampled AP values: 0
-2026-04-24 20:17:04,893 [INFO] Epoch 49, Block 2 Full-val-map: 4.9933
-2026-04-24 20:17:04,897 [INFO] Epoch 49, Block 2 sampled-val-map: 0.0000
-2026-04-24 20:17:04,900 [INFO] Block 2 Sampled AP values: 0
-2026-04-24 20:17:04,921 [INFO] Epoch 49, Block 3 Full-val-map: 4.9933
-2026-04-24 20:17:04,924 [INFO] Epoch 49, Block 3 sampled-val-map: 0.0000
-2026-04-24 20:17:04,928 [INFO] Block 3 Sampled AP values: 0
-2026-04-24 20:17:04,939 [INFO] Epoch 49, Final Full-val-map: 4.9933
-2026-04-24 20:17:04,942 [INFO] Epoch 49, Final sampled-val-map: 0.0000
-2026-04-24 20:17:04,946 [INFO] Final Sampled AP values: 0
-2026-04-24 20:17:04,951 [INFO] Epoch 49 - Val MAP: 4.99, Val Loss: nan
-2026-04-24 20:17:04,955 [INFO] Epoch 49 - Sampled Val MAP: 0.00
-2026-04-24 20:17:04,984 [INFO] Epoch 49, Total_Time 765.71, Epoch_time 14.97
-2026-04-24 20:17:04,995 [INFO] Epoch 49, Best Sampled Val Map Update 4.9933
-2026-04-24 20:17:05,004 [INFO] Logit saved at: /mnt/beegfsstudents/home/3199302/ASO-Temba/outputs/tsu_i3d/49.pkl
-2026-04-24 20:17:05,197 [INFO] Best model saved at: /mnt/beegfsstudents/home/3199302/ASO-Temba/outputs/tsu_i3d/best_model.pth
