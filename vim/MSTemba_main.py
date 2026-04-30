@@ -103,6 +103,9 @@ parser.add_argument('--patience-epochs', type=int, default=10, metavar='N',
 parser.add_argument('--decay-rate', '--dr', type=float, default=0.1, metavar='RATE',
                     help='LR decay rate (default: 0.1)')
 
+parser.add_argument('--num_workers', type=int, default=4, metavar='N',
+                    help='number of data loading workers (default: 4)')
+
 args = parser.parse_args()
 
 # set random seed
@@ -127,7 +130,7 @@ def load_data(train_split, val_split, root):
 
     if len(train_split) > 0:
         dataset = Dataset(train_split, 'training', root, batch_size, classes, int(args.num_clips), int(args.skip))
-        dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=4,
+        dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=args.num_workers,
                                                  pin_memory=True, collate_fn=collate_fn)
         dataloader.root = root
     else:
@@ -136,7 +139,7 @@ def load_data(train_split, val_split, root):
         dataloader = None
 
     val_dataset = Dataset(val_split, 'testing', root, batch_size, classes, int(args.num_clips), int(args.skip))
-    val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=1, shuffle=True, num_workers=4,
+    val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=1, shuffle=True, num_workers=args.num_workers,
                                                  pin_memory=True, collate_fn=collate_fn)
     val_dataloader.root = root
     dataloaders = {'train': dataloader, 'val': val_dataloader}
@@ -204,8 +207,8 @@ def run(models, criterion, num_epochs=50):
             if Best_val_map < val_map:
                 Best_val_map = val_map
                 logging.info(f"Epoch {epoch}, Best Sampled Val Map Update {Best_val_map:.4f}")
-                pickle.dump(prob_val, open(os.path.join(args.output_dir, f'{epoch}.pkl'), 'wb'), pickle.HIGHEST_PROTOCOL)
-                logging.info(f"Logit saved at: {args.output_dir}/{epoch}.pkl")
+                # pickle.dump(prob_val, open(os.path.join(args.output_dir, f'{epoch}.pkl'), 'wb'), pickle.HIGHEST_PROTOCOL)
+                # logging.info(f"Logit saved at: {args.output_dir}/{epoch}.pkl")
                 
                 # Save best model
                 torch.save(model.state_dict(), os.path.join(args.output_dir, 'best_model.pth'))
@@ -213,14 +216,14 @@ def run(models, criterion, num_epochs=50):
                 writer.add_scalar('Best_mAP/val', Best_val_map, epoch)
             
             # Save best models for each block
-            for i in range(3):
-                if Best_block_sample_val_maps[i] < block_sample_val_maps[i]:
-                    Best_block_sample_val_maps[i] = block_sample_val_maps[i]
-                    logging.info(f"Epoch {epoch}, Block {i+1} Best Sampled Val Map Update {Best_block_sample_val_maps[i]:.4f}")
-                    block_dir = os.path.join(args.output_dir, f'block_{i+1}')
-                    torch.save(model.state_dict(), os.path.join(block_dir, 'best_model.pth'))
-                    logging.info(f"Block {i+1} Best model saved at: {block_dir}/best_model.pth")
-                    writer.add_scalar(f'Block_{i+1}/Best_sampled_val_map', Best_block_sample_val_maps[i], epoch)
+            # for i in range(3):
+            #     if Best_block_sample_val_maps[i] < block_sample_val_maps[i]:
+            #         Best_block_sample_val_maps[i] = block_sample_val_maps[i]
+            #         logging.info(f"Epoch {epoch}, Block {i+1} Best Sampled Val Map Update {Best_block_sample_val_maps[i]:.4f}")
+            #         block_dir = os.path.join(args.output_dir, f'block_{i+1}')
+            #         torch.save(model.state_dict(), os.path.join(block_dir, 'best_model.pth'))
+            #         logging.info(f"Block {i+1} Best model saved at: {block_dir}/best_model.pth")
+            #         writer.add_scalar(f'Block_{i+1}/Best_sampled_val_map', Best_block_sample_val_maps[i], epoch)
     
     writer.close()
 

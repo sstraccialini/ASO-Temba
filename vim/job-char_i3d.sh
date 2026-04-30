@@ -4,7 +4,9 @@
 #SBATCH --qos=stud
 #SBATCH --gres=gpu:1
 #SBATCH --time=24:00:00
-#SBATCH --output=slurm-%j.out
+#SBATCH --output=slurm-tsu_i3d-%j.out
+#SBATCH --mem=64G
+#SBATCH --cpus-per-task=8
 
 # ====== USER CONFIG ======
 MYID=3199302
@@ -13,12 +15,13 @@ USER_HOME=/home/$MYID
 
 # ====== ENV SETUP ======
 source ~/.bashrc
-conda activate cv_project
+conda activate mstemba
 
 cd $BASE_HOME/ASO-Temba/vim
 
-export PYTHONPATH=$BASE_HOME/ASO-Temba/mamba-1p1p1:$PYTHONPATH
-export LD_LIBRARY_PATH=$CONDA_PREFIX/lib:$LD_LIBRARY_PATH
+export CUDA_HOME=$CONDA_PREFIX
+export PATH=$CUDA_HOME/bin:$PATH
+export LD_LIBRARY_PATH=$CUDA_HOME/lib:$CUDA_HOME/lib64:$LD_LIBRARY_PATH
 
 # ====== DEBUG INFO ======
 hostname
@@ -38,7 +41,7 @@ python MSTemba_main.py \
   -backbone i3d \
   -model mstemba \
   -train True \
-  -rgb_root $BASE_HOME/ASO-Temba/data/tsu_features_i3d \
+  -rgb_root $BASE_HOME/ASO-Temba/data/charades_features_i3d \
   -num_clips 2500 \
   -skip 0 \
   --lr 4.5e-4 \
@@ -48,7 +51,6 @@ python MSTemba_main.py \
   -alpha_l 1 \
   -beta_l 0.05 \
   -batch_size 1 \
-  -num_workers 1 \
-  -output_dir $BASE_HOME/ASO-Temba/outputs/tsu_i3d
+  -output_dir $BASE_HOME/ASO-Temba/outputs/charades_i3d
 
 echo "Training done."
