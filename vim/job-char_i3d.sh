@@ -36,21 +36,20 @@ echo "======================"
 
 
 python MSTemba_main.py \
-  -dataset tsu \
+  -dataset charades \
   -mode rgb \
   -backbone i3d \
   -model mstemba \
   -train True \
   -rgb_root $BASE_HOME/ASO-Temba/data/charades_features_i3d \
-  -num_clips 2500 \
+  -num_clips 256 \
   -skip 0 \
-  --lr 4.5e-4 \
   -comp_info False \
-  -epochs 140 \
+  -epochs 50 \
   -unisize True \
   -alpha_l 1 \
   -beta_l 0.05 \
-  -batch_size 1 \
+  -batch_size 5 \
   -output_dir $BASE_HOME/ASO-Temba/outputs/charades_i3d
 
 echo "Training done."

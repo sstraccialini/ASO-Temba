@@ -38,7 +38,7 @@ echo "======================"
 python MSTemba_main.py \
   -dataset tsu \
   -mode rgb \
-  -backbone i3d \
+  -backbone clip \
   -model mstemba \
   -train True \
   -rgb_root $BASE_HOME/ASO-Temba/data/tsu_features_clip_l14 \
