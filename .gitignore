@@ -35,5 +35,9 @@ Thumbs.db
 .env
 .env.*
 
+# Data
 data/*
 !data/*.json
+
+# No models in outputs
+outputs/*.pth

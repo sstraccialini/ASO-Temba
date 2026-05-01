@@ -510,8 +510,8 @@ def val_step(model, gpu, dataloader, epoch):
         logging.info(f'Block {i+1} Sampled AP values: {100 * block_sampled_apms[i].value()}')
         
         # Save block probabilities
-        block_dir = os.path.join(args.output_dir, f'block_{i+1}')
-        pickle.dump(block_full_probs[i], open(os.path.join(block_dir, f'{epoch}.pkl'), 'wb'), pickle.HIGHEST_PROTOCOL)
+        # block_dir = os.path.join(args.output_dir, f'block_{i+1}')
+        # pickle.dump(block_full_probs[i], open(os.path.join(block_dir, f'{epoch}.pkl'), 'wb'), pickle.HIGHEST_PROTOCOL)
         
         block_apms[i].reset()
         block_sampled_apms[i].reset()

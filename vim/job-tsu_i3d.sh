@@ -5,7 +5,6 @@
 #SBATCH --gres=gpu:1
 #SBATCH --time=24:00:00
 #SBATCH --output=slurm-tsu_i3d-%j.out
-#SBATCH --mem=64G
 #SBATCH --cpus-per-task=8
 
 # ====== USER CONFIG ======
@@ -51,6 +50,7 @@ python MSTemba_main.py \
   -alpha_l 1 \
   -beta_l 0.05 \
   -batch_size 1 \
+  --num_workers 1 \
   -output_dir $BASE_HOME/ASO-Temba/outputs/tsu_i3d
 
 echo "Training done."
