@@ -46,7 +46,7 @@ parser.add_argument('-unisize', type=str, default='False')
 parser.add_argument('-alpha_l', type=float, default='1.0')
 parser.add_argument('-beta_l', type=float, default='1.0')
 parser.add_argument('-output_dir', type=str, default='./output', help='Directory to save output files')
-parser.add_argument('--fuser', type=str, default='sum', choices=['sum', 'weighted'],
+parser.add_argument('--fuser', type=str, default='sum', choices=['sum', 'weighted', 'attention'],
                     help='Fusion strategy for combining block outputs')
 
 # Add new arguments from main_no_teacher.py
@@ -107,6 +107,8 @@ parser.add_argument('--decay-rate', '--dr', type=float, default=0.1, metavar='RA
 
 parser.add_argument('--num_workers', type=int, default=4, metavar='N',
                     help='number of data loading workers (default: 4)')
+parser.add_argument('-weights', type=str, default='',
+                    help='path to model weights for evaluation')
 
 args = parser.parse_args()
 
@@ -576,7 +578,7 @@ if __name__ == '__main__':
     setup_logging(args.output_dir)
     logging.info(f"Arguments: {args}")
 
-    if args.train:
+    if args.train == 'True':
         if args.backbone == 'i3d':
             in_feat_dim = 1024
         elif args.backbone == 'clip':
@@ -614,3 +616,123 @@ if __name__ == '__main__':
         logging.info(f"Number of parameters: {n_parameters}")
 
         run([(model, 0, dataloaders, optimizer, lr_scheduler, args.comp_info)], criterion, num_epochs=int(args.epochs))
+
+    elif args.train == 'False':
+        # =========================
+        #     EVALUATION ONLY
+        # =========================
+        logging.info("=" * 60)
+        logging.info("Running EVALUATION on the 'testing' subset")
+        logging.info("=" * 60)
+
+        # 1) Build the same model architecture
+        if args.backbone == 'i3d':
+            in_feat_dim = 1024
+        elif args.backbone == 'clip':
+            in_feat_dim = 768
+
+        model = create_model(
+            args.model,
+            pretrained=False,
+            num_classes=classes,
+            drop_rate=args.drop,
+            drop_path_rate=args.drop_path,
+            drop_block_rate=None,
+            in_feat_dim=in_feat_dim,
+            fuser=args.fuser
+        )
+        model.cuda()
+
+        # 2) Load the trained weights
+        ckpt_path = args.weights
+        logging.info(f"Loading checkpoint: {ckpt_path}")
+        checkpoint = torch.load(ckpt_path, map_location='cuda:0')
+
+        if isinstance(checkpoint, dict) and 'state_dict' in checkpoint:
+            state_dict = checkpoint['state_dict']
+        elif isinstance(checkpoint, dict) and 'model' in checkpoint:
+            state_dict = checkpoint['model']
+        else:
+            state_dict = checkpoint
+
+        # Strip any 'module.' prefix if it was saved with DataParallel
+        state_dict = {k.replace('module.', '', 1) if k.startswith('module.') else k: v
+                      for k, v in state_dict.items()}
+
+        missing, unexpected = model.load_state_dict(state_dict, strict=False)
+        logging.info(f"Missing keys: {missing}")
+        logging.info(f"Unexpected keys: {unexpected}")
+
+        n_parameters = sum(p.numel() for p in model.parameters() if p.requires_grad)
+        logging.info(f"Number of trainable parameters: {n_parameters}")
+
+        # 3) Run evaluation on the 'testing' subset
+        model.eval()
+        eval_start = time.time()
+        with torch.no_grad():
+            full_probs, val_loss, val_map, sample_val_map, \
+                block_val_maps, block_sample_val_maps = val_step(
+                    model, 0, dataloaders['val'], epoch=0
+                )
+        eval_time = time.time() - eval_start
+
+        # 4) Collect every metric reported in the MS-Temba paper
+        # Paper reports per-frame mAP (full) and the standard sampled-mAP
+        # protocol (25 evenly sampled frames) on Charades / TSU. We also
+        # store per-block mAPs for the 3 multi-scale Temba blocks.
+        metrics = {
+            "model_path":              ckpt_path,
+            "dataset":                 args.dataset,
+            "mode":                    args.mode,
+            "num_classes":             classes,
+            "num_parameters":          n_parameters,
+            "eval_time_seconds":       round(eval_time, 2),
+            "val_loss":                float(val_loss),
+
+            # ---- Headline numbers reported in the paper ----
+            "per_frame_mAP":           float(val_map),            # main metric
+            "sampled_mAP_25":          float(sample_val_map),     # 25-frame sampled mAP
+
+            # ---- Per-block mAPs (multi-scale ablation) ----
+            "block1_per_frame_mAP":    float(block_val_maps[0]),
+            "block2_per_frame_mAP":    float(block_val_maps[1]),
+            "block3_per_frame_mAP":    float(block_val_maps[2]),
+            "block1_sampled_mAP_25":   float(block_sample_val_maps[0]),
+            "block2_sampled_mAP_25":   float(block_sample_val_maps[1]),
+            "block3_sampled_mAP_25":   float(block_sample_val_maps[2]),
+        }
+
+        # 5) Save metrics to CSV (easy diff with future runs)
+        os.makedirs(args.output_dir, exist_ok=True)
+        csv_path = os.path.join(args.output_dir, "evaluation_metrics.csv")
+        with open(csv_path, "w", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow(["metric", "value"])
+            for k, v in metrics.items():
+                writer.writerow([k, v])
+        logging.info(f"Metrics CSV saved to: {csv_path}")
+
+        # 6) Also save metrics as a pickle (preserves types) and the
+        #    full per-video probability tensors for later analysis.
+        pkl_path = os.path.join(args.output_dir, "evaluation_metrics.pkl")
+        pickle.dump(metrics, open(pkl_path, "wb"), pickle.HIGHEST_PROTOCOL)
+        logging.info(f"Metrics pickle saved to: {pkl_path}")
+
+        probs_path = os.path.join(args.output_dir, "eval_full_probs.pkl")
+        pickle.dump(full_probs, open(probs_path, "wb"), pickle.HIGHEST_PROTOCOL)
+        logging.info(f"Per-video probabilities saved to: {probs_path}")
+
+        # 7) Optional: run the qualitative block-analysis already in the file
+        try:
+            analyze_block_predictions(model, dataloaders['val'],
+                                      args.output_dir, epoch="eval")
+        except Exception as e:
+            logging.warning(f"Block analysis skipped due to: {e}")
+
+        # 8) Pretty print final summary
+        logging.info("=" * 60)
+        logging.info("EVALUATION SUMMARY")
+        logging.info("=" * 60)
+        for k, v in metrics.items():
+            logging.info(f"{k:<28s}: {v}")
+        logging.info("=" * 60)
