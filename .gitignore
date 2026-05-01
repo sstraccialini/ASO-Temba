@@ -30,6 +30,7 @@ Thumbs.db
 
 # Logs
 *.log
+!outputs/**/training.log
 
 # Local config
 .env
