@@ -658,6 +658,13 @@ class MSTemba(nn.Module):
         self.scale_proj3 = nn.Linear(embed_dims[2], embed_dims[2])
         if self.fuser == 'weighted':
             self.fuser_weights = nn.Parameter(torch.ones(3))
+        elif self.fuser == 'attention':
+            hidden_dim = max(embed_dims[2] // 2, 1)
+            self.fuser_attention = nn.Sequential(
+                nn.Linear(embed_dims[2], hidden_dim),
+                nn.Tanh(),
+                nn.Linear(hidden_dim, 1, bias=False)
+            )
 
         # Hierarchical blocks
         self.blocks = nn.ModuleList()
@@ -822,6 +829,19 @@ class MSTemba(nn.Module):
         elif self.fuser == 'weighted':
             fusion_weights = torch.softmax(self.fuser_weights, dim=0)
             x = fusion_weights[0] * x1 + fusion_weights[1] * x2 + fusion_weights[2] * x3
+        
+        # attention fuser uses an attention mechanism to dynamically weight the three block outputs for each token, allowing for more fine-grained fusion that can adapt to the content of the features. The attention weights are computed based on the mean of the features across the sequence dimension, and then applied to the original features to get a weighted sum.
+        elif self.fuser == 'attention':
+            block_features = torch.stack([
+                x1.mean(dim=1),
+                x2.mean(dim=1),
+                x3.mean(dim=1),
+            ], dim=1)
+            fusion_logits = self.fuser_attention(block_features).squeeze(-1)
+            fusion_weights = torch.softmax(fusion_logits, dim=1).unsqueeze(-1).unsqueeze(-1)
+            x = fusion_weights[:, 0] * x1 + fusion_weights[:, 1] * x2 + fusion_weights[:, 2] * x3
+        else:
+            raise ValueError(f"Unknown fuser mode: {self.fuser}")
 
 
         x, _ = self.interaction_block(x)
