@@ -39,5 +39,6 @@ Thumbs.db
 data/*
 !data/*.json
 
-# No models in outputs
-outputs/*.pth
+# No models in any folder and subfolder in outputs
+outputs/**/*.pth
+outputs/**/*.pkl
