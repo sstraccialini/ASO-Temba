@@ -46,7 +46,7 @@ parser.add_argument('-unisize', type=str, default='False')
 parser.add_argument('-alpha_l', type=float, default='1.0')
 parser.add_argument('-beta_l', type=float, default='1.0')
 parser.add_argument('-output_dir', type=str, default='./output', help='Directory to save output files')
-parser.add_argument('--fuser', type=str, default='sum', choices=['sum', 'weighted', 'attention'],
+parser.add_argument('--fuser', type=str, default='sum', choices=['sum', 'weighted', 'token-attention', 'cross-token-attention'],
                     help='Fusion strategy for combining block outputs')
 
 # Add new arguments from main_no_teacher.py
@@ -165,11 +165,11 @@ def run(models, criterion, num_epochs=50):
         logging.info('-' * 10)
         for model, gpu, dataloader, optimizer, sched, model_file in models:
             # Training step with block metrics
-            train_map, train_loss, block_train_maps, avg_diversity_loss = train_step(model, gpu, optimizer, dataloader['train'], epoch)
+            train_map, train_loss, block_train_maps, avg_diversity_loss, fusion_weights = train_step(model, gpu, optimizer, dataloader['train'], epoch)
             logging.info(f'Epoch {epoch} - Train MAP: {train_map:.2f}, Train Loss: {train_loss:.4f}')
             
             # Validation step with block metrics
-            prob_val, val_loss, val_map, sample_val_map, block_val_maps, block_sample_val_maps = val_step(model, gpu, dataloader['val'], epoch)
+            prob_val, val_loss, val_map, sample_val_map, block_val_maps, block_sample_val_maps, val_fusion_weights = val_step(model, gpu, dataloader['val'], epoch)
             logging.info(f'Epoch {epoch} - Val MAP: {val_map:.2f}, Val Loss: {val_loss:.4f}')
             logging.info(f'Epoch {epoch} - Sampled Val MAP: {sample_val_map:.2f}')
             sched.step(val_loss)
@@ -187,6 +187,16 @@ def run(models, criterion, num_epochs=50):
                 writer.add_scalar(f'Block_{i+1}/train_map', block_train_maps[i], epoch)
                 writer.add_scalar(f'Block_{i+1}/val_map', block_val_maps[i], epoch)
                 writer.add_scalar(f'Block_{i+1}/sampled_val_map', block_sample_val_maps[i], epoch)
+            
+            # Log fusion weights if available
+            if fusion_weights is not None:
+                if fusion_weights.dim() == 1:  # weighted mode: shape (3,)
+                    for i in range(len(fusion_weights)):
+                        writer.add_scalar(f'Fuser/weight_block_{i+1}', fusion_weights[i].item(), epoch)
+                elif fusion_weights.dim() == 3:  # token-attention or cross-token-attention: shape (B, T, 3)
+                    avg_weights = fusion_weights.mean(dim=(0, 1))  # Average over batch and time
+                    for i in range(avg_weights.shape[-1]):
+                        writer.add_scalar(f'Fuser/avg_weight_block_{i+1}', avg_weights[i].item(), epoch)
             
             # Time
             epoch_time = time.time() - since1
@@ -238,7 +248,7 @@ def eval_model(model, dataloader, baseline=False):
     
     for data in dataloader:
         other = data[3]
-        outputs, loss, probs, _, block_probs, _ = run_network(model, data, 0, baseline)
+        outputs, loss, probs, _, block_probs, _, _ = run_network(model, data, 0, baseline)
         fps = outputs.size()[1] / other[1][0]
 
         # Store final output results
@@ -357,7 +367,7 @@ def run_network(model, data, gpu, epoch=0, baseline=False):
 
     inputs = inputs.squeeze(3).squeeze(3)
 
-    outputs_final, block_outputs, diversity_loss = model(inputs)
+    outputs_final, block_outputs, diversity_loss, fusion_weights = model(inputs)
     
     # Logit for final output
     probs_f = F.sigmoid(outputs_final) * mask.unsqueeze(2)
@@ -385,7 +395,7 @@ def run_network(model, data, gpu, epoch=0, baseline=False):
     corr = torch.sum(mask)
     tot = torch.sum(mask)
     
-    return outputs_final, loss, probs_f, corr / tot, block_probs, block_losses
+    return outputs_final, loss, probs_f, corr / tot, block_probs, block_losses, fusion_weights
 
 
 def train_step(model, gpu, optimizer, dataloader, epoch):
@@ -400,13 +410,13 @@ def train_step(model, gpu, optimizer, dataloader, epoch):
     for data in dataloader:
         optimizer.zero_grad()
         num_iter += 1
-        outputs, loss, probs, err, block_probs, block_losses = run_network(model, data, gpu, epoch)
+        outputs, loss, probs, err, block_probs, block_losses, fusion_weights = run_network(model, data, gpu, epoch)
         
         # Extract diversity loss from the model output for logging
         with torch.no_grad():
             inputs, mask, labels, other, hm = data
             inputs = inputs.squeeze(3).squeeze(3).cuda(gpu)
-            _, _, diversity_loss = model(inputs)
+            _, _, diversity_loss, _ = model(inputs)
             tot_diversity_loss += diversity_loss.item()
         
         # Add metrics for final output
@@ -441,7 +451,7 @@ def train_step(model, gpu, optimizer, dataloader, epoch):
     # Log diversity loss
     logging.info(f'Epoch {epoch}, Diversity Loss: {avg_diversity_loss:.6f}')
 
-    return train_map, epoch_loss, block_maps, avg_diversity_loss
+    return train_map, epoch_loss, block_maps, avg_diversity_loss, fusion_weights
 
 
 def val_step(model, gpu, dataloader, epoch):
@@ -455,6 +465,7 @@ def val_step(model, gpu, dataloader, epoch):
     num_iter = 0.
     full_probs = {}
     block_full_probs = [{} for _ in range(3)]  # One dict for each block
+    fusion_weights = None  # Initialize for later logging
 
     # Create output directories for each block
     for i in range(3):
@@ -466,7 +477,7 @@ def val_step(model, gpu, dataloader, epoch):
         num_iter += 1
         other = data[3]
 
-        outputs, loss, probs, err, block_probs, block_losses = run_network(model, data, gpu, epoch)
+        outputs, loss, probs, err, block_probs, block_losses, fusion_weights = run_network(model, data, gpu, epoch)
         
         # Process final output
         if sum(data[1].numpy()[0])>25:
@@ -527,7 +538,7 @@ def val_step(model, gpu, dataloader, epoch):
     apm.reset()
     sampled_apm.reset()
     
-    return full_probs, epoch_loss, val_map, sample_val_map, block_val_maps, block_sample_val_maps
+    return full_probs, epoch_loss, val_map, sample_val_map, block_val_maps, block_sample_val_maps, fusion_weights
 
 
 def setup_logging(output_dir):
@@ -671,7 +682,7 @@ if __name__ == '__main__':
         eval_start = time.time()
         with torch.no_grad():
             full_probs, val_loss, val_map, sample_val_map, \
-                block_val_maps, block_sample_val_maps = val_step(
+                block_val_maps, block_sample_val_maps, fusion_weights = val_step(
                     model, 0, dataloaders['val'], epoch=0
                 )
         eval_time = time.time() - eval_start

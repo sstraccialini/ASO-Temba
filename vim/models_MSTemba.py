@@ -656,15 +656,22 @@ class MSTemba(nn.Module):
         self.scale_proj1 = nn.Linear(embed_dims[0], embed_dims[2])
         self.scale_proj2 = nn.Linear(embed_dims[1], embed_dims[2])
         self.scale_proj3 = nn.Linear(embed_dims[2], embed_dims[2])
+        
         if self.fuser == 'weighted':
             self.fuser_weights = nn.Parameter(torch.ones(3))
-        elif self.fuser == 'attention':
-            hidden_dim = max(embed_dims[2] // 2, 1)
-            self.fuser_attention = nn.Sequential(
-                nn.Linear(embed_dims[2], hidden_dim),
-                nn.Tanh(),
-                nn.Linear(hidden_dim, 1, bias=False)
+        
+        elif self.fuser == 'token-attention':
+            d = embed_dims[2]
+            self.fuser_q = nn.Parameter(torch.randn(1, 1, d) * 0.02)  # learned query
+            self.fuser_k = nn.Linear(d, d, bias=False)
+            self.fuser_v = nn.Linear(d, d, bias=False)
+            self.fuser_scale = d ** -0.5
+
+        elif self.fuser == 'cross-token-attention':
+            self.fuser_attention = nn.MultiheadAttention(
+                embed_dim=embed_dims[2], num_heads=4, batch_first=True
             )
+            self.fuser_q = nn.Parameter(torch.randn(1, 1, embed_dims[2]) * 0.02)
 
         # Hierarchical blocks
         self.blocks = nn.ModuleList()
@@ -824,22 +831,37 @@ class MSTemba(nn.Module):
         # standard fuser sums the three block outputs togheter (original MS-Temba paper)
         if self.fuser == 'sum':
             x = x1 + x2 + x3
+            self._last_fusion_weights = torch.tensor([1/3, 1/3, 1/3], device=x.device)  # For logging equal weights
 
         # weighted fuser learns to weight the three block outputs, which can be useful to understand the importance of each block and for potentially improving performance by allowing the model to focus more on certain blocks. The weights are normalized with softmax to ensure they sum to 1.
         elif self.fuser == 'weighted':
             fusion_weights = torch.softmax(self.fuser_weights, dim=0)
+            self._last_fusion_weights = fusion_weights.detach()
             x = fusion_weights[0] * x1 + fusion_weights[1] * x2 + fusion_weights[2] * x3
         
-        # attention fuser uses an attention mechanism to dynamically weight the three block outputs for each token, allowing for more fine-grained fusion that can adapt to the content of the features. The attention weights are computed based on the mean of the features across the sequence dimension, and then applied to the original features to get a weighted sum.
-        elif self.fuser == 'attention':
-            block_features = torch.stack([
-                x1.mean(dim=1),
-                x2.mean(dim=1),
-                x3.mean(dim=1),
-            ], dim=1)
-            fusion_logits = self.fuser_attention(block_features).squeeze(-1)
-            fusion_weights = torch.softmax(fusion_logits, dim=1).unsqueeze(-1).unsqueeze(-1)
-            x = fusion_weights[:, 0] * x1 + fusion_weights[:, 1] * x2 + fusion_weights[:, 2] * x3
+        elif self.fuser == 'token-attention':
+            stacked = torch.stack([x1, x2, x3], dim=2)        # (B, T, 3, C)
+            K = self.fuser_k(stacked)                         # (B, T, 3, C)
+            V = self.fuser_v(stacked)                         # (B, T, 3, C)
+            Q = self.fuser_q.expand(stacked.size(0), stacked.size(1), -1)   # (B, T, C)
+            # Score each branch by dot product with the query
+            scores = torch.einsum('btc,btkc->btk', Q, K) * self.fuser_scale  # (B, T, 3)
+            weights = torch.softmax(scores, dim=-1)
+            self._last_fusion_weights = weights.detach()
+            x = (V * weights.unsqueeze(-1)).sum(dim=2)        # (B, T, C)
+        
+        elif self.fuser == 'cross-token-attention':
+            B, T, C = x1.shape
+            stacked = torch.stack([x1, x2, x3], dim=2).reshape(B * T, 3, C)  # (B*T, 3, C)
+            q = self.fuser_q.expand(B * T, 1, C)
+            fused, attn = self.fuser_attention(q, stacked, stacked,           # (B*T, 1, C)
+                                            need_weights=True, average_attn_weights=True)
+            # attn: (B*T, 1, 3) → reshape to (B, T, 3)
+            attn = attn.reshape(B, T, 3)
+            self._last_fusion_weights = attn.detach()
+
+            x = fused.reshape(B, T, C)
+
         else:
             raise ValueError(f"Unknown fuser mode: {self.fuser}")
 
@@ -861,7 +883,9 @@ class MSTemba(nn.Module):
                     block_diversity_loss = compute_c_state_diversity_loss_simple(valid_c_states)
                     diversity_loss = diversity_loss + block_diversity_loss
         
-        return x, block_predictions, diversity_loss
+        # Return fusion weights if available (for logging)
+        fusion_weights = getattr(self, '_last_fusion_weights', None)
+        return x, block_predictions, diversity_loss, fusion_weights
 
 
 @register_model
