@@ -638,8 +638,10 @@ class MSTemba(nn.Module):
                  embed_dims=[256, 384, 576],
                  depths=[1, 1, 1],
                  d_state=16,
+                 fuser='sum',
                  **kwargs):
         super().__init__()
+        self.fuser = fuser
         # Add linear layers for each block
         self.block_heads = nn.ModuleList([
             nn.Linear(embed_dims[i], num_classes) for i in range(3)
@@ -654,6 +656,15 @@ class MSTemba(nn.Module):
         self.scale_proj1 = nn.Linear(embed_dims[0], embed_dims[2])
         self.scale_proj2 = nn.Linear(embed_dims[1], embed_dims[2])
         self.scale_proj3 = nn.Linear(embed_dims[2], embed_dims[2])
+        if self.fuser == 'weighted':
+            self.fuser_weights = nn.Parameter(torch.ones(3))
+        elif self.fuser == 'attention':
+            hidden_dim = max(embed_dims[2] // 2, 1)
+            self.fuser_attention = nn.Sequential(
+                nn.Linear(embed_dims[2], hidden_dim),
+                nn.Tanh(),
+                nn.Linear(hidden_dim, 1, bias=False)
+            )
 
         # Hierarchical blocks
         self.blocks = nn.ModuleList()
@@ -809,8 +820,29 @@ class MSTemba(nn.Module):
         x1 = self.norm(self.scale_proj1(x1))
         x2 = self.norm(self.scale_proj2(x2))
         x3 = self.norm(self.scale_proj3(x3))
-    
-        x = x1 + x2 + x3
+
+        # standard fuser sums the three block outputs togheter (original MS-Temba paper)
+        if self.fuser == 'sum':
+            x = x1 + x2 + x3
+
+        # weighted fuser learns to weight the three block outputs, which can be useful to understand the importance of each block and for potentially improving performance by allowing the model to focus more on certain blocks. The weights are normalized with softmax to ensure they sum to 1.
+        elif self.fuser == 'weighted':
+            fusion_weights = torch.softmax(self.fuser_weights, dim=0)
+            x = fusion_weights[0] * x1 + fusion_weights[1] * x2 + fusion_weights[2] * x3
+        
+        # attention fuser uses an attention mechanism to dynamically weight the three block outputs for each token, allowing for more fine-grained fusion that can adapt to the content of the features. The attention weights are computed based on the mean of the features across the sequence dimension, and then applied to the original features to get a weighted sum.
+        elif self.fuser == 'attention':
+            block_features = torch.stack([
+                x1.mean(dim=1),
+                x2.mean(dim=1),
+                x3.mean(dim=1),
+            ], dim=1)
+            fusion_logits = self.fuser_attention(block_features).squeeze(-1)
+            fusion_weights = torch.softmax(fusion_logits, dim=1).unsqueeze(-1).unsqueeze(-1)
+            x = fusion_weights[:, 0] * x1 + fusion_weights[:, 1] * x2 + fusion_weights[:, 2] * x3
+        else:
+            raise ValueError(f"Unknown fuser mode: {self.fuser}")
+
 
         x, _ = self.interaction_block(x)
         
