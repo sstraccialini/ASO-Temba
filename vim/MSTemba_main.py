@@ -46,6 +46,8 @@ parser.add_argument('-unisize', type=str, default='False')
 parser.add_argument('-alpha_l', type=float, default='1.0')
 parser.add_argument('-beta_l', type=float, default='1.0')
 parser.add_argument('-output_dir', type=str, default='./output', help='Directory to save output files')
+parser.add_argument('--fuser', type=str, default='sum', choices=['sum', 'weighted'],
+                    help='Fusion strategy for combining block outputs')
 
 # Add new arguments from main_no_teacher.py
 parser.add_argument('--model', default='vim_tiny_patch16_224_bimambav2_final_pool_mean_abs_pos_embed_with_midclstok_div2', type=str, metavar='MODEL',
@@ -588,7 +590,8 @@ if __name__ == '__main__':
             drop_rate=args.drop,
             drop_path_rate=args.drop_path,
             drop_block_rate=None,
-            in_feat_dim=in_feat_dim
+            in_feat_dim=in_feat_dim,
+            fuser=args.fuser
         )
         model.cuda()
 
