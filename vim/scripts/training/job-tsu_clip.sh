@@ -51,7 +51,7 @@ python MSTemba_main.py \
   -beta_l 0.05 \
   -batch_size 1 \
   --num_workers 1 \
-  --fuser weighted \
-  -output_dir $BASE_HOME/ASO-Temba/outputs/tsu_clip-weighted
+  --fuser token-attention \
+  -output_dir $BASE_HOME/ASO-Temba/outputs/tsu_clip-token_attention
 
 echo "Training done."
