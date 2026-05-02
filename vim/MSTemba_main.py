@@ -357,7 +357,11 @@ def run_network(model, data, gpu, epoch=0, baseline=False):
 
     inputs = inputs.squeeze(3).squeeze(3)
 
-    outputs_final, block_outputs, diversity_loss = model(inputs)
+    modelOut = model(inputs)
+    if len(modelOut) == 4:
+        outputs_final, block_outputs, diversity_loss, routing_weights = modelOut
+    else:
+        outputs_final, block_outputs, diversity_loss = modelOut
     
     # Logit for final output
     probs_f = F.sigmoid(outputs_final) * mask.unsqueeze(2)
@@ -406,7 +410,11 @@ def train_step(model, gpu, optimizer, dataloader, epoch):
         with torch.no_grad():
             inputs, mask, labels, other, hm = data
             inputs = inputs.squeeze(3).squeeze(3).cuda(gpu)
-            _, _, diversity_loss = model(inputs)
+            modelOut = model(inputs)
+            if len(modelOut) == 4:
+                _, _, diversity_loss, _ = modelOut
+            else:
+                _, _, diversity_loss = modelOut
             tot_diversity_loss += diversity_loss.item()
         
         # Add metrics for final output
