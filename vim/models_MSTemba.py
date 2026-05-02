@@ -922,6 +922,8 @@ class MSTemba(nn.Module):
 
         elif self.fuser == 'attention':
             x, fusion_weights = self.fuser_attention_module([x1, x2, x3])
+            # Mirror the other fuser branches so logging picks up routing weights.
+            self._last_fusion_weights = fusion_weights.detach()
 
         else:
             raise ValueError(f"Unknown fuser mode: {self.fuser}")

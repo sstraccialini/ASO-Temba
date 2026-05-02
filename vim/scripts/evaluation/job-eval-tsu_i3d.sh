@@ -39,7 +39,7 @@ python MSTemba_main.py \
   -mode rgb \
   -backbone i3d \
   -model mstemba \
-  -train false \
+  -train False \
   -weights $BASE_HOME/ASO-Temba/outputs/tsu_i3d/best_model.pth \
   -rgb_root $BASE_HOME/ASO-Temba/data/tsu_features_i3d \
   -num_clips 2500 \

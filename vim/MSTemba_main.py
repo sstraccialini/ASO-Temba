@@ -171,7 +171,7 @@ def run(models, criterion, num_epochs=50, model_ema=None):
             logging.info(f'Epoch {epoch} - Train MAP: {train_map:.2f}, Train Loss: {train_loss:.4f}')
             
             # Validation step with block metrics
-            prob_val, val_loss, val_map, sample_val_map, block_val_maps, block_sample_val_maps, val_fusion_weights = val_step(model, gpu, dataloader['val'], epoch)
+            prob_val, val_loss, val_map, sample_val_map, block_val_maps, block_sample_val_maps, val_fusion_weights, _ = val_step(model, gpu, dataloader['val'], epoch)
             logging.info(f'Epoch {epoch} - Val MAP: {val_map:.2f}, Val Loss: {val_loss:.4f}')
             logging.info(f'Epoch {epoch} - Sampled Val MAP: {sample_val_map:.2f}')
             sched.step(val_loss)
@@ -521,7 +521,18 @@ def val_step(model, gpu, dataloader, epoch):
             block_full_probs[i][other[0][0]] = block_prob_masked.T
 
     epoch_loss = tot_loss / num_iter
-    
+
+    # Snapshot per-class AP arrays BEFORE the meters are reset, so callers
+    # (e.g. evaluation) can save the full per-class breakdown reported in
+    # the MS-Temba paper, not just the per-block scalar mAPs.
+    per_class_aps = {
+        'final_full':       (100 * apm.value()).cpu().numpy(),
+        'final_sampled_25': (100 * sampled_apm.value()).cpu().numpy(),
+    }
+    for i in range(3):
+        per_class_aps[f'block{i+1}_full']       = (100 * block_apms[i].value()).cpu().numpy()
+        per_class_aps[f'block{i+1}_sampled_25'] = (100 * block_sampled_apms[i].value()).cpu().numpy()
+
     # Calculate metrics for final output
     val_map = torch.sum(100 * apm.value()) / torch.nonzero(100 * apm.value()).size()[0]
     sample_val_map = torch.sum(100 * sampled_apm.value()) / torch.nonzero(100 * sampled_apm.value()).size()[0]
@@ -534,27 +545,27 @@ def val_step(model, gpu, dataloader, epoch):
         block_sample_val_map = torch.sum(100 * block_sampled_apms[i].value()) / torch.nonzero(100 * block_sampled_apms[i].value()).size()[0]
         block_val_maps.append(block_val_map)
         block_sample_val_maps.append(block_sample_val_map)
-        
+
         # Log block metrics
         logging.info(f'Epoch {epoch}, Block {i+1} Full-val-map: {block_val_map:.4f}')
         logging.info(f'Epoch {epoch}, Block {i+1} sampled-val-map: {block_sample_val_map:.4f}')
         logging.info(f'Block {i+1} Sampled AP values: {100 * block_sampled_apms[i].value()}')
-        
+
         # Save block probabilities
         # block_dir = os.path.join(args.output_dir, f'block_{i+1}')
         # pickle.dump(block_full_probs[i], open(os.path.join(block_dir, f'{epoch}.pkl'), 'wb'), pickle.HIGHEST_PROTOCOL)
-        
+
         block_apms[i].reset()
         block_sampled_apms[i].reset()
 
     logging.info(f'Epoch {epoch}, Final Full-val-map: {val_map:.4f}')
     logging.info(f'Epoch {epoch}, Final sampled-val-map: {sample_val_map:.4f}')
     logging.info(f'Final Sampled AP values: {100 * sampled_apm.value()}')
-    
+
     apm.reset()
     sampled_apm.reset()
-    
-    return full_probs, epoch_loss, val_map, sample_val_map, block_val_maps, block_sample_val_maps, fusion_weights
+
+    return full_probs, epoch_loss, val_map, sample_val_map, block_val_maps, block_sample_val_maps, fusion_weights, per_class_aps
 
 
 def setup_logging(output_dir):
@@ -652,7 +663,23 @@ if __name__ == '__main__':
         logging.info("Running EVALUATION on the 'testing' subset")
         logging.info("=" * 60)
 
-        # 1) Build the same model architecture
+        # 1) Load the checkpoint first so we can recover the fuser type used
+        #    at training time. Otherwise args.fuser silently defaults to 'sum'
+        #    and the model is built with a different architecture than the one
+        #    that was trained, leading to missing/unexpected keys and to a
+        #    forward path that does not match the trained weights.
+        ckpt_path = args.weights
+        logging.info(f"Loading checkpoint: {ckpt_path}")
+        checkpoint = torch.load(ckpt_path, map_location='cuda:0')
+        if isinstance(checkpoint, dict) and 'fuser' in checkpoint:
+            ckpt_fuser = checkpoint['fuser']
+            if ckpt_fuser != args.fuser:
+                logging.warning(
+                    f"Overriding --fuser='{args.fuser}' with checkpoint's fuser='{ckpt_fuser}'"
+                )
+                args.fuser = ckpt_fuser
+
+        # 2) Build the same model architecture used at training time
         if args.backbone == 'i3d':
             in_feat_dim = 1024
         elif args.backbone == 'clip':
@@ -669,11 +696,6 @@ if __name__ == '__main__':
             fuser=args.fuser
         )
         model.cuda()
-
-        # 2) Load the trained weights
-        ckpt_path = args.weights
-        logging.info(f"Loading checkpoint: {ckpt_path}")
-        checkpoint = torch.load(ckpt_path, map_location='cuda:0')
 
         if isinstance(checkpoint, dict) and 'state_dict' in checkpoint:
             state_dict = checkpoint['state_dict']
@@ -698,7 +720,7 @@ if __name__ == '__main__':
         eval_start = time.time()
         with torch.no_grad():
             full_probs, val_loss, val_map, sample_val_map, \
-                block_val_maps, block_sample_val_maps, fusion_weights = val_step(
+                block_val_maps, block_sample_val_maps, fusion_weights, per_class_aps = val_step(
                     model, 0, dataloaders['val'], epoch=0
                 )
         eval_time = time.time() - eval_start
@@ -741,9 +763,20 @@ if __name__ == '__main__':
 
         # 6) Also save metrics as a pickle (preserves types) and the
         #    full per-video probability tensors for later analysis.
+        # Per-class AP arrays are stored only in the pickle/npz to avoid
+        # bloating the CSV; they are needed to reproduce per-class
+        # comparisons against the baseline tables in the paper.
+        metrics_with_arrays = dict(metrics)
+        metrics_with_arrays["per_class_aps"] = per_class_aps
+        metrics_with_arrays["fuser"] = args.fuser
+
         pkl_path = os.path.join(args.output_dir, "evaluation_metrics.pkl")
-        pickle.dump(metrics, open(pkl_path, "wb"), pickle.HIGHEST_PROTOCOL)
+        pickle.dump(metrics_with_arrays, open(pkl_path, "wb"), pickle.HIGHEST_PROTOCOL)
         logging.info(f"Metrics pickle saved to: {pkl_path}")
+
+        npz_path = os.path.join(args.output_dir, "per_class_aps.npz")
+        np.savez(npz_path, **per_class_aps)
+        logging.info(f"Per-class AP arrays saved to: {npz_path}")
 
         probs_path = os.path.join(args.output_dir, "eval_full_probs.pkl")
         pickle.dump(full_probs, open(probs_path, "wb"), pickle.HIGHEST_PROTOCOL)
