@@ -109,6 +109,8 @@ parser.add_argument('--num_workers', type=int, default=4, metavar='N',
                     help='number of data loading workers (default: 4)')
 parser.add_argument('-weights', type=str, default='',
                     help='path to model weights for evaluation')
+parser.add_argument('--fuser', type=str, default='sum', choices=['sum', 'weighted', 'token-attention', 'cross-token-attention', 'attention'],
+                    help='Fusion strategy for combining block outputs')
 
 args = parser.parse_args()
 
@@ -636,10 +638,11 @@ if __name__ == '__main__':
 
         run([(model, 0, dataloaders, optimizer, lr_scheduler, args.comp_info)], criterion, num_epochs=int(args.epochs))
 
-    elif args.train == 'False':
+    else:
         # =========================
         #     EVALUATION ONLY
         # =========================
+        print("Evaluation mode only - skipping training and loading specified weights for evaluation.")
         logging.info("=" * 60)
         logging.info("Running EVALUATION on the 'testing' subset")
         logging.info("=" * 60)
