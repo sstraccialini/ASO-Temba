@@ -46,7 +46,7 @@ parser.add_argument('-unisize', type=str, default='False')
 parser.add_argument('-alpha_l', type=float, default='1.0')
 parser.add_argument('-beta_l', type=float, default='1.0')
 parser.add_argument('-output_dir', type=str, default='./output', help='Directory to save output files')
-parser.add_argument('--fuser', type=str, default='sum', choices=['sum', 'weighted', 'token-attention', 'cross-token-attention'],
+parser.add_argument('--fuser', type=str, default='sum', choices=['sum', 'weighted', 'token-attention', 'cross-token-attention', 'attention'],
                     help='Fusion strategy for combining block outputs')
 
 # Add new arguments from main_no_teacher.py
@@ -109,8 +109,6 @@ parser.add_argument('--num_workers', type=int, default=4, metavar='N',
                     help='number of data loading workers (default: 4)')
 parser.add_argument('-weights', type=str, default='',
                     help='path to model weights for evaluation')
-parser.add_argument('--fuser', type=str, default='sum', choices=['sum', 'weighted', 'token-attention', 'cross-token-attention', 'attention'],
-                    help='Fusion strategy for combining block outputs')
 
 args = parser.parse_args()
 
@@ -154,7 +152,7 @@ def load_data(train_split, val_split, root):
     return dataloaders, datasets
 
 
-def run(models, criterion, num_epochs=50):
+def run(models, criterion, num_epochs=50, model_ema=None):
     since = time.time()
     Best_val_map = 0.
     Best_sample_val_map = 0.
@@ -167,7 +165,9 @@ def run(models, criterion, num_epochs=50):
         logging.info('-' * 10)
         for model, gpu, dataloader, optimizer, sched, model_file in models:
             # Training step with block metrics
-            train_map, train_loss, block_train_maps, avg_diversity_loss, fusion_weights = train_step(model, gpu, optimizer, dataloader['train'], epoch)
+            train_map, train_loss, block_train_maps, avg_diversity_loss, fusion_weights = train_step(
+                model, gpu, optimizer, dataloader['train'], epoch, model_ema=model_ema
+            )
             logging.info(f'Epoch {epoch} - Train MAP: {train_map:.2f}, Train Loss: {train_loss:.4f}')
             
             # Validation step with block metrics
@@ -226,9 +226,20 @@ def run(models, criterion, num_epochs=50):
                 # pickle.dump(prob_val, open(os.path.join(args.output_dir, f'{epoch}.pkl'), 'wb'), pickle.HIGHEST_PROTOCOL)
                 # logging.info(f"Logit saved at: {args.output_dir}/{epoch}.pkl")
                 
-                # Save best model
-                torch.save(model.state_dict(), os.path.join(args.output_dir, 'best_model.pth'))
-                logging.info(f"Best model saved at: {args.output_dir}/best_model.pth")
+                best_checkpoint = {
+                    'model': model.state_dict(),
+                    'optimizer': optimizer.state_dict(),
+                    'scheduler': sched.state_dict() if sched is not None and hasattr(sched, 'state_dict') else None,
+                    'args': vars(args).copy(),
+                    'epoch': epoch,
+                    'best_val_map': float(Best_val_map),
+                    'fuser': args.fuser,
+                }
+                if model_ema is not None:
+                    best_checkpoint['model_ema'] = get_state_dict(model_ema)
+
+                torch.save(best_checkpoint, os.path.join(args.output_dir, 'best_model.pth'))
+                logging.info(f"Best checkpoint saved at: {args.output_dir}/best_model.pth")
                 writer.add_scalar('Best_mAP/val', Best_val_map, epoch)
             
             # Save best models for each block
@@ -369,11 +380,7 @@ def run_network(model, data, gpu, epoch=0, baseline=False):
 
     inputs = inputs.squeeze(3).squeeze(3)
 
-    modelOut = model(inputs)
-    if len(modelOut) == 4:
-        outputs_final, block_outputs, diversity_loss, fusion_weights = modelOut
-    else:
-        outputs_final, block_outputs, diversity_loss = modelOut
+    outputs_final, block_outputs, diversity_loss, fusion_weights = model(inputs)
     
     # Logit for final output
     probs_f = F.sigmoid(outputs_final) * mask.unsqueeze(2)
@@ -404,7 +411,7 @@ def run_network(model, data, gpu, epoch=0, baseline=False):
     return outputs_final, loss, probs_f, corr / tot, block_probs, block_losses, fusion_weights
 
 
-def train_step(model, gpu, optimizer, dataloader, epoch):
+def train_step(model, gpu, optimizer, dataloader, epoch, model_ema=None):
     model.train(True)
     tot_loss = 0.0
     tot_diversity_loss = 0.0
@@ -422,11 +429,7 @@ def train_step(model, gpu, optimizer, dataloader, epoch):
         with torch.no_grad():
             inputs, mask, labels, other, hm = data
             inputs = inputs.squeeze(3).squeeze(3).cuda(gpu)
-            modelOut = model(inputs)
-            if len(modelOut) == 4:
-                _, _, diversity_loss, _ = modelOut
-            else:
-                _, _, diversity_loss = modelOut
+            _, _, diversity_loss, _ = model(inputs)
             tot_diversity_loss += diversity_loss.item()
         
         # Add metrics for final output
@@ -441,6 +444,9 @@ def train_step(model, gpu, optimizer, dataloader, epoch):
 
         loss.backward()
         optimizer.step()
+
+        if model_ema is not None:
+            model_ema.update(model)
 
     # Calculate mAP for final output
     train_map = 100 * apm.value().mean()
@@ -636,13 +642,12 @@ if __name__ == '__main__':
         n_parameters = sum(p.numel() for p in model.parameters() if p.requires_grad)
         logging.info(f"Number of parameters: {n_parameters}")
 
-        run([(model, 0, dataloaders, optimizer, lr_scheduler, args.comp_info)], criterion, num_epochs=int(args.epochs))
+        run([(model, 0, dataloaders, optimizer, lr_scheduler, args.comp_info)], criterion, num_epochs=int(args.epochs), model_ema=model_ema)
 
-    else:
+    elif args.train == 'False':
         # =========================
         #     EVALUATION ONLY
         # =========================
-        print("Evaluation mode only - skipping training and loading specified weights for evaluation.")
         logging.info("=" * 60)
         logging.info("Running EVALUATION on the 'testing' subset")
         logging.info("=" * 60)

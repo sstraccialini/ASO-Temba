@@ -621,7 +621,6 @@ class LinearProjection(nn.Module):
         x = self.activation(x)
         return x
 
-
 class MultiScaleAttentionFuser(nn.Module):
     def __init__(self, embed_dim, num_scales=3, nhead=8, dropout=0.1):
         super().__init__()
@@ -697,7 +696,7 @@ class MSTemba(nn.Module):
                  fuser='sum',
                  **kwargs):
         super().__init__()
-        self.fuser_type = fuser
+        self.fuser = fuser
         # Add linear layers for each block
         self.block_heads = nn.ModuleList([
             nn.Linear(embed_dims[i], num_classes) for i in range(3)
@@ -712,10 +711,13 @@ class MSTemba(nn.Module):
         self.scale_proj1 = nn.Linear(embed_dims[0], embed_dims[2])
         self.scale_proj2 = nn.Linear(embed_dims[1], embed_dims[2])
         self.scale_proj3 = nn.Linear(embed_dims[2], embed_dims[2])
-        
+
         if self.fuser == 'weighted':
             self.fuser_weights = nn.Parameter(torch.ones(3))
-        
+
+        elif self.fuser == 'attention':
+            self.fuser_attention_module = MultiScaleAttentionFuser(embed_dims[-1], num_scales=3, nhead=8, dropout=0.1)
+
         elif self.fuser == 'token-attention':
             d = embed_dims[2]
             self.fuser_q = nn.Parameter(torch.randn(1, 1, d) * 0.02)  # learned query
@@ -728,9 +730,6 @@ class MSTemba(nn.Module):
                 embed_dim=embed_dims[2], num_heads=4, batch_first=True
             )
             self.fuser_q = nn.Parameter(torch.randn(1, 1, embed_dims[2]) * 0.02)
-
-        elif self.fuser == 'attention':
-            self.fuser_attention_module = MultiScaleAttentionFuser(embed_dims[-1], num_scales=3, nhead=8, dropout=0.1)
 
         # Hierarchical blocks
         self.blocks = nn.ModuleList()
@@ -755,7 +754,7 @@ class MSTemba(nn.Module):
         ]))
 
 
-        #self.interaction_block = self._create_mamba_block(embed_dims[-1], d_state, depths[-1], **kwargs)
+        self.interaction_block = self._create_mamba_block(embed_dims[-1], d_state, depths[-1], **kwargs)
 
         # Final norm and classifier
         self.norm = nn.LayerNorm(embed_dims[-1])
@@ -893,7 +892,7 @@ class MSTemba(nn.Module):
             self._last_fusion_weights = torch.tensor([1/3, 1/3, 1/3], device=x.device)  # For logging equal weights
 
         # weighted fuser learns to weight the three block outputs, which can be useful to understand the importance of each block and for potentially improving performance by allowing the model to focus more on certain blocks. The weights are normalized with softmax to ensure they sum to 1.
-        elif self.fuser_type == 'weighted':
+        elif self.fuser == 'weighted':
             fusion_weights = torch.softmax(self.fuser_weights, dim=0)
             self._last_fusion_weights = fusion_weights.detach()
             x = fusion_weights[0] * x1 + fusion_weights[1] * x2 + fusion_weights[2] * x3
@@ -923,12 +922,13 @@ class MSTemba(nn.Module):
 
         elif self.fuser == 'attention':
             x, fusion_weights = self.fuser_attention_module([x1, x2, x3])
-            self._last_fusion_weights = fusion_weights.detach()  # (B, T, 3)
 
         else:
-            raise ValueError(f"Unknown fuser mode: {self.fuser_type}")
+            raise ValueError(f"Unknown fuser mode: {self.fuser}")
 
-        # x, _ = self.interaction_block(x)
+
+        if self.fuser != 'attention':
+            x, _ = self.interaction_block(x)
         
         x = self.head(x)
         
