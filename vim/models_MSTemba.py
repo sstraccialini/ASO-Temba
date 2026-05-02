@@ -712,9 +712,24 @@ class MSTemba(nn.Module):
         self.scale_proj1 = nn.Linear(embed_dims[0], embed_dims[2])
         self.scale_proj2 = nn.Linear(embed_dims[1], embed_dims[2])
         self.scale_proj3 = nn.Linear(embed_dims[2], embed_dims[2])
-        if self.fuser_type == 'weighted':
+        
+        if self.fuser == 'weighted':
             self.fuser_weights = nn.Parameter(torch.ones(3))
-        elif self.fuser_type == 'attention':
+        
+        elif self.fuser == 'token-attention':
+            d = embed_dims[2]
+            self.fuser_q = nn.Parameter(torch.randn(1, 1, d) * 0.02)  # learned query
+            self.fuser_k = nn.Linear(d, d, bias=False)
+            self.fuser_v = nn.Linear(d, d, bias=False)
+            self.fuser_scale = d ** -0.5
+
+        elif self.fuser == 'cross-token-attention':
+            self.fuser_attention = nn.MultiheadAttention(
+                embed_dim=embed_dims[2], num_heads=4, batch_first=True
+            )
+            self.fuser_q = nn.Parameter(torch.randn(1, 1, embed_dims[2]) * 0.02)
+
+        elif self.fuser == 'attention':
             self.fuser_attention_module = MultiScaleAttentionFuser(embed_dims[-1], num_scales=3, nhead=8, dropout=0.1)
 
         # Hierarchical blocks
@@ -865,21 +880,26 @@ class MSTemba(nn.Module):
         x2 = self.norm(self.scale_proj2(x2))
         x3 = self.norm(self.scale_proj3(x3))
 
-        # Process each block output
-        block_predictions = []
-        for i, block_out in enumerate(block_outputs):
-            # Apply block-specific head
-            block_pred = self.block_heads[i](block_out)
-            block_predictions.append(block_pred)
-
-        routing_weights = None
-        if self.fuser_type == 'sum':
+        # standard fuser sums the three block outputs togheter (original MS-Temba paper)
+        if self.fuser == 'sum':
             x = x1 + x2 + x3
-        elif self.fuser_type == 'weighted':
+
+        # weighted fuser learns to weight the three block outputs, which can be useful to understand the importance of each block and for potentially improving performance by allowing the model to focus more on certain blocks. The weights are normalized with softmax to ensure they sum to 1.
+        elif self.fuser == 'weighted':
             fusion_weights = torch.softmax(self.fuser_weights, dim=0)
+            self._last_fusion_weights = fusion_weights.detach()
             x = fusion_weights[0] * x1 + fusion_weights[1] * x2 + fusion_weights[2] * x3
-        elif self.fuser_type == 'attention':
-            x, routing_weights = self.fuser_attention_module([x1, x2, x3])
+        
+        # attention fuser uses an attention mechanism to dynamically weight the three block outputs for each token, allowing for more fine-grained fusion that can adapt to the content of the features. The attention weights are computed based on the mean of the features across the sequence dimension, and then applied to the original features to get a weighted sum.
+        elif self.fuser == 'attention':
+            block_features = torch.stack([
+                x1.mean(dim=1),
+                x2.mean(dim=1),
+                x3.mean(dim=1),
+            ], dim=1)
+            fusion_logits = self.fuser_attention(block_features).squeeze(-1)
+            fusion_weights = torch.softmax(fusion_logits, dim=1).unsqueeze(-1).unsqueeze(-1)
+            x = fusion_weights[:, 0] * x1 + fusion_weights[:, 1] * x2 + fusion_weights[:, 2] * x3
         else:
             raise ValueError(f"Unknown fuser mode: {self.fuser_type}")
 
@@ -900,7 +920,7 @@ class MSTemba(nn.Module):
                     block_diversity_loss = compute_c_state_diversity_loss_simple(valid_c_states)
                     diversity_loss = diversity_loss + block_diversity_loss
         
-        return x, block_predictions, diversity_loss, routing_weights
+        return x, block_predictions, diversity_loss
 
 
 @register_model
