@@ -820,31 +820,35 @@ class MSTemba(nn.Module):
         # Causal mode uses forward-only SSMs (bimamba_type="none").
         # Offline mode uses bidirectional SSMs (bimamba_type="v2").
         _bimamba = "none" if causal else "v2"
+        # mamba_simple_getC.py only assigns C in the "v2" fast-path branch.
+        # For "none" (causal) we disable the fast path so the slow path runs
+        # instead — it always computes C via dt, B, C = torch.split(...).
+        # This avoids any modification to the mamba library.
+        _ssm_cfg = {"use_fast_path": False} if causal else None
 
         # Hierarchical blocks
         self.blocks = nn.ModuleList()
 
         # First block - single SSM
         self.blocks.append(LinearProjection(embed_dims[0], embed_dims[0]))
-        self.blocks.append(self._create_mamba_block(embed_dims[0], d_state, depths[0], bimamba_type=_bimamba, **kwargs))
+        self.blocks.append(self._create_mamba_block(embed_dims[0], d_state, depths[0], bimamba_type=_bimamba, ssm_cfg=_ssm_cfg, **kwargs))
 
         # Second block - two SSMs for odd/even tokens
         self.blocks.append(LinearProjection(embed_dims[0], embed_dims[1]))
         self.blocks.append(nn.ModuleList([
-            self._create_mamba_block(embed_dims[1], d_state, depths[1], bimamba_type=_bimamba, **kwargs),
-            self._create_mamba_block(embed_dims[1], d_state, depths[1], bimamba_type=_bimamba, **kwargs)
+            self._create_mamba_block(embed_dims[1], d_state, depths[1], bimamba_type=_bimamba, ssm_cfg=_ssm_cfg, **kwargs),
+            self._create_mamba_block(embed_dims[1], d_state, depths[1], bimamba_type=_bimamba, ssm_cfg=_ssm_cfg, **kwargs)
         ]))
 
         # Third block - three SSMs
         self.blocks.append(LinearProjection(embed_dims[1], embed_dims[2]))
         self.blocks.append(nn.ModuleList([
-            self._create_mamba_block(embed_dims[2], d_state, depths[2], bimamba_type=_bimamba, **kwargs),
-            self._create_mamba_block(embed_dims[2], d_state, depths[2], bimamba_type=_bimamba, **kwargs),
-            self._create_mamba_block(embed_dims[2], d_state, depths[2], bimamba_type=_bimamba, **kwargs)
+            self._create_mamba_block(embed_dims[2], d_state, depths[2], bimamba_type=_bimamba, ssm_cfg=_ssm_cfg, **kwargs),
+            self._create_mamba_block(embed_dims[2], d_state, depths[2], bimamba_type=_bimamba, ssm_cfg=_ssm_cfg, **kwargs),
+            self._create_mamba_block(embed_dims[2], d_state, depths[2], bimamba_type=_bimamba, ssm_cfg=_ssm_cfg, **kwargs)
         ]))
 
-
-        self.interaction_block = self._create_mamba_block(embed_dims[-1], d_state, depths[-1], bimamba_type=_bimamba, **kwargs)
+        self.interaction_block = self._create_mamba_block(embed_dims[-1], d_state, depths[-1], bimamba_type=_bimamba, ssm_cfg=_ssm_cfg, **kwargs)
 
         # Final norm and classifier
         self.norm = nn.LayerNorm(embed_dims[-1])
@@ -852,11 +856,12 @@ class MSTemba(nn.Module):
 
         self.apply(self._init_weights)
 
-    def _create_mamba_block(self, embed_dim, d_state, depth, bimamba_type="v2", **kwargs):
+    def _create_mamba_block(self, embed_dim, d_state, depth, bimamba_type="v2", ssm_cfg=None, **kwargs):
         return VisionMamba(
             embed_dim=embed_dim,
             depth=depth,
             d_state=d_state,
+            ssm_cfg=ssm_cfg,
             rms_norm=True,
             residual_in_fp32=True,
             fused_add_norm=True,
