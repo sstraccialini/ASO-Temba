@@ -34,50 +34,88 @@ def compute_c_state_diversity_loss_simple(c_states_list):
     """
     Compute diversity loss between C states using cosine similarity.
     This version is more compatible with Mamba's backward pass.
-    
+
     Args:
         c_states_list: List of C states from different dilation groups
-    
+
     Returns:
         diversity_loss: Cosine similarity diversity loss between C states
     """
     if len(c_states_list) < 2:
         return torch.tensor(0.0, device=c_states_list[0].device)
-    
+
     total_loss = 0.0
     num_pairs = 0
-    
+
     # Compute pairwise diversity losses
     for i in range(len(c_states_list)):
         for j in range(i + 1, len(c_states_list)):
             c_i = c_states_list[i]
             c_j = c_states_list[j]
-            
+
             # Ensure both C states have the same shape for comparison
             if c_i.shape != c_j.shape:
                 # Take the minimum length and truncate
                 min_len = min(c_i.shape[-1], c_j.shape[-1])
                 c_i = c_i[..., :min_len]
                 c_j = c_j[..., :min_len]
-            
+
             # Flatten C states to compute cosine similarity
             c_i_flat = c_i.reshape(c_i.shape[0], -1)  # (B, d_state * seq_len)
             c_j_flat = c_j.reshape(c_j.shape[0], -1)  # (B, d_state * seq_len)
-            
+
             # Normalize for cosine similarity
             c_i_norm = F.normalize(c_i_flat, p=2, dim=1, eps=1e-8)
             c_j_norm = F.normalize(c_j_flat, p=2, dim=1, eps=1e-8)
-            
+
             # Compute cosine similarity (1 - cosine_similarity for diversity)
             cosine_sim = torch.sum(c_i_norm * c_j_norm, dim=1)
             # diversity_loss = cosine_sim.mean()  # Penalize high similarity (closer to 1)
             diversity_loss = 1 - cosine_sim.mean()  # Penalize low similarity (closer to 1)
-            
+
             total_loss += diversity_loss
             num_pairs += 1
-    
+
     return total_loss / num_pairs if num_pairs > 0 else torch.tensor(0.0, device=c_states_list[0].device)
-    
+
+
+def causal_consistency_loss(branch_outputs, mask=None, margin=0.1):
+    """
+    L_caus_cons: margin-based hinge loss encouraging branch agreement at each timestep.
+
+    L_caus_cons = (1/T) * sum_t sum_{i<j} max(0, 1 - cosine_sim(y_{t,i}, y_{t,j}) - margin)
+
+    Only compares outputs available at timestep t (no future leakage).
+    Used in causal streaming mode in place of the C-state diversity loss.
+
+    Args:
+        branch_outputs: list of [B, T, D] tensors (one per scale branch)
+        mask: optional [B, T] float mask (1 = valid timestep, 0 = padding)
+        margin: similarity threshold; pairs with sim > 1-margin incur no penalty
+
+    Returns:
+        scalar loss tensor
+    """
+    if len(branch_outputs) < 2:
+        return torch.tensor(0.0, device=branch_outputs[0].device)
+
+    normed = [F.normalize(b.float(), p=2, dim=-1, eps=1e-8) for b in branch_outputs]
+
+    total = torch.zeros(1, device=branch_outputs[0].device)[0]
+    n_pairs = 0
+    for i in range(len(normed)):
+        for j in range(i + 1, len(normed)):
+            sim = (normed[i] * normed[j]).sum(dim=-1)       # [B, T]
+            loss_ij = torch.clamp(1.0 - sim - margin, min=0.0)
+            if mask is not None:
+                valid = mask.float()
+                total = total + (loss_ij * valid).sum() / (valid.sum() + 1e-8)
+            else:
+                total = total + loss_ij.mean()
+            n_pairs += 1
+
+    return total / max(n_pairs, 1)
+
 
 __all__ = [
     'vim_tiny_patch16_224', 'vim_small_patch16_224', 'vim_base_patch16_224',
@@ -110,7 +148,7 @@ class PatchEmbed(nn.Module):
             x = x.flatten(2).transpose(1, 2)  # BCHW -> BNC
         x = self.norm(x)
         return x
-    
+
 
 class Block(nn.Module):
     def __init__(
@@ -155,7 +193,7 @@ class Block(nn.Module):
                 residual = hidden_states
             else:
                 residual = residual + self.drop_path(hidden_states)
-            
+
             hidden_states = self.norm(residual.to(dtype=self.norm.weight.dtype))
             if self.residual_in_fp32:
                 residual = residual.to(torch.float32)
@@ -180,8 +218,13 @@ class Block(nn.Module):
                     prenorm=True,
                     residual_in_fp32=self.residual_in_fp32,
                     eps=self.norm.eps,
-                )    
-        hidden_states, C = self.mixer(hidden_states, inference_params=inference_params)
+                )
+        # Handle both full-sequence mode (returns tuple) and step mode (returns tensor).
+        _mixer_out = self.mixer(hidden_states, inference_params=inference_params)
+        if isinstance(_mixer_out, tuple):
+            hidden_states, C = _mixer_out
+        else:
+            hidden_states, C = _mixer_out, None
         return hidden_states, residual, C
 
     def allocate_inference_cache(self, batch_size, max_seqlen, dtype=None, **kwargs):
@@ -276,22 +319,22 @@ def segm_init_weights(m):
 
 
 class VisionMamba(nn.Module):
-    def __init__(self, 
-                 img_size=224, 
-                 temp_dim=256, 
-                 patch_size=16, 
+    def __init__(self,
+                 img_size=224,
+                 temp_dim=256,
+                 patch_size=16,
                  stride=16,
-                 depth=24, 
+                 depth=24,
                  in_feat_dim=1024,
-                 embed_dim=192, 
+                 embed_dim=192,
                  d_state=16,
-                 channels=3, 
+                 channels=3,
                  num_classes=1000,
-                 ssm_cfg=None, 
+                 ssm_cfg=None,
                  drop_rate=0.,
                  drop_path_rate=0.1,
-                 norm_epsilon: float = 1e-5, 
-                 rms_norm: bool = True, 
+                 norm_epsilon: float = 1e-5,
+                 rms_norm: bool = True,
                  initializer_cfg=None,
                  fused_add_norm=True,
                  residual_in_fp32=True,
@@ -315,7 +358,7 @@ class VisionMamba(nn.Module):
                  **kwargs):
         factory_kwargs = {"device": device, "dtype": dtype}
         # add factory_kwargs into kwargs
-        kwargs.update(factory_kwargs) 
+        kwargs.update(factory_kwargs)
         super().__init__()
         self.residual_in_fp32 = residual_in_fp32
         self.fused_add_norm = fused_add_norm
@@ -348,7 +391,7 @@ class VisionMamba(nn.Module):
             else:
                 self.cls_token = nn.Parameter(torch.zeros(1, 1, self.embed_dim))
                 # self.num_tokens = 1
-            
+
         if if_abs_pos_embed:
             self.pos_embed = nn.Parameter(torch.zeros(1, temp_dim + self.num_tokens, self.embed_dim))
             # self.pos_embed = nn.Parameter(torch.zeros(1, num_patches + self.num_tokens, self.embed_dim))
@@ -392,7 +435,7 @@ class VisionMamba(nn.Module):
                 for i in range(depth)
             ]
         )
-        
+
         # output head
         self.norm_f = (nn.LayerNorm if not rms_norm else RMSNorm)(
             embed_dim, eps=norm_epsilon, **factory_kwargs
@@ -554,7 +597,7 @@ class VisionMamba(nn.Module):
                 )
                 hidden_states = hidden_states_f + hidden_states_b.flip([1])
                 residual = residual_f + residual_b.flip([1])
-                
+
         if not self.fused_add_norm:
             if residual is None:
                 residual = hidden_states
@@ -632,12 +675,12 @@ class MultiScaleAttentionFuser(nn.Module):
             nn.Linear(embed_dim * num_scales, embed_dim),
             nn.GELU(),
         )
-        
+
         # PRE-NORM Components
         self.norm1 = nn.LayerNorm(embed_dim)
         self.self_attn = nn.MultiheadAttention(embed_dim, nhead, dropout=dropout, batch_first=True)
         self.dropout = nn.Dropout(dropout)
-        
+
         self.norm2 = nn.LayerNorm(embed_dim)
         self.ffn = nn.Sequential(
             nn.Linear(embed_dim, embed_dim * 4),
@@ -676,6 +719,39 @@ class MultiScaleAttentionFuser(nn.Module):
 
         return x + routed, routing_weights
 
+
+class CausalMultiScaleAttentionFuser(MultiScaleAttentionFuser):
+    """
+    Causal variant of MultiScaleAttentionFuser.
+    Replaces full bidirectional self-attention with masked causal attention so
+    each timestep can only attend to itself and prior timesteps.
+    Weights are shared with the parent class, enabling direct weight loading
+    from an offline checkpoint.
+    """
+
+    def forward(self, multi_scale_features):
+        raw_concat = torch.cat(multi_scale_features, dim=-1)
+        x = self.pre_proj(raw_concat)
+
+        T = x.shape[1]
+        # Upper-triangular True mask → future positions are blocked.
+        causal_mask = torch.triu(
+            torch.ones(T, T, device=x.device, dtype=torch.bool), diagonal=1
+        )
+
+        x_norm = self.norm1(x)
+        attn_out, _ = self.self_attn(x_norm, x_norm, x_norm,
+                                     attn_mask=causal_mask, need_weights=False)
+        x = x + self.dropout(attn_out)
+        x = x + self.ffn(self.norm2(x))
+
+        stacked_scales = torch.stack(multi_scale_features, dim=2)
+        routing_weights = torch.softmax(self.router(x), dim=-1)
+        routed = (routing_weights.unsqueeze(-1) * stacked_scales).sum(dim=2)
+
+        return x + routed, routing_weights
+
+
 def resize(input,
            size=None,
            scale_factor=None,
@@ -687,21 +763,28 @@ def resize(input,
     return F.interpolate(input, size, scale_factor, mode, align_corners)
 
 class MSTemba(nn.Module):
-    def __init__(self, 
-                 in_feat_dim=768, #CLIP; 1024 for I3D
+    def __init__(self,
+                 in_feat_dim=768,  # CLIP; 1024 for I3D
                  num_classes=157,
                  embed_dims=[256, 384, 576],
                  depths=[1, 1, 1],
                  d_state=16,
                  fuser='sum',
+                 causal=False,
+                 causal_consistency_loss_weight=0.0,
+                 causal_consistency_margin=0.1,
                  **kwargs):
         super().__init__()
         self.fuser = fuser
+        self.causal = causal
+        self.causal_consistency_loss_weight = causal_consistency_loss_weight
+        self.causal_consistency_margin = causal_consistency_margin
+
         # Add linear layers for each block
         self.block_heads = nn.ModuleList([
             nn.Linear(embed_dims[i], num_classes) for i in range(3)
         ])
-        
+
         self.num_classes = num_classes
         self.depths = depths
         self.embed_dims = embed_dims
@@ -716,7 +799,10 @@ class MSTemba(nn.Module):
             self.fuser_weights = nn.Parameter(torch.ones(3))
 
         elif self.fuser == 'attention':
-            self.fuser_attention_module = MultiScaleAttentionFuser(embed_dims[-1], num_scales=3, nhead=8, dropout=0.1)
+            # Use causal version when in causal mode so future tokens cannot
+            # influence past predictions.
+            fuser_cls = CausalMultiScaleAttentionFuser if causal else MultiScaleAttentionFuser
+            self.fuser_attention_module = fuser_cls(embed_dims[-1], num_scales=3, nhead=8, dropout=0.1)
 
         elif self.fuser == 'token-attention':
             d = embed_dims[2]
@@ -731,30 +817,34 @@ class MSTemba(nn.Module):
             )
             self.fuser_q = nn.Parameter(torch.randn(1, 1, embed_dims[2]) * 0.02)
 
+        # Causal mode uses forward-only SSMs (bimamba_type="none").
+        # Offline mode uses bidirectional SSMs (bimamba_type="v2").
+        _bimamba = "none" if causal else "v2"
+
         # Hierarchical blocks
         self.blocks = nn.ModuleList()
-        
+
         # First block - single SSM
         self.blocks.append(LinearProjection(embed_dims[0], embed_dims[0]))
-        self.blocks.append(self._create_mamba_block(embed_dims[0], d_state, depths[0], **kwargs))
-        
+        self.blocks.append(self._create_mamba_block(embed_dims[0], d_state, depths[0], bimamba_type=_bimamba, **kwargs))
+
         # Second block - two SSMs for odd/even tokens
         self.blocks.append(LinearProjection(embed_dims[0], embed_dims[1]))
         self.blocks.append(nn.ModuleList([
-            self._create_mamba_block(embed_dims[1], d_state, depths[1], **kwargs),
-            self._create_mamba_block(embed_dims[1], d_state, depths[1], **kwargs)
+            self._create_mamba_block(embed_dims[1], d_state, depths[1], bimamba_type=_bimamba, **kwargs),
+            self._create_mamba_block(embed_dims[1], d_state, depths[1], bimamba_type=_bimamba, **kwargs)
         ]))
-        
+
         # Third block - three SSMs
         self.blocks.append(LinearProjection(embed_dims[1], embed_dims[2]))
         self.blocks.append(nn.ModuleList([
-            self._create_mamba_block(embed_dims[2], d_state, depths[2], **kwargs),
-            self._create_mamba_block(embed_dims[2], d_state, depths[2], **kwargs),
-            self._create_mamba_block(embed_dims[2], d_state, depths[2], **kwargs)
+            self._create_mamba_block(embed_dims[2], d_state, depths[2], bimamba_type=_bimamba, **kwargs),
+            self._create_mamba_block(embed_dims[2], d_state, depths[2], bimamba_type=_bimamba, **kwargs),
+            self._create_mamba_block(embed_dims[2], d_state, depths[2], bimamba_type=_bimamba, **kwargs)
         ]))
 
 
-        self.interaction_block = self._create_mamba_block(embed_dims[-1], d_state, depths[-1], **kwargs)
+        self.interaction_block = self._create_mamba_block(embed_dims[-1], d_state, depths[-1], bimamba_type=_bimamba, **kwargs)
 
         # Final norm and classifier
         self.norm = nn.LayerNorm(embed_dims[-1])
@@ -762,21 +852,21 @@ class MSTemba(nn.Module):
 
         self.apply(self._init_weights)
 
-    def _create_mamba_block(self, embed_dim, d_state, depth, **kwargs):
+    def _create_mamba_block(self, embed_dim, d_state, depth, bimamba_type="v2", **kwargs):
         return VisionMamba(
             embed_dim=embed_dim,
             depth=depth,
             d_state=d_state,
-            rms_norm=True, 
-            residual_in_fp32=True, 
-            fused_add_norm=True, 
-            final_pool_type='all', 
-            if_abs_pos_embed=False, 
-            if_rope=False, 
-            if_rope_residual=False, 
-            bimamba_type="v2", 
-            if_cls_token=False, 
-            if_divide_out=True, 
+            rms_norm=True,
+            residual_in_fp32=True,
+            fused_add_norm=True,
+            final_pool_type='all',
+            if_abs_pos_embed=False,
+            if_rope=False,
+            if_rope_residual=False,
+            bimamba_type=bimamba_type,
+            if_cls_token=False,
+            if_divide_out=True,
             use_middle_cls_token=True,
         )
 
@@ -788,29 +878,209 @@ class MSTemba(nn.Module):
         elif isinstance(m, nn.LayerNorm):
             nn.init.constant_(m.bias, 0)
             nn.init.constant_(m.weight, 1.0)
-            
+
+    # ──────────────────────────────────────────────────────────────────────────
+    # Streaming / causal inference API
+    # ──────────────────────────────────────────────────────────────────────────
+
+    def init_stream_state(self, batch_size, device, dtype=torch.float32):
+        """
+        Initialise per-block recurrent state for streaming causal inference.
+
+        Call once before the first stream_forward call and reset between
+        independent video sequences by calling this method again.
+
+        Args:
+            batch_size: number of concurrent streams.
+            device: torch device.
+            dtype: dtype for SSM state tensors.
+
+        Returns:
+            state dict consumed by stream_forward().
+        """
+        if not self.causal:
+            raise RuntimeError(
+                "Streaming requires causal=True. Re-create the model with causal=True."
+            )
+        from mamba_ssm.utils.generation import InferenceParams
+
+        # Practically unlimited stream length; Mamba state is O(1) regardless.
+        _MAX = 1 << 20
+
+        def _make_params():
+            return InferenceParams(max_seqlen=_MAX, max_batch_size=batch_size)
+
+        state = {
+            'block1_params': _make_params(),
+            'block2_params': [_make_params(), _make_params()],
+            'block3_params': [_make_params(), _make_params(), _make_params()],
+            'interaction_params': _make_params(),
+            'timestep': 0,
+        }
+        # Attention fuser needs a growing prefix buffer (causal O(T) attention).
+        if self.fuser == 'attention':
+            state['fuser_s1_buffer'] = []
+            state['fuser_s2_buffer'] = []
+            state['fuser_s3_buffer'] = []
+
+        return state
+
+    def stream_forward(self, x_chunk, state, return_state=True):
+        """
+        Process one chunk of frames in streaming causal mode.
+
+        Each output logit at position t depends only on frames ≤ t.
+        No future tokens are accessed.
+
+        Args:
+            x_chunk: [B, C_in, T] feature tensor (same layout as the offline
+                     forward input, i.e. channels-first time dimension).
+            state: dict returned by init_stream_state(), updated in-place.
+            return_state: if True, the updated state is also returned.
+
+        Returns:
+            logits: [B, T, num_classes]
+            block_predictions: list of 3 × [B, T, num_classes]
+            state (only if return_state=True)
+        """
+        if not self.causal:
+            raise RuntimeError("stream_forward requires causal=True.")
+
+        # Normalise to [B, T, C_in]
+        if x_chunk.dim() == 3 and x_chunk.shape[1] == self.proj.in_features:
+            x = x_chunk.permute(0, 2, 1)
+        else:
+            x = x_chunk
+
+        B, T_chunk, _ = x.shape
+
+        # Shared input projection for the whole chunk.
+        x_proj = self.proj(x)  # [B, T_chunk, D0]
+
+        out_logits = []
+        block_pred_lists = [[] for _ in range(3)]
+
+        for t_local in range(T_chunk):
+            global_t = state['timestep']
+            x_t = x_proj[:, t_local : t_local + 1, :]  # [B, 1, D0]
+
+            # ── Block 1: LinearProjection + causal VisionMamba ───────────────
+            x1_in = self.blocks[0](x_t)
+            x1_out, _ = self.blocks[1].forward_features(
+                x1_in, inference_params=state['block1_params']
+            )
+            state['block1_params'].seqlen_offset += 1
+            block_pred_lists[0].append(self.block_heads[0](x1_out))
+
+            # ── Block 2: even / odd dilation ─────────────────────────────────
+            x2_in = self.blocks[2](x1_out)
+            g2 = int(global_t % 2)
+            x2_out, _ = self.blocks[3][g2].forward_features(
+                x2_in, inference_params=state['block2_params'][g2]
+            )
+            state['block2_params'][g2].seqlen_offset += 1
+            block_pred_lists[1].append(self.block_heads[1](x2_out))
+
+            # ── Block 3: 3-group dilation ─────────────────────────────────────
+            x3_in = self.blocks[4](x2_out)
+            g3 = int(global_t % 3)
+            x3_out, _ = self.blocks[5][g3].forward_features(
+                x3_in, inference_params=state['block3_params'][g3]
+            )
+            state['block3_params'][g3].seqlen_offset += 1
+            block_pred_lists[2].append(self.block_heads[2](x3_out))
+
+            # ── Scale projections ─────────────────────────────────────────────
+            s1 = self.norm(self.scale_proj1(x1_out))   # [B, 1, D2]
+            s2 = self.norm(self.scale_proj2(x2_out))
+            s3 = self.norm(self.scale_proj3(x3_out))
+
+            # ── Fusion (all variants are causal / per-token safe) ─────────────
+            if self.fuser == 'sum':
+                fused = s1 + s2 + s3
+
+            elif self.fuser == 'weighted':
+                fw = torch.softmax(self.fuser_weights, dim=0)
+                fused = fw[0] * s1 + fw[1] * s2 + fw[2] * s3
+
+            elif self.fuser == 'token-attention':
+                stacked = torch.stack([s1, s2, s3], dim=2)   # [B, 1, 3, D2]
+                K = self.fuser_k(stacked)
+                V = self.fuser_v(stacked)
+                Q = self.fuser_q.expand(B, 1, -1)
+                scores = torch.einsum('btc,btkc->btk', Q, K) * self.fuser_scale
+                weights = torch.softmax(scores, dim=-1)
+                fused = (V * weights.unsqueeze(-1)).sum(dim=2)
+
+            elif self.fuser == 'cross-token-attention':
+                stacked = torch.stack([s1, s2, s3], dim=2).reshape(B, 3, -1)
+                q = self.fuser_q.expand(B, 1, -1)
+                fused_out, _ = self.fuser_attention(
+                    q, stacked, stacked, need_weights=False, average_attn_weights=True
+                )
+                fused = fused_out  # [B, 1, D2]
+
+            elif self.fuser == 'attention':
+                # Accumulate and run causal fuser on the full prefix; take last token.
+                state['fuser_s1_buffer'].append(s1)
+                state['fuser_s2_buffer'].append(s2)
+                state['fuser_s3_buffer'].append(s3)
+                s1_acc = torch.cat(state['fuser_s1_buffer'], dim=1)
+                s2_acc = torch.cat(state['fuser_s2_buffer'], dim=1)
+                s3_acc = torch.cat(state['fuser_s3_buffer'], dim=1)
+                fused_acc, _ = self.fuser_attention_module([s1_acc, s2_acc, s3_acc])
+                fused = fused_acc[:, -1:, :]
+
+            else:
+                raise ValueError(f"Unknown fuser: {self.fuser}")
+
+            # ── Interaction block (only when not using attention fuser) ───────
+            if self.fuser != 'attention':
+                int_out, _ = self.interaction_block.forward_features(
+                    fused, inference_params=state['interaction_params']
+                )
+                state['interaction_params'].seqlen_offset += 1
+            else:
+                int_out = fused  # attention fuser already performs temporal mixing
+
+            # ── Classification head ───────────────────────────────────────────
+            out_logits.append(self.head(int_out))   # [B, 1, num_classes]
+
+            state['timestep'] += 1
+
+        logits = torch.cat(out_logits, dim=1)                         # [B, T_chunk, num_classes]
+        block_predictions = [torch.cat(bp, dim=1) for bp in block_pred_lists]
+
+        if return_state:
+            return logits, block_predictions, state
+        return logits, block_predictions
+
+    # ──────────────────────────────────────────────────────────────────────────
+    # Offline forward
+    # ──────────────────────────────────────────────────────────────────────────
+
     def forward_features(self, x):
         x = x.permute(0, 2, 1)
         x = self.proj(x)
         concat_x = []
         block_outputs = []  # Store raw block outputs
         all_c_states = []  # Store C states from all blocks for diversity loss
-        
+
         for i, block in enumerate(self.blocks):
             if i == 0 or i == 1:  # First block
                 if isinstance(block, LinearProjection):
                     x = block(x)
                     block_c_states = []  # No C states for linear projection
-                else:  # VisionMamba 
+                else:  # VisionMamba
                     B, T, C = x.shape
                     x, C_state = block.forward_features(x)
                     concat_x.append(x)
                     block_outputs.append(x)  # Store raw output
                     block_c_states = [C_state] if C_state is not None else []
-            
+
             elif i == 2 or i == 3:  # Second block - split into odd/even tokens
                 if isinstance(block, LinearProjection):
-                    x = block(x)    
+                    x = block(x)
                     B, T, C = x.shape
                     # Split into odd and even tokens
                     x_even = x[:, ::2, :]  # Even tokens
@@ -820,26 +1090,26 @@ class MSTemba(nn.Module):
                     # Process even and odd tokens through separate SSMs
                     x_even_out, C_even = block[0].forward_features(x_even)
                     x_odd_out, C_odd = block[1].forward_features(x_odd)
-                    
+
                     # Interleave the outputs back together
                     x = torch.zeros(B, T, C, device=x_even_out.device)
                     x[:, ::2, :] = x_even_out
                     x[:, 1::2, :] = x_odd_out
-                    
+
                     concat_x.append(x)
                     block_outputs.append(x)  # Store raw output
                     block_c_states = [C_even, C_odd] if C_even is not None and C_odd is not None else []
 
             elif i == 4 or i == 5:  # Third block - split into three groups
                 if isinstance(block, LinearProjection):
-                    x = block(x)    
+                    x = block(x)
                     B, T, C = x.shape
                     # Ensure T is divisible by 3
                     pad_size = (3 - (T % 3)) % 3
                     if pad_size > 0:
                         x = F.pad(x, (0, 0, 0, pad_size))
                         T = T + pad_size
-                    
+
                     # Split into three groups
                     x_group1 = x[:, ::3, :]  # First group (0, 3, 6, ...)
                     x_group2 = x[:, 1::3, :]  # Second group (1, 4, 7, ...)
@@ -850,21 +1120,21 @@ class MSTemba(nn.Module):
                     x_out1, C_group1 = block[0].forward_features(x_group1)
                     x_out2, C_group2 = block[1].forward_features(x_group2)
                     x_out3, C_group3 = block[2].forward_features(x_group3)
-                    
+
                     # Interleave the outputs back together
                     x = torch.zeros(B, T, C, device=x_out1.device)
                     x[:, ::3, :] = x_out1
                     x[:, 1::3, :] = x_out2
                     x[:, 2::3, :] = x_out3
-                    
+
                     # Remove padding if it was added
                     if pad_size > 0:
                         x = x[:, :-pad_size, :]
-                    
+
                     concat_x.append(x)
                     block_outputs.append(x)  # Store raw output
                     block_c_states = [C_group1, C_group2, C_group3] if all(c is not None for c in [C_group1, C_group2, C_group3]) else []
-            
+
             all_c_states.append(block_c_states)
 
         return concat_x, block_outputs, all_c_states
@@ -896,7 +1166,7 @@ class MSTemba(nn.Module):
             fusion_weights = torch.softmax(self.fuser_weights, dim=0)
             self._last_fusion_weights = fusion_weights.detach()
             x = fusion_weights[0] * x1 + fusion_weights[1] * x2 + fusion_weights[2] * x3
-        
+
         elif self.fuser == 'token-attention':
             stacked = torch.stack([x1, x2, x3], dim=2)        # (B, T, 3, C)
             K = self.fuser_k(stacked)                         # (B, T, 3, C)
@@ -907,7 +1177,7 @@ class MSTemba(nn.Module):
             weights = torch.softmax(scores, dim=-1)
             self._last_fusion_weights = weights.detach()
             x = (V * weights.unsqueeze(-1)).sum(dim=2)        # (B, T, C)
-        
+
         elif self.fuser == 'cross-token-attention':
             B, T, C = x1.shape
             stacked = torch.stack([x1, x2, x3], dim=2).reshape(B * T, 3, C)  # (B*T, 3, C)
@@ -929,22 +1199,25 @@ class MSTemba(nn.Module):
 
         if self.fuser != 'attention':
             x, _ = self.interaction_block(x)
-        
+
         x = self.head(x)
-        
-        # Compute C state diversity loss with gradients flowing to Mamba components
-        diversity_loss = torch.tensor(0.0, device=x.device, requires_grad=True)
-        for block_idx, block_c_states in enumerate(all_c_states):
-            if len(block_c_states) >= 2:  # Only compute if we have multiple C states
-                # Filter out None values but keep gradients
-                valid_c_states = [c_state for c_state in block_c_states if c_state is not None]
-                
-                if len(valid_c_states) >= 2:
-                    # Compute diversity loss for all valid C states in this block
-                    # Allow gradients to flow back to Mamba components
-                    block_diversity_loss = compute_c_state_diversity_loss_simple(valid_c_states)
-                    diversity_loss = diversity_loss + block_diversity_loss
-        
+
+        # Compute auxiliary regularisation loss.
+        # Causal mode: L_caus_cons on scale-projected branch outputs.
+        # Offline mode: C-state diversity loss (unchanged behaviour).
+        if self.causal and self.causal_consistency_loss_weight > 0:
+            diversity_loss = causal_consistency_loss(
+                [x1, x2, x3], margin=self.causal_consistency_margin
+            )
+        else:
+            diversity_loss = torch.tensor(0.0, device=x.device, requires_grad=True)
+            for block_idx, block_c_states in enumerate(all_c_states):
+                if len(block_c_states) >= 2:
+                    valid_c_states = [c_state for c_state in block_c_states if c_state is not None]
+                    if len(valid_c_states) >= 2:
+                        block_diversity_loss = compute_c_state_diversity_loss_simple(valid_c_states)
+                        diversity_loss = diversity_loss + block_diversity_loss
+
         # Return fusion weights if available (for logging)
         fusion_weights = getattr(self, '_last_fusion_weights', None)
         return x, block_predictions, diversity_loss, fusion_weights
@@ -964,12 +1237,12 @@ def mstemba(pretrained=False, **kwargs):
     )
 
     model.default_cfg = _cfg()
-    
+
     if pretrained:
         checkpoint = torch.hub.load_state_dict_from_url(
             url="to.do",
             map_location="cpu", check_hash=True
         )
         model.load_state_dict(checkpoint["model"])
-    
+
     return model

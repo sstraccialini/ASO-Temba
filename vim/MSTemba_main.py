@@ -49,6 +49,14 @@ parser.add_argument('-output_dir', type=str, default='./output', help='Directory
 parser.add_argument('--fuser', type=str, default='sum', choices=['sum', 'weighted', 'token-attention', 'cross-token-attention', 'attention'],
                     help='Fusion strategy for combining block outputs')
 
+# Causal / streaming flags
+parser.add_argument('--causal', action='store_true', default=False,
+                    help='Enable causal streaming mode (forward-only SSMs, no bidirectional branch)')
+parser.add_argument('--causal_consistency_loss_weight', type=float, default=0.0,
+                    help='Weight for L_caus_cons loss (only used when --causal is set)')
+parser.add_argument('--causal_consistency_margin', type=float, default=0.1,
+                    help='Margin for L_caus_cons hinge loss')
+
 # Add new arguments from main_no_teacher.py
 parser.add_argument('--model', default='vim_tiny_patch16_224_bimambav2_final_pool_mean_abs_pos_embed_with_midclstok_div2', type=str, metavar='MODEL',
                     help='Name of model to train')
@@ -399,9 +407,14 @@ def run_network(model, data, gpu, epoch=0, baseline=False):
         block_losses.append(block_loss)
         block_probs.append(block_prob)
 
-    # Combine all losses including diversity loss
-    block_loss_weight = 0.3  # Weight for each block's loss
-    diversity_loss_weight = 100.0 #100.0  # Weight for diversity loss 100.0
+    # Combine all losses including diversity / causal-consistency loss.
+    block_loss_weight = 0.3
+    # In causal mode diversity_loss is L_caus_cons; use its dedicated weight.
+    # In offline mode keep the original 100.0 weight.
+    if getattr(args, 'causal', False):
+        diversity_loss_weight = args.causal_consistency_loss_weight
+    else:
+        diversity_loss_weight = 100.0
     total_block_loss = sum(block_losses) * block_loss_weight
     loss = args.alpha_l * (loss_f + total_block_loss) + diversity_loss_weight * diversity_loss
     
@@ -620,7 +633,10 @@ if __name__ == '__main__':
             drop_path_rate=args.drop_path,
             drop_block_rate=None,
             in_feat_dim=in_feat_dim,
-            fuser=args.fuser
+            fuser=args.fuser,
+            causal=args.causal,
+            causal_consistency_loss_weight=args.causal_consistency_loss_weight,
+            causal_consistency_margin=args.causal_consistency_margin,
         )
         model.cuda()
 
@@ -666,7 +682,10 @@ if __name__ == '__main__':
             drop_path_rate=args.drop_path,
             drop_block_rate=None,
             in_feat_dim=in_feat_dim,
-            fuser=args.fuser
+            fuser=args.fuser,
+            causal=args.causal,
+            causal_consistency_loss_weight=args.causal_consistency_loss_weight,
+            causal_consistency_margin=args.causal_consistency_margin,
         )
         model.cuda()
 
