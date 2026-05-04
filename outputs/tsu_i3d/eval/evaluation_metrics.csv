@@ -1,0 +1,16 @@
+metric,value
+model_path,/mnt/beegfsstudents/home/3199302/ASO-Temba/outputs/tsu_i3d/best_model.pth
+dataset,tsu
+mode,rgb
+num_classes,51
+num_parameters,16488868
+eval_time_seconds,33.4
+val_loss,5.588214874267578
+per_frame_mAP,36.451698303222656
+sampled_mAP_25,41.75516891479492
+block1_per_frame_mAP,28.913761138916016
+block2_per_frame_mAP,33.48212432861328
+block3_per_frame_mAP,34.38701629638672
+block1_sampled_mAP_25,32.25525665283203
+block2_sampled_mAP_25,38.2810173034668
+block3_sampled_mAP_25,38.5683708190918

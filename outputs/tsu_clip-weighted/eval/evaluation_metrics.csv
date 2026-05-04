@@ -1,0 +1,16 @@
+metric,value
+model_path,/mnt/beegfsstudents/home/3199302/ASO-Temba/outputs/tsu_clip-weighted/best_model.pth
+dataset,tsu
+mode,rgb
+num_classes,51
+num_parameters,16423335
+eval_time_seconds,25.6
+val_loss,4.35959005355835
+per_frame_mAP,43.591609954833984
+sampled_mAP_25,49.36144256591797
+block1_per_frame_mAP,35.727901458740234
+block2_per_frame_mAP,39.73970413208008
+block3_per_frame_mAP,40.99299240112305
+block1_sampled_mAP_25,40.648834228515625
+block2_sampled_mAP_25,45.967105865478516
+block3_sampled_mAP_25,46.85266876220703

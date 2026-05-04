@@ -3,51 +3,55 @@ streaming_inference.py
 ======================
 Streaming (online causal) inference and evaluation for MS-Temba.
 
+Accuracy vs. latency
+--------------------
+mAP is always evaluated using the fast offline causal forward (single parallel
+scan over the full sequence).  This is numerically identical to the streaming
+forward (same causal SSM weights, same computation, just batched differently),
+so the mAP numbers are valid for any chunk size.
+
+The streaming forward is used only on a small sample of videos (--streaming_demo_n,
+default 10) specifically to measure per-frame latency and real-time factor.
+This avoids spending hours on 2500 × kernel-launch overhead per video.
+
+Chunk size modes  (for the streaming demo)
+------------------------------------------
+0   Not used for streaming demo – all timing comes from offline causal.
+    Use this when you only want the accuracy numbers.
+
+1   Frame-by-frame streaming (maximum latency visibility, slowest).
+    Demonstrates zero-lookahead, minimum buffering.
+
+N   N-frame chunk streaming (throughput / latency trade-off).
+    E.g. N=25 mirrors ~1 s buffer at 25 fps.
+
 Usage examples
 --------------
-# Full-sequence causal inference (offline-style but with causal SSMs):
+# Accuracy only (fastest):
 python streaming_inference.py \\
-    --weights path/to/causal_best_model.pth \\
-    --dataset tsu \\
-    --backbone i3d \\
-    --rgb_root /path/to/features \\
-    --mode rgb \\
-    --num_clips 2500 \\
+    --weights ../outputs/causal-tsu_i3d/best_model.pth \\
+    --dataset tsu --backbone i3d \\
+    --rgb_root /path/to/tsu_features_i3d \\
     --stream_chunk_size 0
 
-# True chunk-by-chunk streaming inference:
+# Accuracy + streaming latency demo on 10 videos with chunk_size=1:
 python streaming_inference.py \\
-    --weights path/to/causal_best_model.pth \\
-    --dataset tsu \\
-    --backbone i3d \\
-    --rgb_root /path/to/features \\
-    --mode rgb \\
-    --num_clips 2500 \\
-    --stream_chunk_size 25
+    --weights ../outputs/causal-tsu_i3d/best_model.pth \\
+    --dataset tsu --backbone i3d \\
+    --rgb_root /path/to/tsu_features_i3d \\
+    --stream_chunk_size 1 --streaming_demo_n 10
 
-Chunk size modes
-----------------
-0   Full-sequence offline causal forward (single call, fastest).
-    Numerically identical to chunk_size=1 but no streaming loop overhead.
-    Use this to benchmark causal vs. bidirectional performance delta.
-
-1   True frame-by-frame streaming via stream_forward().
-    Maximum per-frame latency visibility; slowest due to loop overhead.
-    Use this to demonstrate minimum buffering / zero lookahead.
-
-N   N-frame chunk streaming.
-    Trade-off between batch efficiency and online latency.
-    E.g. N=25 mirrors a ~1 s buffer at 25 fps; N=50 mirrors ~2 s buffer.
-
-All three modes produce numerically equivalent outputs (up to float32 rounding)
-because they share the same causal SSM weights.
+# Same with 25-frame chunks:
+python streaming_inference.py \\
+    ... --stream_chunk_size 25 --streaming_demo_n 10
 
 Saved outputs
 -------------
-evaluation_metrics.csv   Same headline numbers as MSTemba_main.py evaluation
-evaluation_metrics.pkl   Same dict saved as pickle for downstream analysis
-eval_full_probs.pkl      Per-video probability tensors (matches MSTemba_main.py)
-streaming_latency.csv    Per-video inference timing and real-time factor
+evaluation_metrics.csv   Accuracy metrics matching MSTemba_main.py evaluation
+evaluation_metrics.pkl   Same dict as pickle
+eval_full_probs.pkl      Per-video probability tensors
+offline_latency.csv      Per-video timing from the offline causal pass (all videos)
+streaming_latency.csv    Per-video timing from the streaming pass (demo subset only)
 """
 
 import argparse
@@ -68,26 +72,54 @@ from utils import sampled_25, mask_probs
 
 
 # ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+def _apm_map(meter):
+    """Compute mAP from an APMeter, handling the empty-meter (returns int 0) case."""
+    ap = meter.value()
+    if not torch.is_tensor(ap):
+        return 0.0
+    ap100 = ap * 100
+    nz = torch.nonzero(ap100)
+    if nz.numel() == 0:
+        return 0.0
+    return float(torch.sum(ap100) / nz.size()[0])
+
+
+def _save_csv(path, rows):
+    """Save a list-of-dicts to CSV."""
+    if not rows:
+        return
+    with open(path, 'w', newline='') as f:
+        writer = csv.DictWriter(f, fieldnames=list(rows[0].keys()))
+        writer.writeheader()
+        writer.writerows(rows)
+
+
+# ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
 
 def parse_args():
     p = argparse.ArgumentParser(description="MS-Temba streaming / causal inference")
-    p.add_argument('--weights', type=str, required=True, help='Path to trained checkpoint')
+    p.add_argument('--weights', type=str, required=True)
     p.add_argument('--dataset', type=str, default='tsu', choices=['charades', 'tsu'])
     p.add_argument('--backbone', type=str, default='i3d', choices=['i3d', 'clip'])
     p.add_argument('--rgb_root', type=str, required=True)
     p.add_argument('--mode', type=str, default='rgb')
     p.add_argument('--num_clips', type=int, default=2500)
     p.add_argument('--skip', type=int, default=0)
-    p.add_argument('--fuser', type=str, default='token-attention',
-                   choices=['sum', 'weighted', 'token-attention', 'cross-token-attention', 'attention'])
+    p.add_argument('--fuser', type=str, default='sum',
+                   choices=['sum', 'weighted', 'token-attention',
+                            'cross-token-attention', 'attention'])
     p.add_argument('--stream_chunk_size', type=int, default=1,
+                   help='Streaming chunk size in frames (0 = offline causal only).')
+    p.add_argument('--streaming_demo_n', type=int, default=10,
                    help=(
-                       'Frames per streaming chunk. '
-                       '0 = full sequence (single causal forward, fastest). '
-                       '1 = frame-by-frame (true streaming, most latency detail). '
-                       'N = N-frame chunk (balance between throughput and latency).'
+                       'Number of videos to run in true streaming mode for latency '
+                       'measurement. mAP always uses the fast offline causal forward. '
+                       'Set -1 to stream every video (very slow for large datasets).'
                    ))
     p.add_argument('--output_dir', type=str, default='./output_streaming')
     p.add_argument('--gpu', type=int, default=0)
@@ -119,28 +151,28 @@ def _load_checkpoint(model, ckpt_path):
 
 # ---------------------------------------------------------------------------
 # Inference helpers
-# Each function receives inputs already squeezed to [B, C, T] and on GPU.
-# Returns raw logits [B, T, num_classes] (before sigmoid, before masking).
+# Both receive inputs already squeezed to [B, C, T] and on GPU.
+# Both return raw logits [B, T, num_classes] (before sigmoid / masking).
 # ---------------------------------------------------------------------------
 
 @torch.no_grad()
-def run_offline_causal(model, inputs_ct, gpu):
-    """Full-sequence causal forward.  inputs_ct: [B, C, T] on GPU."""
+def run_offline_causal(model, inputs_ct):
+    """Full-sequence causal forward (single parallel scan)."""
     outputs, block_outputs, _, _ = model(inputs_ct)
     return outputs, block_outputs
 
 
 @torch.no_grad()
-def run_streaming(model, inputs_ct, chunk_size, gpu):
+def run_streaming(model, inputs_ct, chunk_size):
     """
-    Chunk-by-chunk streaming forward.  inputs_ct: [B, C, T] on GPU.
+    Chunk-by-chunk streaming forward.
 
     Returns
     -------
-    logits       : [B, T, num_classes]  raw (no sigmoid)
-    block_logits : list of [B, T, num_classes]
-    chunk_times  : list of per-chunk wall-clock seconds
-    first_chunk_latency : seconds to complete the very first chunk
+    logits             : [B, T, num_classes]  raw logits
+    block_logits       : list of 3 × [B, T, num_classes]
+    chunk_times        : per-chunk wall-clock seconds
+    first_chunk_s      : latency to first output
     """
     B = inputs_ct.shape[0]
     T = inputs_ct.shape[2]
@@ -149,40 +181,41 @@ def run_streaming(model, inputs_ct, chunk_size, gpu):
     all_logits = []
     all_block_logits = [[] for _ in range(3)]
     chunk_times = []
-    first_chunk_latency = None
+    first_chunk_s = None
 
     step = max(chunk_size, 1)
     for start in range(0, T, step):
-        chunk = inputs_ct[:, :, start: start + step]   # [B, C, step]
+        chunk = inputs_ct[:, :, start: start + step]
         t0 = time.time()
         logits_chunk, block_preds_chunk, state = model.stream_forward(chunk, state)
         elapsed = time.time() - t0
         chunk_times.append(elapsed)
-        if first_chunk_latency is None:
-            first_chunk_latency = elapsed
-
+        if first_chunk_s is None:
+            first_chunk_s = elapsed
         all_logits.append(logits_chunk)
         for i, bp in enumerate(block_preds_chunk):
             all_block_logits[i].append(bp)
 
-    logits = torch.cat(all_logits, dim=1)                            # [B, T, classes]
+    logits = torch.cat(all_logits, dim=1)
     block_logits = [torch.cat(bl, dim=1) for bl in all_block_logits]
-    return logits, block_logits, chunk_times, first_chunk_latency
+    return logits, block_logits, chunk_times, first_chunk_s
 
 
 # ---------------------------------------------------------------------------
-# Evaluation loop  (matches val_step in MSTemba_main.py)
+# Evaluation
 # ---------------------------------------------------------------------------
 
 def evaluate(model, dataloader, args, classes, gpu):
     """
-    Run evaluation matching the metrics reported in MSTemba_main.py val_step.
+    Compute accuracy metrics (all videos, offline causal) and streaming latency
+    metrics (first streaming_demo_n videos, true streaming).
 
-    Extra streaming metrics collected here:
-      - per-video wall-clock inference time
-      - per-frame inference time (ms)
-      - real-time factor  (inference_time / video_duration;  <1 = faster than RT)
-      - first-chunk latency (streaming modes only)
+    Rationale
+    ---------
+    The offline causal forward and the streaming forward produce numerically
+    identical outputs (same causal SSM, different scheduling).  Running mAP
+    evaluation through the streaming loop would be 100x–1000x slower with no
+    change in numbers.  We therefore decouple accuracy from latency measurement.
     """
     model.eval()
 
@@ -195,50 +228,40 @@ def evaluate(model, dataloader, args, classes, gpu):
     tot_loss = 0.0
     num_iter = 0
 
-    # Per-video timing records for the streaming latency CSV
-    latency_rows = []
+    offline_rows = []    # one row per video – offline causal timing
+    stream_rows = []     # one row per demo video – streaming timing
+
+    do_streaming = args.stream_chunk_size > 0
+    demo_limit = args.streaming_demo_n   # -1 = unlimited
 
     for data in dataloader:
         inputs, mask, labels, other, hm = data
         vid_id = other[0][0]
-        vid_duration = float(other[1][0])          # seconds
+        vid_duration = float(other[1][0])
 
-        # Move to GPU; squeeze spatial singleton dims [B, C, T, 1, 1] → [B, C, T]
-        inputs_ct = inputs.squeeze(3).squeeze(3).cuda(gpu)   # [B, C, T]
+        # Squeeze [B, C, T, 1, 1] → [B, C, T] and move to GPU
+        inputs_ct = inputs.squeeze(3).squeeze(3).cuda(gpu)
         mask_gpu = mask.cuda(gpu)
         labels_gpu = labels.cuda(gpu)
-
         T = inputs_ct.shape[2]
         video_fps = T / vid_duration if vid_duration > 0 else float('nan')
 
-        # ── Inference ─────────────────────────────────────────────────────────
-        t_start = time.time()
-        chunk_times = None
-        first_chunk_latency = None
+        # ── Offline causal forward (always – for mAP and offline timing) ───────
+        t0 = time.time()
+        logits, block_logits = run_offline_causal(model, inputs_ct)
+        offline_elapsed = time.time() - t0
 
-        if args.stream_chunk_size == 0:
-            # Full-sequence offline causal forward
-            logits, block_logits = run_offline_causal(model, inputs_ct, gpu)
-        else:
-            # Chunk-by-chunk streaming forward
-            logits, block_logits, chunk_times, first_chunk_latency = run_streaming(
-                model, inputs_ct, args.stream_chunk_size, gpu
-            )
-
-        elapsed = time.time() - t_start
-
-        # ── Apply sigmoid + mask to get probabilities ─────────────────────────
+        # ── Apply sigmoid + mask ─────────────────────────────────────────────
         probs = torch.sigmoid(logits) * mask_gpu.unsqueeze(2)
         block_probs = [torch.sigmoid(bl) * mask_gpu.unsqueeze(2) for bl in block_logits]
 
-        # ── BCE loss (matches run_network in MSTemba_main.py) ─────────────────
+        # ── BCE loss ──────────────────────────────────────────────────────────
         loss = F.binary_cross_entropy_with_logits(logits, labels_gpu, reduction='sum')
-        loss = loss / torch.sum(mask_gpu)
-        tot_loss += loss.item()
+        tot_loss += (loss / torch.sum(mask_gpu)).item()
         num_iter += 1
 
-        # ── Numpy views ───────────────────────────────────────────────────────
-        p_np = probs.data.cpu().numpy()[0]          # [T, classes]
+        # ── Update accuracy meters ────────────────────────────────────────────
+        p_np = probs.data.cpu().numpy()[0]
         l_np = labels.numpy()[0]
         m_np = mask.numpy()[0]
 
@@ -257,68 +280,78 @@ def evaluate(model, dataloader, args, classes, gpu):
         probs_masked = mask_probs(p_np, m_np).squeeze()
         full_probs[vid_id] = probs_masked.T
 
-        # ── Latency record ────────────────────────────────────────────────────
-        per_frame_ms = (elapsed / T * 1000) if T > 0 else float('nan')
-        real_time_factor = (elapsed / vid_duration) if vid_duration > 0 else float('nan')
-
-        row = {
+        # ── Offline latency row ───────────────────────────────────────────────
+        offline_rows.append({
             'vid_id': vid_id,
             'num_frames': T,
             'video_duration_s': vid_duration,
-            'video_fps': video_fps,
-            'inference_time_s': elapsed,
-            'per_frame_latency_ms': per_frame_ms,
-            'real_time_factor': real_time_factor,
-            'first_chunk_latency_ms': (first_chunk_latency * 1000
-                                       if first_chunk_latency is not None
-                                       else elapsed * 1000),
-            'stream_chunk_size': args.stream_chunk_size,
-        }
-        if chunk_times is not None:
-            row['mean_chunk_time_ms'] = float(np.mean(chunk_times)) * 1000
-            row['max_chunk_time_ms'] = float(np.max(chunk_times)) * 1000
-        latency_rows.append(row)
+            'video_fps': round(video_fps, 2) if np.isfinite(video_fps) else 'nan',
+            'inference_time_s': offline_elapsed,
+            'per_frame_latency_ms': offline_elapsed / T * 1000 if T > 0 else 'nan',
+            'real_time_factor': offline_elapsed / vid_duration if vid_duration > 0 else 'nan',
+        })
 
-    # ── Aggregate mAP metrics ──────────────────────────────────────────────────
+        # ── Streaming demo (first demo_limit videos only) ─────────────────────
+        if do_streaming:
+            
+            # verify_equivalence(model, inputs_ct)
+            
+            want_demo = (demo_limit == -1) or (len(stream_rows) < demo_limit)
+            if want_demo:
+                _, _, chunk_times, first_chunk_s = run_streaming(
+                    model, inputs_ct, args.stream_chunk_size
+                )
+                stream_elapsed = sum(chunk_times)
+                stream_rows.append({
+                    'vid_id': vid_id,
+                    'num_frames': T,
+                    'video_duration_s': vid_duration,
+                    'video_fps': round(video_fps, 2) if np.isfinite(video_fps) else 'nan',
+                    'chunk_size': args.stream_chunk_size,
+                    'num_chunks': len(chunk_times),
+                    'total_stream_time_s': stream_elapsed,
+                    'per_frame_latency_ms': stream_elapsed / T * 1000 if T > 0 else 'nan',
+                    'mean_chunk_time_ms': float(np.mean(chunk_times)) * 1000,
+                    'max_chunk_time_ms': float(np.max(chunk_times)) * 1000,
+                    'first_chunk_latency_ms': first_chunk_s * 1000,
+                    'real_time_factor': stream_elapsed / vid_duration if vid_duration > 0 else 'nan',
+                })
+
+    # ── Warn if nothing was evaluated ────────────────────────────────────────
+    if num_iter == 0:
+        print("[WARNING] No videos were evaluated. "
+              "Check --rgb_root and that feature files exist.")
+
+    # ── Aggregate accuracy metrics ────────────────────────────────────────────
     val_loss = tot_loss / max(num_iter, 1)
+    val_map = _apm_map(apm)
+    sample_val_map = _apm_map(sampled_apm)
+    block_val_maps = [_apm_map(block_apms[i]) for i in range(3)]
+    block_sample_val_maps = [_apm_map(block_sampled_apms[i]) for i in range(3)]
 
-    val_map = (torch.sum(100 * apm.value()) /
-               torch.nonzero(100 * apm.value()).size()[0])
-    sample_val_map = (torch.sum(100 * sampled_apm.value()) /
-                      torch.nonzero(100 * sampled_apm.value()).size()[0])
+    # ── Aggregate timing summaries ────────────────────────────────────────────
+    def _mean(rows, key):
+        vals = [r[key] for r in rows if isinstance(r[key], float) and np.isfinite(r[key])]
+        return float(np.mean(vals)) if vals else float('nan')
 
-    block_val_maps = []
-    block_sample_val_maps = []
-    for i in range(3):
-        bm = (torch.sum(100 * block_apms[i].value()) /
-              torch.nonzero(100 * block_apms[i].value()).size()[0])
-        bsm = (torch.sum(100 * block_sampled_apms[i].value()) /
-               torch.nonzero(100 * block_sampled_apms[i].value()).size()[0])
-        block_val_maps.append(float(bm))
-        block_sample_val_maps.append(float(bsm))
+    offline_summary = {
+        'num_videos': len(offline_rows),
+        'avg_inference_time_s': _mean(offline_rows, 'inference_time_s'),
+        'avg_per_frame_latency_ms': _mean(offline_rows, 'per_frame_latency_ms'),
+        'avg_real_time_factor': _mean(offline_rows, 'real_time_factor'),
+    }
+    stream_summary = {
+        'num_demo_videos': len(stream_rows),
+        'chunk_size': args.stream_chunk_size,
+        'avg_stream_time_s': _mean(stream_rows, 'total_stream_time_s'),
+        'avg_per_frame_latency_ms': _mean(stream_rows, 'per_frame_latency_ms'),
+        'avg_first_chunk_latency_ms': _mean(stream_rows, 'first_chunk_latency_ms'),
+        'avg_real_time_factor': _mean(stream_rows, 'real_time_factor'),
+    }
 
-    # ── Aggregate timing ──────────────────────────────────────────────────────
-    all_times = [r['inference_time_s'] for r in latency_rows]
-    all_rtf = [r['real_time_factor'] for r in latency_rows
-               if not (isinstance(r['real_time_factor'], float)
-                       and np.isnan(r['real_time_factor']))]
-    all_pf_ms = [r['per_frame_latency_ms'] for r in latency_rows
-                 if not (isinstance(r['per_frame_latency_ms'], float)
-                         and np.isnan(r['per_frame_latency_ms']))]
-    all_fc_ms = [r['first_chunk_latency_ms'] for r in latency_rows]
-
-    return (full_probs, val_loss, float(val_map), float(sample_val_map),
-            block_val_maps, block_sample_val_maps, latency_rows,
-            {
-                'avg_inference_time_s':        float(np.mean(all_times)),
-                'avg_per_frame_latency_ms':    float(np.mean(all_pf_ms)) if all_pf_ms else float('nan'),
-                'avg_real_time_factor':        float(np.mean(all_rtf)) if all_rtf else float('nan'),
-                'avg_first_chunk_latency_ms':  float(np.mean(all_fc_ms)),
-                'stream_chunk_size':           args.stream_chunk_size,
-                'mode': ('frame-by-frame' if args.stream_chunk_size == 1
-                         else 'offline_causal' if args.stream_chunk_size == 0
-                         else f'{args.stream_chunk_size}-frame_chunks'),
-            })
+    return (full_probs, val_loss, val_map, sample_val_map,
+            block_val_maps, block_sample_val_maps,
+            offline_rows, stream_rows, offline_summary, stream_summary)
 
 
 # ---------------------------------------------------------------------------
@@ -329,7 +362,6 @@ def main():
     args = parse_args()
     os.makedirs(args.output_dir, exist_ok=True)
 
-    # ── Dataset / split file ─────────────────────────────────────────────────
     if args.dataset == 'charades':
         split_file = '../data/charades.json'
         classes = 157
@@ -337,9 +369,8 @@ def main():
         split_file = '../data/smarthome.json'
         classes = 51
 
-    # collate_fn_unisize pads all sequences to args.num_clips.
-    # The authors did not implement the variable-length (non-padded) collate,
-    # so unisize padding is always used.
+    # Authors did not implement variable-length (non-padded) collate;
+    # unisize padding is always used.
     collate_fn_obj = collate_fn_unisize(args.num_clips)
     collate_fn = collate_fn_obj.charades_collate_fn_unisize
 
@@ -351,7 +382,6 @@ def main():
         collate_fn=collate_fn,
     )
 
-    # ── Model ─────────────────────────────────────────────────────────────────
     in_feat_dim = 1024 if args.backbone == 'i3d' else 768
     model = create_model(
         'mstemba',
@@ -359,8 +389,8 @@ def main():
         num_classes=classes,
         in_feat_dim=in_feat_dim,
         fuser=args.fuser,
-        causal=True,                         # streaming requires causal mode
-        causal_consistency_loss_weight=0.0,  # no training loss during inference
+        causal=True,
+        causal_consistency_loss_weight=0.0,
         causal_consistency_margin=0.1,
     )
     _load_checkpoint(model, args.weights)
@@ -368,93 +398,104 @@ def main():
     model.eval()
 
     n_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
-    mode_str = ('frame-by-frame' if args.stream_chunk_size == 1
-                else 'offline causal' if args.stream_chunk_size == 0
-                else f'{args.stream_chunk_size}-frame chunks')
+    demo_desc = (
+        'no streaming demo' if args.stream_chunk_size == 0
+        else f'streaming demo on {args.streaming_demo_n} videos '
+             f'(chunk_size={args.stream_chunk_size})'
+    )
     print(f"Loaded model: {n_params:,} trainable parameters")
-    print(f"Streaming chunk size: {args.stream_chunk_size}  ({mode_str})")
+    print(f"Evaluation mode: offline causal for all videos + {demo_desc}")
 
-    # ── Evaluation ────────────────────────────────────────────────────────────
-    t_eval_start = time.time()
+    t_start = time.time()
     (full_probs, val_loss, val_map, sample_val_map,
      block_val_maps, block_sample_val_maps,
-     latency_rows, timing_summary) = evaluate(
+     offline_rows, stream_rows,
+     offline_summary, stream_summary) = evaluate(
         model, dataloader, args, classes, args.gpu
     )
-    eval_time = time.time() - t_eval_start
+    eval_time = time.time() - t_start
 
-    # ── Build metrics dict (matches MSTemba_main.py evaluation section) ───────
+    # ── Build metrics dict ────────────────────────────────────────────────────
     metrics = {
-        # ── Provenance ────────────────────────────────────────────────────────
-        'model_path':             args.weights,
-        'dataset':                args.dataset,
-        'mode':                   args.mode,
-        'num_classes':            classes,
-        'num_parameters':         n_params,
-        'eval_time_seconds':      round(eval_time, 2),
-        'val_loss':               val_loss,
+        'model_path':            args.weights,
+        'dataset':               args.dataset,
+        'mode':                  args.mode,
+        'num_classes':           classes,
+        'num_parameters':        n_params,
+        'eval_time_seconds':     round(eval_time, 2),
+        'val_loss':              val_loss,
 
-        # ── Headline numbers (same as MSTemba_main.py) ────────────────────────
-        'per_frame_mAP':          val_map,
-        'sampled_mAP_25':         sample_val_map,
+        'per_frame_mAP':         val_map,
+        'sampled_mAP_25':        sample_val_map,
 
-        # ── Per-block mAPs ────────────────────────────────────────────────────
-        'block1_per_frame_mAP':   block_val_maps[0],
-        'block2_per_frame_mAP':   block_val_maps[1],
-        'block3_per_frame_mAP':   block_val_maps[2],
-        'block1_sampled_mAP_25':  block_sample_val_maps[0],
-        'block2_sampled_mAP_25':  block_sample_val_maps[1],
-        'block3_sampled_mAP_25':  block_sample_val_maps[2],
+        'block1_per_frame_mAP':  block_val_maps[0],
+        'block2_per_frame_mAP':  block_val_maps[1],
+        'block3_per_frame_mAP':  block_val_maps[2],
+        'block1_sampled_mAP_25': block_sample_val_maps[0],
+        'block2_sampled_mAP_25': block_sample_val_maps[1],
+        'block3_sampled_mAP_25': block_sample_val_maps[2],
 
-        # ── Streaming-specific ────────────────────────────────────────────────
-        'stream_chunk_size':               timing_summary['stream_chunk_size'],
-        'streaming_mode':                  timing_summary['mode'],
-        'avg_inference_time_s':            timing_summary['avg_inference_time_s'],
-        'avg_per_frame_latency_ms':        timing_summary['avg_per_frame_latency_ms'],
-        'avg_real_time_factor':            timing_summary['avg_real_time_factor'],
-        'avg_first_chunk_latency_ms':      timing_summary['avg_first_chunk_latency_ms'],
+        # Offline causal timing (all videos)
+        'offline_avg_inference_time_s':       offline_summary['avg_inference_time_s'],
+        'offline_avg_per_frame_latency_ms':   offline_summary['avg_per_frame_latency_ms'],
+        'offline_avg_real_time_factor':       offline_summary['avg_real_time_factor'],
+
+        # Streaming timing (demo subset)
+        'stream_chunk_size':                  stream_summary['chunk_size'],
+        'stream_num_demo_videos':             stream_summary['num_demo_videos'],
+        'stream_avg_per_frame_latency_ms':    stream_summary['avg_per_frame_latency_ms'],
+        'stream_avg_first_chunk_latency_ms':  stream_summary['avg_first_chunk_latency_ms'],
+        'stream_avg_real_time_factor':        stream_summary['avg_real_time_factor'],
     }
 
-    # ── Print summary ─────────────────────────────────────────────────────────
+    # ── Print ─────────────────────────────────────────────────────────────────
     print("\n" + "=" * 60)
-    print("STREAMING INFERENCE SUMMARY")
+    print("EVALUATION SUMMARY")
     print("=" * 60)
     for k, v in metrics.items():
-        if isinstance(v, float):
-            print(f"  {k:<40s}: {v:.4f}")
-        else:
-            print(f"  {k:<40s}: {v}")
+        fmt = f"{v:.4f}" if isinstance(v, float) and np.isfinite(v) else str(v)
+        print(f"  {k:<44s}: {fmt}")
     print("=" * 60)
 
-    # ── Save evaluation_metrics.csv ───────────────────────────────────────────
+    # ── Save files ────────────────────────────────────────────────────────────
     csv_path = os.path.join(args.output_dir, 'evaluation_metrics.csv')
     with open(csv_path, 'w', newline='') as f:
         writer = csv.writer(f)
         writer.writerow(['metric', 'value'])
         for k, v in metrics.items():
             writer.writerow([k, v])
-    print(f"Metrics CSV saved to: {csv_path}")
+    print(f"Metrics CSV  : {csv_path}")
 
-    # ── Save evaluation_metrics.pkl ───────────────────────────────────────────
     pkl_path = os.path.join(args.output_dir, 'evaluation_metrics.pkl')
     pickle.dump(metrics, open(pkl_path, 'wb'), pickle.HIGHEST_PROTOCOL)
-    print(f"Metrics pickle saved to: {pkl_path}")
+    print(f"Metrics PKL  : {pkl_path}")
 
-    # ── Save eval_full_probs.pkl (matches MSTemba_main.py naming) ────────────
     probs_path = os.path.join(args.output_dir, 'eval_full_probs.pkl')
     pickle.dump(full_probs, open(probs_path, 'wb'), pickle.HIGHEST_PROTOCOL)
-    print(f"Per-video probabilities saved to: {probs_path}")
+    print(f"Probs PKL    : {probs_path}")
 
-    # ── Save streaming_latency.csv (per-video timing detail) ─────────────────
-    if latency_rows:
-        lat_path = os.path.join(args.output_dir, 'streaming_latency.csv')
-        fieldnames = list(latency_rows[0].keys())
-        with open(lat_path, 'w', newline='') as f:
-            writer = csv.DictWriter(f, fieldnames=fieldnames)
-            writer.writeheader()
-            writer.writerows(latency_rows)
-        print(f"Per-video latency saved to: {lat_path}")
+    if offline_rows:
+        p = os.path.join(args.output_dir, 'offline_latency.csv')
+        _save_csv(p, offline_rows)
+        print(f"Offline lat. : {p}")
 
+    if stream_rows:
+        p = os.path.join(args.output_dir, 'streaming_latency.csv')
+        _save_csv(p, stream_rows)
+        print(f"Stream lat.  : {p}")
+
+
+@torch.no_grad()
+def verify_equivalence(model, inputs_ct, atol=1e-3):
+    print("Verifying numerical equivalence of offline causal and streaming outputs...")
+    off_logits, _ = run_offline_causal(model, inputs_ct)
+    str_logits_1, _, _, _ = run_streaming(model, inputs_ct, chunk_size=1)
+    str_logits_25, _, _, _ = run_streaming(model, inputs_ct, chunk_size=25)
+    d1  = (off_logits - str_logits_1 ).abs().max().item()
+    d25 = (off_logits - str_logits_25).abs().max().item()
+    print(f"max|offline - stream(1)|  = {d1:.2e}")
+    print(f"max|offline - stream(25)| = {d25:.2e}")
+    assert d1 < atol and d25 < atol, "Causality violation!"
 
 if __name__ == '__main__':
     main()

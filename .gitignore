@@ -42,6 +42,7 @@ data/*
 
 # No models in any folder and subfolder in outputs
 outputs/**/*.pkl
+outputs/**/*.pth
 
 # No Claude worktrees
 .claude

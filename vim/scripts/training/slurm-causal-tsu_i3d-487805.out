@@ -1,0 +1,32 @@
+ERROR: Unable to locate a modulefile for 'slurm'
+gnode02
+/home/3199302/.conda/envs/mstemba/bin/python
+MYID=3199302
+=====================
+Evaluation...
+chunk_size=1
+usage: streaming_inference.py [-h] --weights WEIGHTS
+                              [--dataset {charades,tsu}]
+                              [--backbone {i3d,clip}] --rgb_root RGB_ROOT
+                              [--mode MODE] [--num_clips NUM_CLIPS]
+                              [--skip SKIP]
+                              [--fuser {sum,weighted,token-attention,cross-token-attention,attention}]
+                              [--stream_chunk_size STREAM_CHUNK_SIZE]
+                              [--streaming_demo_n STREAMING_DEMO_N]
+                              [--output_dir OUTPUT_DIR] [--gpu GPU]
+                              [--num_workers NUM_WORKERS]
+                              [--batch_size BATCH_SIZE]
+streaming_inference.py: error: unrecognized arguments: -output_dir /mnt/beegfsstudents/home/3199302/ASO-Temba/outputs/causal-tsu_i3d/eval_1
+chunk_size=25
+usage: streaming_inference.py [-h] --weights WEIGHTS
+                              [--dataset {charades,tsu}]
+                              [--backbone {i3d,clip}] --rgb_root RGB_ROOT
+                              [--mode MODE] [--num_clips NUM_CLIPS]
+                              [--skip SKIP]
+                              [--fuser {sum,weighted,token-attention,cross-token-attention,attention}]
+                              [--stream_chunk_size STREAM_CHUNK_SIZE]
+                              [--streaming_demo_n STREAMING_DEMO_N]
+                              [--output_dir OUTPUT_DIR] [--gpu GPU]
+                              [--num_workers NUM_WORKERS]
+                              [--batch_size BATCH_SIZE]
+streaming_inference.py: error: unrecognized arguments: -output_dir /mnt/beegfsstudents/home/3199302/ASO-Temba/outputs/causal-tsu_i3d/eval_25

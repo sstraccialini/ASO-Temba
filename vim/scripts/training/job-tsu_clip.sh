@@ -51,7 +51,30 @@ python MSTemba_main.py \
   -beta_l 0.05 \
   -batch_size 1 \
   --num_workers 1 \
-  --fuser token-attention \
-  -output_dir $BASE_HOME/ASO-Temba/outputs/tsu_clip-token_attention
+  --fuser cross-token-attention \
+  -output_dir $BASE_HOME/ASO-Temba/outputs/tsu_clip-cross_token_attention
 
 echo "Training done."
+echo "======================"
+echo "Evaluation..."
+
+python MSTemba_main.py \
+  -dataset tsu \
+  -mode rgb \
+  -backbone clip \
+  -model mstemba \
+  -train False \
+  -weights $BASE_HOME/ASO-Temba/outputs/tsu_clip-cross_token_attention/best_model.pth \
+  -rgb_root $BASE_HOME/ASO-Temba/data/tsu_features_clip_l14 \
+  -num_clips 2500 \
+  -skip 0 \
+  --lr 4.5e-4 \
+  -comp_info False \
+  -epochs 140 \
+  -unisize True \
+  -alpha_l 1 \
+  -beta_l 0.05 \
+  -batch_size 1 \
+  --num_workers 1 \
+  --fuser cross-token-attention \
+  -output_dir $BASE_HOME/ASO-Temba/outputs/tsu_clip-cross_token_attention/eval

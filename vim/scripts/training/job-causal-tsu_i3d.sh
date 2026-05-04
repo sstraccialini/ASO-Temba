@@ -1,0 +1,78 @@
+#!/bin/bash
+#SBATCH --account=3199302
+#SBATCH --partition=stud
+#SBATCH --qos=stud
+#SBATCH --gres=gpu:1
+#SBATCH --time=24:00:00
+#SBATCH --output=slurm-causal-tsu_i3d-%j.out
+#SBATCH --cpus-per-task=8
+
+# ====== USER CONFIG ======
+MYID=3199302
+BASE_HOME=/mnt/beegfsstudents/home/$MYID
+
+# ====== ENV SETUP ======
+source ~/.bashrc
+conda activate mstemba
+
+cd $BASE_HOME/ASO-Temba/vim
+
+export CUDA_HOME=$CONDA_PREFIX
+export PATH=$CUDA_HOME/bin:$PATH
+export LD_LIBRARY_PATH=$CUDA_HOME/lib:$CUDA_HOME/lib64:$LD_LIBRARY_PATH
+
+hostname
+which python
+echo "MYID=$MYID"
+
+# ====== CAUSAL TRAINING (TSU / I3D) ======
+# Key differences vs offline:
+#   --causal                         enables forward-only SSMs
+#   --causal_consistency_loss_weight adds L_caus_cons regularisation
+#   --causal_consistency_margin      hinge margin for L_caus_cons
+
+#python MSTemba_main.py \
+#  -dataset tsu \
+#  -mode rgb \
+#  -backbone i3d \
+#  -model mstemba \
+#  -train True \
+#  -rgb_root $BASE_HOME/ASO-Temba/data/tsu_features_i3d \
+#  -num_clips 2500 \
+#  -skip 0 \
+#  --lr 4.5e-4 \
+#  -comp_info False \
+#  -epochs 140 \
+#  -unisize True \
+#  -alpha_l 1 \
+#  -beta_l 0.05 \
+#  -batch_size 1 \
+#  --num_workers 1 \
+#  --causal \
+#  --causal_consistency_loss_weight 10.0 \
+#  --causal_consistency_margin 0.1 \
+#  -output_dir $BASE_HOME/ASO-Temba/outputs/causal-tsu_i3d
+
+#echo "Causal training done."
+echo "====================="
+echo "Evaluation..."
+
+echo "chunk_size=1"
+
+python streaming_inference.py \
+  --weights $BASE_HOME/ASO-Temba/outputs/causal-tsu_i3d/best_model.pth \
+  --dataset tsu \
+  --backbone i3d \
+  --rgb_root $BASE_HOME/ASO-Temba/data/tsu_features_i3d \
+  --stream_chunk_size 1 \
+  --streaming_demo_n 50
+
+echo "chunk_size=25"
+
+python streaming_inference.py \
+  --weights $BASE_HOME/ASO-Temba/outputs/causal-tsu_i3d/best_model.pth \
+  --dataset tsu \
+  --backbone i3d \
+  --rgb_root $BASE_HOME/ASO-Temba/data/tsu_features_i3d \
+  --stream_chunk_size 25 \
+  --streaming_demo_n 50

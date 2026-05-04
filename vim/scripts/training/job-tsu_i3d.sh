@@ -51,7 +51,30 @@ python MSTemba_main.py \
   -beta_l 0.05 \
   -batch_size 1 \
   --num_workers 1 \
-  --fuser token-attention \
-  -output_dir $BASE_HOME/ASO-Temba/outputs/tsu_i3d-token_attention
+  --fuser weighted \
+  -output_dir $BASE_HOME/ASO-Temba/outputs/tsu_i3d-weighted
 
 echo "Training done."
+echo "======================"
+echo "Evaluation..."
+
+python MSTemba_main.py \
+  -dataset tsu \
+  -mode rgb \
+  -backbone i3d \
+  -model mstemba \
+  -train False \
+  -weights $BASE_HOME/ASO-Temba/outputs/tsu_i3d-weighted/best_model.pth \
+  -rgb_root $BASE_HOME/ASO-Temba/data/tsu_features_i3d \
+  -num_clips 2500 \
+  -skip 0 \
+  --lr 4.5e-4 \
+  -comp_info False \
+  -epochs 140 \
+  -unisize True \
+  -alpha_l 1 \
+  -beta_l 0.05 \
+  -batch_size 1 \
+  --num_workers 1 \
+  --fuser weighted \
+  -output_dir $BASE_HOME/ASO-Temba/outputs/tsu_i3d-weighted/eval
