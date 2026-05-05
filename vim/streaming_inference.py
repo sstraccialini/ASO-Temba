@@ -134,10 +134,17 @@ def parse_args():
 
 def _load_checkpoint(model, ckpt_path):
     ckpt = torch.load(ckpt_path, map_location='cpu')
-    if isinstance(ckpt, dict) and 'model' in ckpt:
-        state_dict = ckpt['model']
-    elif isinstance(ckpt, dict) and 'state_dict' in ckpt:
-        state_dict = ckpt['state_dict']
+    if isinstance(ckpt, dict):
+        # Prefer EMA weights (what training val_map is computed on) over raw model.
+        # Priority matches MSTemba_main._select_checkpoint_state_dict.
+        state_dict = None
+        for key in ('model_ema_state_dict', 'model_ema', 'model', 'state_dict'):
+            if key in ckpt and ckpt[key] is not None:
+                state_dict = ckpt[key]
+                print(f"[INFO] Loading weights from checkpoint key: '{key}'")
+                break
+        if state_dict is None:
+            raise ValueError(f"No recognised weight key found in checkpoint: {list(ckpt.keys())}")
     else:
         state_dict = ckpt
     state_dict = {k.replace('module.', '', 1) if k.startswith('module.') else k: v

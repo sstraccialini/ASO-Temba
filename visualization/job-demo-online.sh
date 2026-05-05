@@ -3,7 +3,7 @@
 #SBATCH --partition=stud
 #SBATCH --qos=stud
 #SBATCH --gres=gpu:1
-#SBATCH --time=06:00:00
+#SBATCH --time=02:00:00
 #SBATCH --output=slurm-demo-online-%j.out
 #SBATCH --cpus-per-task=4
 
@@ -29,15 +29,24 @@ echo "MYID=$MYID"
 # Generates an MP4 showing a random test video with live predicted labels.
 # Saved to visualization/demo_tsu.mp4 (no display needed on headless node).
 
-python visualization/demo_online.py \
-  --weights $BASE_HOME/ASO-Temba/outputs/causal-tsu_i3d/best_model.pth \
-  --dataset tsu \
-  --backbone i3d \
-  --rgb_root $BASE_HOME/ASO-Temba/data/tsu_features_i3d \
-  --step 1 \
-  --interval 60 \
-  --save visualization/demo_tsu.mp4
+# Drop your video inside  ASO-Temba/visualization/mp4/  and it will be
+# auto-detected.  To pin a specific video use:
+#   --video /absolute/path/to/file.mp4
+# To pin a specific dataset video use:
+#   --video_id P11T15C01
 
+#python visualization/demo_online.py \
+#  --weights $BASE_HOME/ASO-Temba/outputs/causal-tsu_i3d-token_attention/best_model.pth \
+#  --dataset tsu \
+#  --backbone i3d \
+#  --rgb_root $BASE_HOME/ASO-Temba/data/tsu_features_i3d \
+#  --fuser token-attention \
+#  --step 1 \
+#  --interval 60 \
+#  --save visualization/demo_tsu.mp4
+python visualization/demo_online.py   --weights $BASE_HOME/ASO-Temba/outputs/causal-tsu_i3d/best_model.pth   --dataset tsu   --backbone i3d   --rgb_root $BASE_HOME/ASO-Temba/data/tsu_features_i3d   --fast-preview  --save visualization/demo_tsu.mp4
+
+echo "Demo MP4 saved."
 
 # ---- Charades variant (uncomment to use) ----
 # python visualization/demo_online.py \
@@ -50,4 +59,6 @@ python visualization/demo_online.py \
 #   --interval 60 \
 #   --save visualization/demo_charades.mp4
 
-echo "Demo MP4 saved."
+# PREVIEW!
+
+#python visualization/demo_online.py   --weights $BASE_HOME/ASO-Temba/outputs/causal-tsu_i3d/best_model.pth   --dataset tsu   --backbone i3d   --rgb_root $BASE_HOME/ASO-Temba/data/tsu_features_i3d   --preview  --save visualization/demo_tsu.mp4

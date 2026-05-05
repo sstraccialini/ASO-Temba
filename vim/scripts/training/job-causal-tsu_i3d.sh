@@ -31,29 +31,35 @@ echo "MYID=$MYID"
 #   --causal_consistency_loss_weight adds L_caus_cons regularisation
 #   --causal_consistency_margin      hinge margin for L_caus_cons
 
-#python MSTemba_main.py \
-#  -dataset tsu \
-#  -mode rgb \
-#  -backbone i3d \
-#  -model mstemba \
-#  -train True \
-#  -rgb_root $BASE_HOME/ASO-Temba/data/tsu_features_i3d \
-#  -num_clips 2500 \
-#  -skip 0 \
-#  --lr 4.5e-4 \
-#  -comp_info False \
-#  -epochs 140 \
-#  -unisize True \
-#  -alpha_l 1 \
-#  -beta_l 0.05 \
-#  -batch_size 1 \
-#  --num_workers 1 \
-#  --causal \
-#  --causal_consistency_loss_weight 10.0 \
-#  --causal_consistency_margin 0.1 \
-#  -output_dir $BASE_HOME/ASO-Temba/outputs/causal-tsu_i3d
+python MSTemba_main.py \
+  -dataset tsu \
+  -mode rgb \
+  -backbone i3d \
+  -model mstemba \
+  -train True \
+  -rgb_root $BASE_HOME/ASO-Temba/data/tsu_features_i3d \
+  -num_clips 2500 \
+  -skip 0 \
+  --lr 2e-4 \
+  -comp_info False \
+  -epochs 140 \
+  -unisize True \
+  -alpha_l 1 \
+  -beta_l 0.05 \
+  -batch_size 1 \
+  --num_workers 1 \
+  --causal \
+  --causal_consistency_loss_weight 1.0 \
+  --causal_consistency_margin 0.1 \
+  --drop 0.15 \
+  --drop-path 0.15 \
+  --weight-decay 0.05 \
+  --clip-grad 1.0 \
+  --warmup-epochs 10 \
+  --min-lr 1e-5 \
+  -output_dir $BASE_HOME/ASO-Temba/outputs/causal-tsu_i3d-v2
 
-#echo "Causal training done."
+echo "Causal training done."
 echo "====================="
 echo "Evaluation..."
 

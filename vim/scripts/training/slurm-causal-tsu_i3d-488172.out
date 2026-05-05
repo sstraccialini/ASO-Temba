@@ -1,0 +1,23 @@
+ERROR: Unable to locate a modulefile for 'slurm'
+gnode04
+/home/3199302/.conda/envs/mstemba/bin/python
+MYID=3199302
+python: can't open file '/mnt/beegfsstudents/home/3199302/ASO-Temba/vim/vim/MSTemba_main.py': [Errno 2] No such file or directory
+/var/spool/slurmd/job488172/slurm_script: line 44: -comp_info: command not found
+/var/spool/slurmd/job488172/slurm_script: line 53: --causal_consistency_margin: command not found
+/var/spool/slurmd/job488172/slurm_script: line 55: --drop-path: command not found
+/var/spool/slurmd/job488172/slurm_script: line 56: --weight-decay: command not found
+/var/spool/slurmd/job488172/slurm_script: line 57: --clip-grad: command not found
+/var/spool/slurmd/job488172/slurm_script: line 58: --warmup-epochs: command not found
+/var/spool/slurmd/job488172/slurm_script: line 59: --min-lr: command not found
+Causal training done.
+=====================
+Evaluation...
+chunk_size=1
+split!!!! testing
+  0%|          | 0/536 [00:00<?, ?it/s]  3%|▎         | 14/536 [00:00<00:03, 137.81it/s]  5%|▌         | 28/536 [00:00<00:06, 76.83it/s]   7%|▋         | 40/536 [00:00<00:05, 83.86it/s]  9%|▉         | 50/536 [00:00<00:05, 85.73it/s] 11%|█▏        | 61/536 [00:00<00:05, 89.42it/s] 14%|█▍        | 76/536 [00:00<00:04, 99.82it/s] 16%|█▌        | 87/536 [00:00<00:05, 86.02it/s] 18%|█▊        | 97/536 [00:01<00:05, 81.55it/s] 20%|█▉        | 107/536 [00:01<00:05, 81.88it/s] 23%|██▎       | 123/536 [00:01<00:04, 97.56it/s] 25%|██▌       | 135/536 [00:01<00:04, 89.05it/s] 27%|██▋       | 145/536 [00:01<00:05, 73.88it/s] 29%|██▊       | 153/536 [00:01<00:05, 70.49it/s] 31%|███       | 165/536 [00:02<00:05, 73.65it/s] 32%|███▏      | 173/536 [00:02<00:05, 63.92it/s] 34%|███▎      | 180/536 [00:02<00:06, 52.71it/s] 36%|███▌      | 193/536 [00:02<00:05, 67.62it/s] 38%|███▊      | 201/536 [00:02<00:05, 66.82it/s] 40%|████      | 215/536 [00:02<00:03, 83.52it/s] 43%|████▎     | 232/536 [00:02<00:03, 97.30it/s] 46%|████▋     | 249/536 [00:02<00:02, 105.62it/s] 50%|█████     | 270/536 [00:03<00:02, 126.11it/s] 53%|█████▎    | 284/536 [00:03<00:02, 104.19it/s] 57%|█████▋    | 305/536 [00:03<00:01, 126.12it/s] 60%|█████▉    | 319/536 [00:03<00:02, 94.16it/s]  62%|██████▏   | 331/536 [00:03<00:02, 90.69it/s] 64%|██████▍   | 342/536 [00:03<00:02, 89.34it/s] 66%|██████▌   | 352/536 [00:04<00:02, 86.45it/s] 68%|██████▊   | 362/536 [00:04<00:02, 86.93it/s] 69%|██████▉   | 372/536 [00:04<00:02, 80.89it/s] 71%|███████▏  | 382/536 [00:04<00:01, 83.69it/s] 73%|███████▎  | 391/536 [00:04<00:01, 72.66it/s] 75%|███████▌  | 404/536 [00:04<00:01, 82.23it/s] 81%|████████  | 434/536 [00:04<00:00, 127.68it/s] 84%|████████▎ | 448/536 [00:04<00:00, 125.96it/s] 88%|████████▊ | 470/536 [00:05<00:00, 144.92it/s] 90%|█████████ | 485/536 [00:05<00:00, 98.77it/s]  93%|█████████▎| 498/536 [00:05<00:00, 83.14it/s] 95%|█████████▍| 509/536 [00:05<00:00, 77.60it/s] 97%|█████████▋| 520/536 [00:05<00:00, 76.18it/s] 99%|█████████▉| 532/536 [00:06<00:00, 82.96it/s]100%|██████████| 536/536 [00:06<00:00, 88.86it/s]
+Loaded model: 15,700,900 trainable parameters
+Evaluation mode: offline causal for all videos + streaming demo on 50 videos (chunk_size=1)
+/mnt/beegfsstudents/home/3199302/ASO-Temba/vim/apmeter.py:88: UserWarning: TypedStorage is deprecated. It will be removed in the future and UntypedStorage will be the only storage class. This should only matter to you if you are using storages directly.  To access UntypedStorage directly, use tensor.untyped_storage() instead of tensor.storage()
+  if self.scores.storage().size() < self.scores.numel() + output.numel():
+[2026-05-04T15:15:03.761] error: *** JOB 488172 ON gnode04 CANCELLED AT 2026-05-04T15:15:03 DUE to SIGNAL Terminated ***

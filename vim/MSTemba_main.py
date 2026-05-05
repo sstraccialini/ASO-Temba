@@ -167,6 +167,10 @@ def run(models, criterion, num_epochs=50, model_ema=None):
     Best_block_sample_val_maps = [0., 0., 0.]  # One for each block
     writer = SummaryWriter(log_dir=os.path.join(args.output_dir, 'tensorboard_logs'))
     
+    patience = 20
+    no_improve = 0
+    stop_training = False
+
     for epoch in range(num_epochs):
         since1 = time.time()
         logging.info(f'Epoch {epoch}/{num_epochs - 1}')
@@ -179,10 +183,11 @@ def run(models, criterion, num_epochs=50, model_ema=None):
             logging.info(f'Epoch {epoch} - Train MAP: {train_map:.2f}, Train Loss: {train_loss:.4f}')
             
             # Validation step with block metrics
-            prob_val, val_loss, val_map, sample_val_map, block_val_maps, block_sample_val_maps, val_fusion_weights = val_step(model, gpu, dataloader['val'], epoch)
+            eval_model = model_ema.ema if model_ema is not None else model
+            prob_val, val_loss, val_map, sample_val_map, block_val_maps, block_sample_val_maps, val_fusion_weights = val_step(eval_model, gpu, dataloader['val'], epoch)
             logging.info(f'Epoch {epoch} - Val MAP: {val_map:.2f}, Val Loss: {val_loss:.4f}')
             logging.info(f'Epoch {epoch} - Sampled Val MAP: {sample_val_map:.2f}')
-            sched.step(val_loss)
+            sched.step(epoch)
             
             # Log metrics to TensorBoard
             writer.add_scalar('Loss/train', train_loss, epoch)
@@ -230,26 +235,40 @@ def run(models, criterion, num_epochs=50, model_ema=None):
             # Save best models based on val_map
             if Best_val_map < val_map:
                 Best_val_map = val_map
+                no_improve = 0
+
                 logging.info(f"Epoch {epoch}, Best Sampled Val Map Update {Best_val_map:.4f}")
                 # pickle.dump(prob_val, open(os.path.join(args.output_dir, f'{epoch}.pkl'), 'wb'), pickle.HIGHEST_PROTOCOL)
                 # logging.info(f"Logit saved at: {args.output_dir}/{epoch}.pkl")
                 
+                ema_sd = get_state_dict(model_ema) if model_ema is not None else None
                 best_checkpoint = {
-                    'model': model.state_dict(),
+                    'model':     ema_sd if ema_sd is not None else model.state_dict(),  # ← what val_map measured
+                    'model_raw': model.state_dict(),   # keep raw for resuming training
                     'optimizer': optimizer.state_dict(),
                     'scheduler': sched.state_dict() if sched is not None and hasattr(sched, 'state_dict') else None,
-                    'args': vars(args).copy(),
-                    'epoch': epoch,
+                    'args':      vars(args).copy(),
+                    'epoch':     epoch,
                     'best_val_map': float(Best_val_map),
-                    'fuser': args.fuser,
+                    'fuser':     args.fuser,
                 }
-                if model_ema is not None:
-                    best_checkpoint['model_ema'] = get_state_dict(model_ema)
+                if ema_sd is not None:
+                    best_checkpoint['model_ema'] = ema_sd
 
                 torch.save(best_checkpoint, os.path.join(args.output_dir, 'best_model.pth'))
                 logging.info(f"Best checkpoint saved at: {args.output_dir}/best_model.pth")
                 writer.add_scalar('Best_mAP/val', Best_val_map, epoch)
             
+            else:
+                no_improve += 1
+                if no_improve >= patience:
+                    logging.info(f"Early stopping at epoch {epoch} (no improvement for {patience} epochs)")
+                    stop_training = True
+                    break
+        
+        if stop_training:
+            break
+
             # Save best models for each block
             # for i in range(3):
             #     if Best_block_sample_val_maps[i] < block_sample_val_maps[i]:
@@ -269,7 +288,7 @@ def eval_model(model, dataloader, baseline=False):
     
     for data in dataloader:
         other = data[3]
-        outputs, loss, probs, _, block_probs, _, _ = run_network(model, data, 0, baseline)
+        outputs, loss, probs, _, block_probs, _, _, diversity_loss = run_network(model, data, 0, baseline)
         fps = outputs.size()[1] / other[1][0]
 
         # Store final output results
@@ -388,13 +407,21 @@ def run_network(model, data, gpu, epoch=0, baseline=False):
 
     inputs = inputs.squeeze(3).squeeze(3)
 
+    # ADD: temporal feature dropout during training only
+    if model.training:
+        # randomly zero 15% of timesteps
+        mask_t = (torch.rand(inputs.shape[0], inputs.shape[1], 1, device=inputs.device) > 0.15)
+        inputs = inputs * mask_t
+        
     outputs_final, block_outputs, diversity_loss, fusion_weights = model(inputs)
     
     # Logit for final output
     probs_f = F.sigmoid(outputs_final) * mask.unsqueeze(2)
     
     # Compute loss for final output
-    loss_f = F.binary_cross_entropy_with_logits(outputs_final, labels, size_average=False)
+    num_classes = labels.size(1)
+    labels_smooth = labels * 0.9 + 0.05 / num_classes
+    loss_f = F.binary_cross_entropy_with_logits(outputs_final, labels_smooth, size_average=False)
     loss_f = torch.sum(loss_f) / torch.sum(mask)
     
     # Compute loss for each block
@@ -421,7 +448,7 @@ def run_network(model, data, gpu, epoch=0, baseline=False):
     corr = torch.sum(mask)
     tot = torch.sum(mask)
     
-    return outputs_final, loss, probs_f, corr / tot, block_probs, block_losses, fusion_weights
+    return outputs_final, loss, probs_f, corr / tot, block_probs, block_losses, fusion_weights, diversity_loss
 
 
 def train_step(model, gpu, optimizer, dataloader, epoch, model_ema=None):
@@ -436,13 +463,13 @@ def train_step(model, gpu, optimizer, dataloader, epoch, model_ema=None):
     for data in dataloader:
         optimizer.zero_grad()
         num_iter += 1
-        outputs, loss, probs, err, block_probs, block_losses, fusion_weights = run_network(model, data, gpu, epoch)
+        outputs, loss, probs, err, block_probs, block_losses, fusion_weights, diversity_loss = run_network(model, data, gpu, epoch)
         
+
         # Extract diversity loss from the model output for logging
         with torch.no_grad():
             inputs, mask, labels, other, hm = data
             inputs = inputs.squeeze(3).squeeze(3).cuda(gpu)
-            _, _, diversity_loss, _ = model(inputs)
             tot_diversity_loss += diversity_loss.item()
         
         # Add metrics for final output
@@ -506,7 +533,7 @@ def val_step(model, gpu, dataloader, epoch):
         num_iter += 1
         other = data[3]
 
-        outputs, loss, probs, err, block_probs, block_losses, fusion_weights = run_network(model, data, gpu, epoch)
+        outputs, loss, probs, err, block_probs, block_losses, fusion_weights, diversity_loss = run_network(model, data, gpu, epoch)
         
         # Process final output
         if sum(data[1].numpy()[0])>25:
