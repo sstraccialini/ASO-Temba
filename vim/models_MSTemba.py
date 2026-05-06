@@ -679,6 +679,80 @@ class MultiScaleAttentionFuser(nn.Module):
 
         return self.post_norm(x + routed), routing_weights
 
+
+class MultiScaleAttentionX3Fuser(nn.Module):
+    """
+    Applica self-attention INDIPENDENTEMENTE su ogni scala nella sua dimensione
+    nativa, poi proietta ciascuna a dim comune E e somma.
+    Preserva la specializzazione temporale di ogni scala prima del mixing.
+
+    D1=256 → nhead=4  (256/64)
+    D2=384 → nhead=6  (384/64)
+    D3=576 → nhead=9  (576/64)
+    E=576 (dim comune, corrisponde a embed_dims[-1])
+    """
+    def __init__(self, dims, embed_dim, dropout=0.25):
+        """
+        dims: list [D1, D2, D3] = [256, 384, 576]
+        embed_dim: E = 576
+        """
+        super().__init__()
+        self.dims = dims
+        self.embed_dim = embed_dim
+
+        self.attns = nn.ModuleList()
+        self.norms1 = nn.ModuleList()
+        self.norms2 = nn.ModuleList()
+        self.ffns = nn.ModuleList()
+        self.projs = nn.ModuleList()
+
+        nheads = [max(1, d // 64) for d in dims]
+        # aggiusta nhead se non divide esattamente
+        nheads = [nh - (d % nh != 0) * (nh % (d // nh)) for nh, d in zip(nheads, dims)]
+        # fallback sicuro: scendi finché non divide
+        safe_nheads = []
+        for d, nh in zip(dims, nheads):
+            while nh > 1 and d % nh != 0:
+                nh -= 1
+            safe_nheads.append(nh)
+
+        for d, nh in zip(dims, safe_nheads):
+            self.attns.append(
+                nn.MultiheadAttention(d, nh, dropout=dropout, batch_first=True)
+            )
+            self.norms1.append(nn.LayerNorm(d))
+            self.norms2.append(nn.LayerNorm(d))
+            self.ffns.append(nn.Sequential(
+                nn.Linear(d, d * 4),
+                nn.GELU(),
+                nn.Dropout(dropout),
+                nn.Linear(d * 4, d),
+                nn.Dropout(dropout),
+            ))
+            self.projs.append(nn.Linear(d, embed_dim))
+
+        self.post_norm = nn.LayerNorm(embed_dim)
+
+    def forward(self, scale_features):
+        """
+        scale_features: list of 3 tensors [(B,T,D1), (B,T,D2), (B,T,D3)]
+        returns: (fused, None)  — None per compatibilità con routing_weights
+        """
+        projected = []
+        for i, x in enumerate(scale_features):
+            # Pre-norm self-attention
+            x_norm = self.norms1[i](x)
+            attn_out, _ = self.attns[i](x_norm, x_norm, x_norm, need_weights=False)
+            x = x + attn_out
+            # Pre-norm FFN
+            x = x + self.ffns[i](self.norms2[i](x))
+            # Proietta a E
+            projected.append(self.projs[i](x))
+
+        fused = sum(projected)  # (B, T, E)
+        return self.post_norm(fused), None
+
+
 def resize(input,
            size=None,
            scale_factor=None,
@@ -720,6 +794,12 @@ class MSTemba(nn.Module):
 
         elif self.fuser == 'attention':
             self.fuser_attention_module = MultiScaleAttentionFuser(embed_dims[-1], num_scales=3, nhead=8, dropout=0.25)
+        elif self.fuser == 'attention_x3':
+            self.fuser_attx3_module = MultiScaleAttentionX3Fuser(
+                dims=embed_dims,          # [256, 384, 576]
+                embed_dim=embed_dims[-1], # 576
+                dropout=0.25,
+            )
 
         elif self.fuser == 'token-attention':
             d = embed_dims[2]
@@ -895,8 +975,16 @@ class MSTemba(nn.Module):
             block_pred = self.block_heads[i](block_out)
             block_predictions.append(block_pred)
 
+        # attention_x3: apply per-scale self-attention in native dims, project to E inside the module
+        if self.fuser == 'attention_x3':
+            # x1_raw, x2_raw, x3_raw are in native dims [256, 384, 576]
+            # (before scale_proj which would project everything to 576)
+            x1_raw, x2_raw, x3_raw = concat_x  # [256], [384], [576]
+            x, routing_weights = self.fuser_attx3_module([x1_raw, x2_raw, x3_raw])
+            self._last_fusion_weights = None
+
         # standard fuser sums the three block outputs togheter (original MS-Temba paper)
-        if self.fuser == 'sum':
+        elif self.fuser == 'sum':
             x = x1 + x2 + x3
             self._last_fusion_weights = torch.tensor([1/3, 1/3, 1/3], device=x.device)  # For logging equal weights
 
