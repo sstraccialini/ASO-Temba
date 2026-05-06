@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --account=3199302
+#SBATCH --account=3185670
 #SBATCH --partition=stud
 #SBATCH --qos=stud
 #SBATCH --gres=gpu:1
@@ -8,7 +8,7 @@
 #SBATCH --cpus-per-task=8
 
 # ====== USER CONFIG ======
-MYID=3199302
+MYID=3185670
 BASE_HOME=/mnt/beegfsstudents/home/$MYID
 USER_HOME=/home/$MYID
 
@@ -39,19 +39,20 @@ python MSTemba_main.py \
   -mode rgb \
   -backbone i3d \
   -model mstemba \
-  -train false \
-  -weights $BASE_HOME/ASO-Temba/outputs/tsu_i3d/best_model.pth \
+  -train False \
+  -weights $BASE_HOME/ASO-Temba/outputs/tsu_i3d-attention_hpcl/best_model.pth \
   -rgb_root $BASE_HOME/ASO-Temba/data/tsu_features_i3d \
   -num_clips 2500 \
   -skip 0 \
   --lr 4.5e-4 \
   -comp_info False \
-  -epochs 140 \
+  -epochs 200 \
   -unisize True \
   -alpha_l 1 \
   -beta_l 0.05 \
   -batch_size 1 \
   --num_workers 1 \
-  -output_dir $BASE_HOME/ASO-Temba/outputs/tsu_i3d/eval
+  --fuser attention \
+  -output_dir $BASE_HOME/ASO-Temba/outputs/tsu_i3d-attention_hpcl/eval
 
 echo "Training done."

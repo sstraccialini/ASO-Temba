@@ -1,0 +1,67 @@
+2026-05-05 21:43:16,806 [INFO] Arguments: Namespace(mode='rgb', train='False', backbone='i3d', comp_info='False', gpu='4', dataset='tsu', rgb_root='/mnt/beegfsstudents/home/3185670/ASO-Temba/data/tsu_features_i3d', flow_root='no_root', type='original', epochs=200, model='mstemba', load_model='False', batch_size='1', num_clips='2500', skip='0', num_layer='False', unisize='True', alpha_l=1.0, beta_l=0.05, output_dir='/mnt/beegfsstudents/home/3185670/ASO-Temba/outputs/tsu_i3d-attention_hpcl2/eval', fuser='attention', model_ema=True, model_ema_decay=0.99996, model_ema_force_cpu=False, drop=0.0, drop_path=0.1, opt='adamw', opt_eps=1e-08, opt_betas=None, clip_grad=1.0, momentum=0.9, weight_decay=0.05, sched='cosine', lr=0.00045, lr_noise=None, lr_noise_pct=0.67, lr_noise_std=1.0, warmup_lr=1e-06, min_lr=1e-05, decay_epochs=30, warmup_epochs=10, cooldown_epochs=10, patience_epochs=10, decay_rate=0.1, diversity_loss_weight=0.1, block_loss_weight=0.02, num_workers=1, weights='/mnt/beegfsstudents/home/3185670/ASO-Temba/outputs/tsu_i3d-attention_hpcl2/best_model.pth')
+2026-05-05 21:43:16,812 [INFO] ============================================================
+2026-05-05 21:43:16,816 [INFO] Running EVALUATION on the 'testing' subset
+2026-05-05 21:43:16,820 [INFO] ============================================================
+2026-05-05 21:43:17,493 [INFO] Loading checkpoint: /mnt/beegfsstudents/home/3185670/ASO-Temba/outputs/tsu_i3d-attention_hpcl2/best_model.pth
+2026-05-05 21:43:18,207 [INFO] Missing keys: []
+2026-05-05 21:43:18,211 [INFO] Unexpected keys: []
+2026-05-05 21:43:18,215 [INFO] Number of trainable parameters: 21477608
+2026-05-05 21:43:39,233 [INFO] Epoch 0, Block 1 Full-val-map: 26.9216
+2026-05-05 21:43:39,238 [INFO] Epoch 0, Block 1 sampled-val-map: 30.4253
+2026-05-05 21:43:39,268 [INFO] Block 1 Sampled AP values: tensor([32.6198, 50.8892, 28.3434, 21.9642, 60.5437, 19.2715, 27.4771, 11.3481,
+        32.2942, 12.3595, 16.1891,  6.8769, 14.9167, 37.1410, 37.1416, 10.6275,
+        27.3573, 49.0848,  3.8000, 72.2627, 11.5835, 75.7444, 35.6418,  4.9658,
+         0.7569, 56.9074, 31.8485, 57.3465, 66.9900,  6.2994,  8.8195,  0.0000,
+         1.7428,  3.9145, 41.5419, 85.8766, 32.6608, 11.6903, 19.4468, 13.3355,
+        67.7338, 16.2256, 18.8282, 45.0868,  1.4248, 78.0651, 55.0141, 30.5002,
+        19.8527, 18.4895,  0.0000])
+2026-05-05 21:43:42,545 [INFO] Epoch 0, Block 2 Full-val-map: 31.7512
+2026-05-05 21:43:42,550 [INFO] Epoch 0, Block 2 sampled-val-map: 34.7272
+2026-05-05 21:43:42,575 [INFO] Block 2 Sampled AP values: tensor([33.9077, 47.8919, 56.6384, 38.7379, 75.0778, 49.3948, 54.8062, 20.6712,
+        39.1002, 12.5075, 15.4454, 11.6934, 12.8283, 37.4369, 37.4917, 18.1091,
+        36.0227, 66.1623,  3.2494, 70.7677, 31.3845, 72.0912, 41.8062,  1.7749,
+         1.1841, 63.2224, 32.3450, 64.3547, 73.9563,  4.0957, 12.9062,  0.0000,
+         4.5805,  3.9498, 40.6306, 89.4197, 36.0549, 19.6247, 15.9108,  8.2868,
+        68.8475, 19.4264, 20.9718, 53.0383,  1.3953, 74.9587, 59.9198, 19.8994,
+        18.8854,  8.7722,  0.0000])
+2026-05-05 21:43:45,887 [INFO] Epoch 0, Block 3 Full-val-map: 32.2949
+2026-05-05 21:43:45,891 [INFO] Epoch 0, Block 3 sampled-val-map: 35.0830
+2026-05-05 21:43:45,916 [INFO] Block 3 Sampled AP values: tensor([38.0348, 48.9816, 59.2220, 33.1130, 68.9898, 47.1803, 48.8462, 19.9310,
+        35.0178, 16.3737,  6.8260, 12.9832, 27.6451, 39.0185, 43.0066, 15.5214,
+        22.5812, 63.3122,  1.5070, 70.1396, 26.1734, 68.8840, 42.4627,  1.7769,
+         1.0275, 54.2803, 33.2836, 68.2247, 65.2299,  1.5157, 25.7678,  0.0000,
+         2.9199,  7.8832, 40.7074, 90.9164, 41.1842, 24.1325, 19.4569,  0.7385,
+        74.5234, 34.7378, 27.0779, 59.1592,  3.0207, 74.4345, 67.1217, 17.8407,
+        18.0160,  8.3381,  0.0000])
+2026-05-05 21:43:45,922 [INFO] Epoch 0, Final Full-val-map: 35.9175
+2026-05-05 21:43:45,926 [INFO] Epoch 0, Final sampled-val-map: 37.9648
+2026-05-05 21:43:45,952 [INFO] Final Sampled AP values: tensor([38.5560, 56.9174, 58.2704, 30.7750, 65.1065, 40.0837, 55.3862, 24.7891,
+        29.6307, 10.3159, 11.1995, 27.7151,  2.1031, 39.7101, 67.5953, 32.4924,
+        46.7387, 66.0349,  2.4217, 67.8323, 33.9681, 78.2497, 51.6752,  0.6811,
+         0.7426, 54.3286, 34.0557, 68.9670, 54.5274,  1.3706, 25.9670,  0.0000,
+         4.2727, 12.6443, 38.2370, 96.9113, 42.0709, 40.5306, 25.8950,  7.8629,
+        77.0639, 35.9434, 25.0781, 64.6437,  7.2608, 78.2262, 78.9764, 18.8969,
+        22.8719,  4.6827,  0.0000])
+2026-05-05 21:43:45,971 [INFO] Metrics CSV saved to: /mnt/beegfsstudents/home/3185670/ASO-Temba/outputs/tsu_i3d-attention_hpcl2/eval/evaluation_metrics.csv
+2026-05-05 21:43:45,982 [INFO] Metrics pickle saved to: /mnt/beegfsstudents/home/3185670/ASO-Temba/outputs/tsu_i3d-attention_hpcl2/eval/evaluation_metrics.pkl
+2026-05-05 21:43:46,185 [INFO] Per-video probabilities saved to: /mnt/beegfsstudents/home/3185670/ASO-Temba/outputs/tsu_i3d-attention_hpcl2/eval/eval_full_probs.pkl
+2026-05-05 21:43:52,210 [WARNING] Block analysis skipped due to: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+2026-05-05 21:43:52,217 [INFO] ============================================================
+2026-05-05 21:43:52,222 [INFO] EVALUATION SUMMARY
+2026-05-05 21:43:52,226 [INFO] ============================================================
+2026-05-05 21:43:52,231 [INFO] model_path                  : /mnt/beegfsstudents/home/3185670/ASO-Temba/outputs/tsu_i3d-attention_hpcl2/best_model.pth
+2026-05-05 21:43:52,235 [INFO] dataset                     : tsu
+2026-05-05 21:43:52,240 [INFO] mode                        : rgb
+2026-05-05 21:43:52,243 [INFO] num_classes                 : 51
+2026-05-05 21:43:52,247 [INFO] num_parameters              : 21477608
+2026-05-05 21:43:52,252 [INFO] eval_time_seconds           : 27.74
+2026-05-05 21:43:52,256 [INFO] val_loss                    : 5.833092212677002
+2026-05-05 21:43:52,261 [INFO] per_frame_mAP               : 35.917510986328125
+2026-05-05 21:43:52,265 [INFO] sampled_mAP_25              : 37.964813232421875
+2026-05-05 21:43:52,269 [INFO] block1_per_frame_mAP        : 26.921567916870117
+2026-05-05 21:43:52,274 [INFO] block2_per_frame_mAP        : 31.75115203857422
+2026-05-05 21:43:52,278 [INFO] block3_per_frame_mAP        : 32.29486846923828
+2026-05-05 21:43:52,282 [INFO] block1_sampled_mAP_25       : 30.425342559814453
+2026-05-05 21:43:52,286 [INFO] block2_sampled_mAP_25       : 34.72723388671875
+2026-05-05 21:43:52,291 [INFO] block3_sampled_mAP_25       : 35.08298873901367
+2026-05-05 21:43:52,295 [INFO] ============================================================

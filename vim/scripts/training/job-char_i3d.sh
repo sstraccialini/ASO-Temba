@@ -1,15 +1,15 @@
 #!/bin/bash
-#SBATCH --account=3199302
+#SBATCH --account=3185670
 #SBATCH --partition=stud
 #SBATCH --qos=stud
 #SBATCH --gres=gpu:1
 #SBATCH --time=24:00:00
-#SBATCH --output=slurm-tsu_i3d-%j.out
+#SBATCH --output=slurm-char_i3d-%j.out
 #SBATCH --mem=64G
 #SBATCH --cpus-per-task=8
 
 # ====== USER CONFIG ======
-MYID=3199302
+MYID=3185670
 BASE_HOME=/mnt/beegfsstudents/home/$MYID
 USER_HOME=/home/$MYID
 
