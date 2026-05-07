@@ -43,7 +43,7 @@ python MSTemba_main.py \
   --causal_consistency_loss_weight 1.0 --causal_consistency_margin 0.1 \
   --drop 0.15 --drop-path 0.15 --weight-decay 0.05 \
   --clip-grad 1.0 --warmup-epochs 10 --min-lr 5e-5 \
-  -- fuser token-attention \
+  --fuser token-attention \
   -output_dir $BASE_HOME/ASO-Temba/outputs/causal-charades_clip-token_attention
 
 echo "Evaluating best checkpoints for both models..."
@@ -98,7 +98,6 @@ python streaming_inference.py \
   --rgb_root $BASE_HOME/ASO-Temba/data/charades_features_clip \
   --stream_chunk_size 1 \
   --streaming_demo_n 50 \
-  --fuser token-attention \
   --output_dir $BASE_HOME/ASO-Temba/outputs/causal-charades_clip/eval_chunk1
 
 echo "chunk_size=25"
@@ -110,7 +109,85 @@ python streaming_inference.py \
   --rgb_root $BASE_HOME/ASO-Temba/data/charades_features_clip \
   --stream_chunk_size 25 \
   --streaming_demo_n 50 \
-  --fuser token-attention \
   --output_dir $BASE_HOME/ASO-Temba/outputs/causal-charades_clip/eval_chunk25
+
+echo "All evaluations done."
+
+python MSTemba_main.py \
+  -dataset charades -mode rgb -backbone i3d -model mstemba -train True \
+  -rgb_root $BASE_HOME/ASO-Temba/data/charades_features_i3d \
+  -num_clips 256 -skip 0 --lr 2e-4 -comp_info False \
+  -epochs 100 -unisize True -alpha_l 1 -beta_l 0.05 \
+  -batch_size 5 --num_workers 0 --causal \
+  --causal_consistency_loss_weight 1.0 --causal_consistency_margin 0.1 \
+  --drop 0.15 --drop-path 0.15 --weight-decay 0.05 \
+  --clip-grad 1.0 --warmup-epochs 10 --min-lr 5e-5 \
+  --fuser token-attention \
+  -output_dir $BASE_HOME/ASO-Temba/outputs/causal-charades_i3d-token_attention
+
+echo "Evaluating best checkpoints for both models..."
+
+echo "chunk_size=1"
+
+python streaming_inference.py \
+  --weights $BASE_HOME/ASO-Temba/outputs/causal-charades_i3d-token_attention/best_model.pth \
+  --dataset charades \
+  --backbone i3d \
+  --rgb_root $BASE_HOME/ASO-Temba/data/charades_features_i3d \
+  --stream_chunk_size 1 \
+  --streaming_demo_n 50 \
+  --fuser token-attention \
+  --output_dir $BASE_HOME/ASO-Temba/outputs/causal-charades_i3d-token_attention/eval_chunk1
+
+echo "chunk_size=25"
+
+python streaming_inference.py \
+  --weights $BASE_HOME/ASO-Temba/outputs/causal-charades_i3d-token_attention/best_model.pth \
+  --dataset charades \
+  --backbone i3d \
+  --rgb_root $BASE_HOME/ASO-Temba/data/charades_features_i3d \
+  --stream_chunk_size 25 \
+  --streaming_demo_n 50 \
+  --fuser token-attention \
+  --output_dir $BASE_HOME/ASO-Temba/outputs/causal-charades_i3d-token_attention/eval_chunk25
+
+echo "All evaluations done."
+
+echo "======================"
+
+python MSTemba_main.py \
+  -dataset charades -mode rgb -backbone i3d -model mstemba -train True \
+  -rgb_root $BASE_HOME/ASO-Temba/data/charades_features_i3d \
+  -num_clips 256 -skip 0 --lr 2e-4 -comp_info False \
+  -epochs 100 -unisize True -alpha_l 1 -beta_l 0.05 \
+  -batch_size 5 --num_workers 0 --causal \
+  --causal_consistency_loss_weight 1.0 --causal_consistency_margin 0.1 \
+  --drop 0.15 --drop-path 0.15 --weight-decay 0.05 \
+  --clip-grad 1.0 --warmup-epochs 10 --min-lr 5e-5 \
+  -output_dir $BASE_HOME/ASO-Temba/outputs/causal-charades_i3d
+
+echo "Evaluating best checkpoints for both models..."
+
+echo "chunk_size=1"
+
+python streaming_inference.py \
+  --weights $BASE_HOME/ASO-Temba/outputs/causal-charades_i3d/best_model.pth \
+  --dataset charades \
+  --backbone i3d \
+  --rgb_root $BASE_HOME/ASO-Temba/data/charades_features_i3d \
+  --stream_chunk_size 1 \
+  --streaming_demo_n 50 \
+  --output_dir $BASE_HOME/ASO-Temba/outputs/causal-charades_i3d/eval_chunk1
+
+echo "chunk_size=25"
+
+python streaming_inference.py \
+  --weights $BASE_HOME/ASO-Temba/outputs/causal-charades_i3d/best_model.pth \
+  --dataset charades \
+  --backbone i3d \
+  --rgb_root $BASE_HOME/ASO-Temba/data/charades_features_i3d \
+  --stream_chunk_size 25 \
+  --streaming_demo_n 50 \
+  --output_dir $BASE_HOME/ASO-Temba/outputs/causal-charades_i3d/eval_chunk25
 
 echo "All evaluations done."

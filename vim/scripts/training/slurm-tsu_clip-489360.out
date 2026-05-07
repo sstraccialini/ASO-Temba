@@ -1,0 +1,20 @@
+ERROR: Unable to locate a modulefile for 'slurm'
+gnode03
+/home/3199302/.conda/envs/mstemba/bin/python
+MYID=3199302
+CONDA_PREFIX=/home/3199302/.conda/envs/mstemba
+PYTHONPATH=
+LD_LIBRARY_PATH=/home/3199302/.conda/envs/mstemba/lib:/home/3199302/.conda/envs/mstemba/lib64:
+Name: mamba_ssm
+Version: 1.1.1
+Summary: Mamba state-space model
+Home-page: https://github.com/state-spaces/mamba
+Author: Tri Dao, Albert Gu
+Author-email: tri@tridao.me, agu@cs.cmu.edu
+License: 
+Location: /mnt/beegfsstudents/home/3199302/.conda/envs/mstemba/lib/python3.10/site-packages
+Editable project location: /mnt/beegfsstudents/home/3199302/MS-Temba/mamba-1p1p1
+Requires: causal-conv1d, einops, ninja, packaging, torch, transformers, triton
+Required-by: 
+======================
+[2026-05-06T02:23:27.599] error: *** JOB 489360 ON gnode03 CANCELLED AT 2026-05-06T02:23:27 DUE to SIGNAL Terminated ***
