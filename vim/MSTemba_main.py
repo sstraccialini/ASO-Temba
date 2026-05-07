@@ -74,6 +74,9 @@ parser.add_argument('--opt-betas', default=None, type=float, nargs='+', metavar=
                     help='Optimizer Betas (default: None, use opt default)')
 parser.add_argument('--clip-grad', type=float, default=1.0, metavar='NORM',
                     help='Clip gradient norm (default: 1.0)')
+parser.add_argument('--head-drop', type=float, default=0.0, help='Dropout before classification heads')
+parser.add_argument('--label-smooth-eps', type=float, default=0.0, help='Label smoothing epsilon for BCE')
+parser.add_argument('--flip-ratio', type=float, default=0.0, help='Temporal flip augmentation ratio')
 parser.add_argument('--momentum', type=float, default=0.9, metavar='M',
                     help='SGD momentum (default: 0.9)')
 parser.add_argument('--weight-decay', type=float, default=0.05,
@@ -395,17 +398,23 @@ def run_network(model, data, gpu, epoch=0, baseline=False):
     
     # Logit for final output
     probs_f = F.sigmoid(outputs_final) * mask.unsqueeze(2)
-    
+
+    # Soft-label smoothing for BCE (labels unchanged for metric computation)
+    if args.label_smooth_eps > 0:
+        labels_loss = labels * (1 - args.label_smooth_eps) + args.label_smooth_eps * (1 - labels)
+    else:
+        labels_loss = labels
+
     # Compute loss for final output
-    loss_f = F.binary_cross_entropy_with_logits(outputs_final, labels, size_average=False)
+    loss_f = F.binary_cross_entropy_with_logits(outputs_final, labels_loss, size_average=False)
     loss_f = torch.sum(loss_f) / torch.sum(mask)
-    
+
     # Compute loss for each block
     block_losses = []
     block_probs = []
     for block_output in block_outputs:
         block_prob = F.sigmoid(block_output) * mask.unsqueeze(2)
-        block_loss = F.binary_cross_entropy_with_logits(block_output, labels, size_average=False)
+        block_loss = F.binary_cross_entropy_with_logits(block_output, labels_loss, size_average=False)
         block_loss = torch.sum(block_loss) / torch.sum(mask)
         block_losses.append(block_loss)
         block_probs.append(block_prob)
@@ -640,7 +649,9 @@ if __name__ == '__main__':
             drop_path_rate=args.drop_path,
             drop_block_rate=None,
             in_feat_dim=in_feat_dim,
-            fuser=args.fuser
+            fuser=args.fuser,
+            head_drop=args.head_drop,
+            flip_img_sequences_ratio=args.flip_ratio,
         )
         model.cuda()
 
@@ -704,7 +715,9 @@ if __name__ == '__main__':
             drop_path_rate=args.drop_path,
             drop_block_rate=None,
             in_feat_dim=in_feat_dim,
-            fuser=args.fuser
+            fuser=args.fuser,
+            head_drop=args.head_drop,
+            flip_img_sequences_ratio=0.0,
         )
         model.cuda()
 

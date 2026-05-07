@@ -509,7 +509,7 @@ class VisionMamba(nn.Module):
 
 
         if_flip_img_sequences = False
-        if self.flip_img_sequences_ratio > 0 and (self.flip_img_sequences_ratio - random.random()) > 1e-5:
+        if self.training and self.flip_img_sequences_ratio > 0 and (self.flip_img_sequences_ratio - random.random()) > 1e-5:
             x = x.flip([1])
             if_flip_img_sequences = True
 
@@ -764,13 +764,15 @@ def resize(input,
     return F.interpolate(input, size, scale_factor, mode, align_corners)
 
 class MSTemba(nn.Module):
-    def __init__(self, 
+    def __init__(self,
                  in_feat_dim=768, #CLIP; 1024 for I3D
                  num_classes=157,
                  embed_dims=[256, 384, 576],
                  depths=[1, 1, 1],
                  d_state=16,
                  fuser='sum',
+                 head_drop=0.0,
+                 flip_img_sequences_ratio=0.0,
                  **kwargs):
         super().__init__()
         self.fuser = fuser
@@ -816,52 +818,52 @@ class MSTemba(nn.Module):
 
         # Hierarchical blocks
         self.blocks = nn.ModuleList()
-        
+
         # First block - single SSM
         self.blocks.append(LinearProjection(embed_dims[0], embed_dims[0]))
-        self.blocks.append(self._create_mamba_block(embed_dims[0], d_state, depths[0], **kwargs))
-        
+        self.blocks.append(self._create_mamba_block(embed_dims[0], d_state, depths[0], flip_img_sequences_ratio=flip_img_sequences_ratio, **kwargs))
+
         # Second block - two SSMs for odd/even tokens
         self.blocks.append(LinearProjection(embed_dims[0], embed_dims[1]))
         self.blocks.append(nn.ModuleList([
-            self._create_mamba_block(embed_dims[1], d_state, depths[1], **kwargs),
-            self._create_mamba_block(embed_dims[1], d_state, depths[1], **kwargs)
+            self._create_mamba_block(embed_dims[1], d_state, depths[1], flip_img_sequences_ratio=flip_img_sequences_ratio, **kwargs),
+            self._create_mamba_block(embed_dims[1], d_state, depths[1], flip_img_sequences_ratio=flip_img_sequences_ratio, **kwargs)
         ]))
-        
+
         # Third block - three SSMs
         self.blocks.append(LinearProjection(embed_dims[1], embed_dims[2]))
         self.blocks.append(nn.ModuleList([
-            self._create_mamba_block(embed_dims[2], d_state, depths[2], **kwargs),
-            self._create_mamba_block(embed_dims[2], d_state, depths[2], **kwargs),
-            self._create_mamba_block(embed_dims[2], d_state, depths[2], **kwargs)
+            self._create_mamba_block(embed_dims[2], d_state, depths[2], flip_img_sequences_ratio=flip_img_sequences_ratio, **kwargs),
+            self._create_mamba_block(embed_dims[2], d_state, depths[2], flip_img_sequences_ratio=flip_img_sequences_ratio, **kwargs),
+            self._create_mamba_block(embed_dims[2], d_state, depths[2], flip_img_sequences_ratio=flip_img_sequences_ratio, **kwargs)
         ]))
 
-
-        self.interaction_block = self._create_mamba_block(embed_dims[-1], d_state, depths[-1], **kwargs)
+        self.interaction_block = self._create_mamba_block(embed_dims[-1], d_state, depths[-1], flip_img_sequences_ratio=flip_img_sequences_ratio, **kwargs)
 
         # Final norm and classifier
         self.norm = nn.LayerNorm(embed_dims[-1])
-        self.head_dropout = nn.Dropout(0.2)
+        self.head_dropout = nn.Dropout(p=head_drop)
         self.head = nn.Linear(embed_dims[-1], num_classes) if num_classes > 0 else nn.Identity()
 
         self.apply(self._init_weights)
 
-    def _create_mamba_block(self, embed_dim, d_state, depth, **kwargs):
+    def _create_mamba_block(self, embed_dim, d_state, depth, flip_img_sequences_ratio=0.0, **kwargs):
         return VisionMamba(
             embed_dim=embed_dim,
             depth=depth,
             d_state=d_state,
-            rms_norm=True, 
-            residual_in_fp32=True, 
-            fused_add_norm=True, 
-            final_pool_type='all', 
-            if_abs_pos_embed=False, 
-            if_rope=False, 
-            if_rope_residual=False, 
-            bimamba_type="v2", 
-            if_cls_token=False, 
-            if_divide_out=True, 
+            rms_norm=True,
+            residual_in_fp32=True,
+            fused_add_norm=True,
+            final_pool_type='all',
+            if_abs_pos_embed=False,
+            if_rope=False,
+            if_rope_residual=False,
+            bimamba_type="v2",
+            if_cls_token=False,
+            if_divide_out=True,
             use_middle_cls_token=True,
+            flip_img_sequences_ratio=flip_img_sequences_ratio,
         )
 
     def _init_weights(self, m):
@@ -971,8 +973,7 @@ class MSTemba(nn.Module):
         # Process each block output
         block_predictions = []
         for i, block_out in enumerate(block_outputs):
-            # Apply block-specific head
-            block_pred = self.block_heads[i](block_out)
+            block_pred = self.block_heads[i](self.head_dropout(block_out))
             block_predictions.append(block_pred)
 
         # attention_x3: apply per-scale self-attention in native dims, project to E inside the module
