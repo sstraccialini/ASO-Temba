@@ -675,10 +675,16 @@ if __name__ == '__main__':
         logging.info(f"Loading checkpoint: {ckpt_path}")
         checkpoint = torch.load(ckpt_path, map_location='cuda:0')
 
-        if isinstance(checkpoint, dict) and 'state_dict' in checkpoint:
-            state_dict = checkpoint['state_dict']
-        elif isinstance(checkpoint, dict) and 'model' in checkpoint:
-            state_dict = checkpoint['model']
+        if isinstance(checkpoint, dict):
+            state_dict = None
+            for key in ('model', 'model_ema', 'model_ema_state_dict', 'state_dict', 'model_state_dict'):
+                if key in checkpoint and checkpoint[key] is not None:
+                    state_dict = checkpoint[key]
+                    logging.info(f"[INFO] Loading weights from checkpoint key: '{key}'")
+                    break
+            if state_dict is None:
+                # fallback to whole checkpoint dict
+                state_dict = checkpoint
         else:
             state_dict = checkpoint
 

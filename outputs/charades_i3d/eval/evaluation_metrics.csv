@@ -1,0 +1,16 @@
+metric,value
+model_path,/mnt/beegfsstudents/home/3199302/ASO-Temba/outputs/charades_i3d/best_model.pth
+dataset,charades
+mode,rgb
+num_classes,157
+num_parameters,16679244
+eval_time_seconds,82.89
+val_loss,27.102237701416016
+per_frame_mAP,24.73944091796875
+sampled_mAP_25,25.18229103088379
+block1_per_frame_mAP,21.75328254699707
+block2_per_frame_mAP,23.461244583129883
+block3_per_frame_mAP,24.199491500854492
+block1_sampled_mAP_25,22.1192626953125
+block2_sampled_mAP_25,23.87433624267578
+block3_sampled_mAP_25,24.84394645690918
