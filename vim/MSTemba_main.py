@@ -21,6 +21,7 @@ from timm.loss import LabelSmoothingCrossEntropy, SoftTargetCrossEntropy
 from timm.scheduler import create_scheduler
 from timm.optim import create_optimizer
 from timm.utils import NativeScaler, get_state_dict, ModelEma
+from timm.scheduler.cosine_lr import CosineLRScheduler
 
 import models_MSTemba
 
@@ -63,7 +64,7 @@ parser.add_argument('--model-ema-force-cpu', action='store_true', default=False,
 
 parser.add_argument('--drop', type=float, default=0.0, metavar='PCT',
                     help='Dropout rate (default: 0.)')
-parser.add_argument('--drop-path', type=float, default=0.0, metavar='PCT',
+parser.add_argument('--drop-path', type=float, default=0.1, metavar='PCT',
                     help='Drop path rate (default: 0.0)')
 # Optimizer parameters
 parser.add_argument('--opt', default='adamw', type=str, metavar='OPTIMIZER',
@@ -72,16 +73,16 @@ parser.add_argument('--opt-eps', default=1e-8, type=float, metavar='EPSILON',
                     help='Optimizer Epsilon (default: 1e-8)')
 parser.add_argument('--opt-betas', default=None, type=float, nargs='+', metavar='BETA',
                     help='Optimizer Betas (default: None, use opt default)')
-parser.add_argument('--clip-grad', type=float, default=None, metavar='NORM',
-                    help='Clip gradient norm (default: None, no clipping)')
+parser.add_argument('--clip-grad', type=float, default=1.0, metavar='NORM',
+                    help='Clip gradient norm (default: 1.0)')
 parser.add_argument('--momentum', type=float, default=0.9, metavar='M',
                     help='SGD momentum (default: 0.9)')
-parser.add_argument('--weight-decay', type=float, default=0.01,
+parser.add_argument('--weight-decay', type=float, default=0.05,
                     help='weight decay (default: 0.01)')
 # Learning rate schedule parameters
 parser.add_argument('--sched', default='cosine', type=str, metavar='SCHEDULER',
                     help='LR scheduler (default: "cosine"')
-parser.add_argument('--lr', type=float, default=5e-4, metavar='LR',
+parser.add_argument('--lr', type=float, default=4.5e-4, metavar='LR',
                     help='learning rate (default: 5e-4)')
 parser.add_argument('--lr-noise', type=float, nargs='+', default=None, metavar='pct, pct',
                     help='learning rate noise on/off epoch percentages')
@@ -96,7 +97,7 @@ parser.add_argument('--min-lr', type=float, default=1e-5, metavar='LR',
 
 parser.add_argument('--decay-epochs', type=float, default=30, metavar='N',
                     help='epoch interval to decay LR')
-parser.add_argument('--warmup-epochs', type=int, default=5, metavar='N',
+parser.add_argument('--warmup-epochs', type=int, default=10, metavar='N',
                     help='epochs to warmup LR, if scheduler supports')
 parser.add_argument('--cooldown-epochs', type=int, default=10, metavar='N',
                     help='epochs to cooldown LR at min_lr, after cyclic schedule ends')
@@ -104,6 +105,12 @@ parser.add_argument('--patience-epochs', type=int, default=10, metavar='N',
                     help='patience epochs for Plateau LR scheduler (default: 10')
 parser.add_argument('--decay-rate', '--dr', type=float, default=0.1, metavar='RATE',
                     help='LR decay rate (default: 0.1)')
+
+# Loss weight hyperparameters (tune these if val plateaus)
+parser.add_argument('--diversity-loss-weight', type=float, default=0.1,
+                    help='Weight for the diversity loss (default: 0.1). Lower if it dominates training.')
+parser.add_argument('--block-loss-weight', type=float, default=0.02,
+                    help='Weight for each block loss when combining losses (default: 0.05)')
 
 parser.add_argument('--num_workers', type=int, default=4, metavar='N',
                     help='number of data loading workers (default: 4)')
@@ -171,10 +178,15 @@ def run(models, criterion, num_epochs=50, model_ema=None):
             logging.info(f'Epoch {epoch} - Train MAP: {train_map:.2f}, Train Loss: {train_loss:.4f}')
             
             # Validation step with block metrics
-            prob_val, val_loss, val_map, sample_val_map, block_val_maps, block_sample_val_maps, val_fusion_weights = val_step(model, gpu, dataloader['val'], epoch)
+            eval_model_for_val = model_ema.ema if model_ema is not None else model
+            prob_val, val_loss, val_map, sample_val_map, block_val_maps, block_sample_val_maps, val_fusion_weights = val_step(eval_model_for_val, gpu, dataloader['val'], epoch)
             logging.info(f'Epoch {epoch} - Val MAP: {val_map:.2f}, Val Loss: {val_loss:.4f}')
             logging.info(f'Epoch {epoch} - Sampled Val MAP: {sample_val_map:.2f}')
-            sched.step(val_loss)
+            if sched is not None:
+                if args.sched == 'plateau':
+                    sched.step(val_loss)
+                else:
+                    sched.step(epoch + 1)
             
             # Log metrics to TensorBoard
             writer.add_scalar('Loss/train', train_loss, epoch)
@@ -261,7 +273,7 @@ def eval_model(model, dataloader, baseline=False):
     
     for data in dataloader:
         other = data[3]
-        outputs, loss, probs, _, block_probs, _, _ = run_network(model, data, 0, baseline)
+        outputs, loss, probs, _, block_probs, _, _, _ = run_network(model, data, 0, baseline)
         fps = outputs.size()[1] / other[1][0]
 
         # Store final output results
@@ -399,16 +411,21 @@ def run_network(model, data, gpu, epoch=0, baseline=False):
         block_losses.append(block_loss)
         block_probs.append(block_prob)
 
-    # Combine all losses including diversity loss
-    block_loss_weight = 0.3  # Weight for each block's loss
-    diversity_loss_weight = 100.0 #100.0  # Weight for diversity loss 100.0
+    # Combine all losses including diversity loss (tunable via CLI args)
+    block_loss_weight = args.block_loss_weight
+    diversity_loss_weight = args.diversity_loss_weight
     total_block_loss = sum(block_losses) * block_loss_weight
-    loss = args.alpha_l * (loss_f + total_block_loss) + diversity_loss_weight * diversity_loss
+    router_entropy_loss = 0.0
+    if fusion_weights is not None and fusion_weights.dim() == 3:
+        router_entropy_loss = -(fusion_weights * fusion_weights.clamp(min=1e-8).log()).sum(dim=-1).mean()
+        
+    loss = args.alpha_l * (loss_f + total_block_loss) + diversity_loss_weight * diversity_loss - 0.02 * router_entropy_loss
+
     
     corr = torch.sum(mask)
     tot = torch.sum(mask)
     
-    return outputs_final, loss, probs_f, corr / tot, block_probs, block_losses, fusion_weights
+    return outputs_final, loss, probs_f, corr / tot, block_probs, block_losses, fusion_weights, diversity_loss.detach()
 
 
 def train_step(model, gpu, optimizer, dataloader, epoch, model_ema=None):
@@ -423,14 +440,15 @@ def train_step(model, gpu, optimizer, dataloader, epoch, model_ema=None):
     for data in dataloader:
         optimizer.zero_grad()
         num_iter += 1
-        outputs, loss, probs, err, block_probs, block_losses, fusion_weights = run_network(model, data, gpu, epoch)
+        outputs, loss, probs, err, block_probs, block_losses, fusion_weights, diversity_loss = run_network(model, data, gpu, epoch)
         
+        tot_diversity_loss += diversity_loss.item()
         # Extract diversity loss from the model output for logging
-        with torch.no_grad():
-            inputs, mask, labels, other, hm = data
-            inputs = inputs.squeeze(3).squeeze(3).cuda(gpu)
-            _, _, diversity_loss, _ = model(inputs)
-            tot_diversity_loss += diversity_loss.item()
+        # with torch.no_grad():
+        #     inputs, mask, labels, other, hm = data
+        #     inputs = inputs.squeeze(3).squeeze(3).cuda(gpu)
+        #     _, _, diversity_loss, _ = model(inputs)
+        #     tot_diversity_loss += diversity_loss.item()
         
         # Add metrics for final output
         apm.add(probs.data.cpu().numpy()[0], data[2].numpy()[0])
@@ -443,6 +461,9 @@ def train_step(model, gpu, optimizer, dataloader, epoch, model_ema=None):
         tot_loss += loss.data
 
         loss.backward()
+        # Gradient clipping (if requested) to stabilize updates
+        if args.clip_grad is not None:
+            torch.nn.utils.clip_grad_norm_(model.parameters(), args.clip_grad)
         optimizer.step()
 
         if model_ema is not None:
@@ -493,7 +514,7 @@ def val_step(model, gpu, dataloader, epoch):
         num_iter += 1
         other = data[3]
 
-        outputs, loss, probs, err, block_probs, block_losses, fusion_weights = run_network(model, data, gpu, epoch)
+        outputs, loss, probs, err, block_probs, block_losses, fusion_weights, _ = run_network(model, data, gpu, epoch)
         
         # Process final output
         if sum(data[1].numpy()[0])>25:
@@ -624,10 +645,34 @@ if __name__ == '__main__':
         )
         model.cuda()
 
+        fuser_params = [p for n, p in model.named_parameters()
+                if 'fuser_attention_module' in n or 'router' in n]
+        other_params  = [p for n, p in model.named_parameters()
+                if 'fuser_attention_module' not in n and 'router' not in n]
+
         criterion = LabelSmoothingCrossEntropy()
- 
-        optimizer = create_optimizer(args, model)
-        lr_scheduler, _ = create_scheduler(args, optimizer)
+
+        optimizer = torch.optim.AdamW([
+            {'params': other_params,  'lr': args.lr, 'weight_decay': args.weight_decay},
+            {'params': fuser_params,  'lr': args.lr * 0.7, 'weight_decay': 0.05},
+        ], eps=args.opt_eps)
+        
+        if args.dataset == 'tsu':
+            t = 125
+
+        elif args.dataset == 'charades':
+
+            t = 30
+
+        lr_scheduler = CosineLRScheduler(
+            optimizer,
+            t_initial=t,            # half of total 200 epochs → restart at epoch 100
+            lr_min=args.min_lr,
+            warmup_lr_init=args.warmup_lr,
+            warmup_t=args.warmup_epochs,
+            cycle_limit=2,            # two full cosine cycles
+            t_in_epochs=True,
+)
 
         if args.model_ema:
             model_ema = ModelEma(
@@ -675,16 +720,10 @@ if __name__ == '__main__':
         logging.info(f"Loading checkpoint: {ckpt_path}")
         checkpoint = torch.load(ckpt_path, map_location='cuda:0')
 
-        if isinstance(checkpoint, dict):
-            state_dict = None
-            for key in ('model', 'model_ema', 'model_ema_state_dict', 'state_dict', 'model_state_dict'):
-                if key in checkpoint and checkpoint[key] is not None:
-                    state_dict = checkpoint[key]
-                    logging.info(f"[INFO] Loading weights from checkpoint key: '{key}'")
-                    break
-            if state_dict is None:
-                # fallback to whole checkpoint dict
-                state_dict = checkpoint
+        if isinstance(checkpoint, dict) and 'state_dict' in checkpoint:
+            state_dict = checkpoint['state_dict']
+        elif isinstance(checkpoint, dict) and 'model' in checkpoint:
+            state_dict = checkpoint['model']
         else:
             state_dict = checkpoint
 
