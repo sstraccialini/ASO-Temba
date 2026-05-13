@@ -51,7 +51,64 @@ python MSTemba_main.py \
   -beta_l 0.05 \
   -batch_size 5 \
   --num_workers 0 \
-  --fuser weighted \
-  -output_dir $BASE_HOME/ASO-Temba/outputs/charades_i3d-weighted
+  --fuser token-attention \
+  -output_dir $BASE_HOME/ASO-Temba/outputs/charades_i3d-token_attention
+
+python MSTemba_main.py \
+  -dataset charades \
+  -mode rgb \
+  -backbone i3d \
+  -model mstemba \
+  -train True \
+  -rgb_root $BASE_HOME/ASO-Temba/data/charades_features_i3d \
+  -num_clips 256 \
+  -skip 0 \
+  -comp_info False \
+  -epochs 50 \
+  -unisize True \
+  -alpha_l 1 \
+  -beta_l 0.05 \
+  -batch_size 5 \
+  --num_workers 0 \
+  --fuser cross-token-attention \
+  -output_dir $BASE_HOME/ASO-Temba/outputs/charades_i3d-cross_token_attention
+
+python MSTemba_main.py \
+  -dataset charades \
+  -mode rgb \
+  -backbone clip \
+  -model mstemba \
+  -train True \
+  -rgb_root $BASE_HOME/ASO-Temba/data/charades_features_clip \
+  -num_clips 256 \
+  -skip 0 \
+  -comp_info False \
+  -epochs 50 \
+  -unisize True \
+  -alpha_l 1 \
+  -beta_l 0.05 \
+  -batch_size 5 \
+  --num_workers 0 \
+  --fuser token-attention \
+  -output_dir $BASE_HOME/ASO-Temba/outputs/charades_clip-token_attention
+
+python MSTemba_main.py \
+  -dataset charades \
+  -mode rgb \
+  -backbone clip \
+  -model mstemba \
+  -train True \
+  -rgb_root $BASE_HOME/ASO-Temba/data/charades_features_clip \
+  -num_clips 256 \
+  -skip 0 \
+  -comp_info False \
+  -epochs 50 \
+  -unisize True \
+  -alpha_l 1 \
+  -beta_l 0.05 \
+  -batch_size 5 \
+  --num_workers 0 \
+  --fuser cross-token-attention \
+  -output_dir $BASE_HOME/ASO-Temba/outputs/charades_clip-cross_token_attention
 
 echo "Training done."
