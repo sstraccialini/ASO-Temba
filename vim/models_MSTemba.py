@@ -71,7 +71,7 @@ def compute_c_state_diversity_loss_simple(c_states_list):
             # Compute cosine similarity (1 - cosine_similarity for diversity)
             cosine_sim = torch.sum(c_i_norm * c_j_norm, dim=1)
             # diversity_loss = cosine_sim.mean()  # Penalize high similarity (closer to 1)
-            diversity_loss = 1 - cosine_sim.mean()  # Penalize low similarity (closer to 1)
+            diversity_loss = (cosine_sim ** 2).mean()  # Penalize any correlation (push towards orthogonal)
             
             total_loss += diversity_loss
             num_pairs += 1
@@ -622,7 +622,7 @@ class LinearProjection(nn.Module):
         return x
 
 class MultiScaleAttentionFuser(nn.Module):
-    def __init__(self, embed_dim, num_scales=3, nhead=8, dropout=0.1):
+    def __init__(self, embed_dim, num_scales=3, nhead=8, dropout=0.25):
         super().__init__()
         # Keep heads valid for any embed_dim.
         while nhead > 1 and embed_dim % nhead != 0:
@@ -652,6 +652,8 @@ class MultiScaleAttentionFuser(nn.Module):
             nn.LayerNorm(embed_dim),
             nn.Linear(embed_dim, num_scales)
         )
+        self.post_norm = nn.LayerNorm(embed_dim)
+        self.router_tau = nn.Parameter(torch.ones(1))
         # Initialize router symmetrically so it starts close to (0.33, 0.33, 0.33)
         nn.init.constant_(self.router[1].weight, 0)
         nn.init.constant_(self.router[1].bias, 0)
@@ -671,10 +673,11 @@ class MultiScaleAttentionFuser(nn.Module):
 
         # 3. Dynamic Routing
         stacked_scales = torch.stack(multi_scale_features, dim=2)  # (B, T, S, C)
-        routing_weights = torch.softmax(self.router(x), dim=-1)
+        tau = torch.clamp(self.router_tau, min=0.1)                 # floor at 0.1 prevents near-zero temp collapse
+        routing_weights = torch.softmax(self.router(x) / tau, dim=-1)
         routed = (routing_weights.unsqueeze(-1) * stacked_scales).sum(dim=2)
 
-        return x + routed, routing_weights
+        return self.post_norm(x + routed), routing_weights
 
 def resize(input,
            size=None,
@@ -716,7 +719,7 @@ class MSTemba(nn.Module):
             self.fuser_weights = nn.Parameter(torch.ones(3))
 
         elif self.fuser == 'attention':
-            self.fuser_attention_module = MultiScaleAttentionFuser(embed_dims[-1], num_scales=3, nhead=8, dropout=0.1)
+            self.fuser_attention_module = MultiScaleAttentionFuser(embed_dims[-1], num_scales=3, nhead=8, dropout=0.25)
 
         elif self.fuser == 'token-attention':
             d = embed_dims[2]
@@ -758,6 +761,7 @@ class MSTemba(nn.Module):
 
         # Final norm and classifier
         self.norm = nn.LayerNorm(embed_dims[-1])
+        self.head_dropout = nn.Dropout(0.2)
         self.head = nn.Linear(embed_dims[-1], num_classes) if num_classes > 0 else nn.Identity()
 
         self.apply(self._init_weights)
@@ -791,7 +795,12 @@ class MSTemba(nn.Module):
             
     def forward_features(self, x):
         x = x.permute(0, 2, 1)
-        x = self.proj(x)
+        x = self.proj(x)                                         # projection first
+        if self.training:
+            x = x + torch.randn_like(x) * 0.03                  # noise in projected space
+            mask = (torch.rand(x.shape[0], x.shape[1], 1,
+                            device=x.device) > 0.10).float()    # dropout reduced 0.15 → 0.10
+            x = x * mask
         concat_x = []
         block_outputs = []  # Store raw block outputs
         all_c_states = []  # Store C states from all blocks for diversity loss
@@ -921,19 +930,21 @@ class MSTemba(nn.Module):
             x = fused.reshape(B, T, C)
 
         elif self.fuser == 'attention':
-            x, fusion_weights = self.fuser_attention_module([x1, x2, x3])
-
+            x, routing_weights = self.fuser_attention_module([x1, x2, x3])
+            self._last_fusion_weights = routing_weights      # no .detach() — gradients must flow
         else:
             raise ValueError(f"Unknown fuser mode: {self.fuser}")
 
 
-        if self.fuser != 'attention':
-            x, _ = self.interaction_block(x)
+        #if self.fuser != 'attention':
+        x, _ = self.interaction_block(x)
         
+        x = self.head_dropout(x)
         x = self.head(x)
         
         # Compute C state diversity loss with gradients flowing to Mamba components
-        diversity_loss = torch.tensor(0.0, device=x.device, requires_grad=True)
+        # Initialize diversity loss as zero scalar; gradients flow from block_diversity_loss
+        diversity_loss = torch.tensor(0.0, device=x.device)
         for block_idx, block_c_states in enumerate(all_c_states):
             if len(block_c_states) >= 2:  # Only compute if we have multiple C states
                 # Filter out None values but keep gradients
