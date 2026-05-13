@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --account=3199302
+#SBATCH --account=3185670
 #SBATCH --partition=stud
 #SBATCH --qos=stud
 #SBATCH --gres=gpu:1
@@ -8,7 +8,7 @@
 #SBATCH --cpus-per-task=8
 
 # ====== USER CONFIG ======
-MYID=3199302
+MYID=3185670
 BASE_HOME=/mnt/beegfsstudents/home/$MYID
 USER_HOME=/home/$MYID
 
@@ -45,13 +45,13 @@ python MSTemba_main.py \
   -skip 0 \
   --lr 4.5e-4 \
   -comp_info False \
-  -epochs 140 \
+  -epochs 250 \
   -unisize True \
   -alpha_l 1 \
   -beta_l 0.05 \
   -batch_size 1 \
   --num_workers 1 \
-  --fuser token-attention \
-  -output_dir $BASE_HOME/ASO-Temba/outputs/tsu_i3d-token_attention
+  --fuser attn-noffn-norouter \
+  -output_dir $BASE_HOME/ASO-Temba/outputs/tsu_i3d-concat_proj_att
 
 echo "Training done."

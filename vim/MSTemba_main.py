@@ -47,7 +47,7 @@ parser.add_argument('-unisize', type=str, default='False')
 parser.add_argument('-alpha_l', type=float, default='1.0')
 parser.add_argument('-beta_l', type=float, default='1.0')
 parser.add_argument('-output_dir', type=str, default='./output', help='Directory to save output files')
-parser.add_argument('--fuser', type=str, default='sum', choices=['sum', 'weighted', 'token-attention', 'cross-token-attention', 'attention'],
+parser.add_argument('--fuser', type=str, default='sum', choices=['sum', 'weighted', 'token-attention', 'cross-token-attention', 'attention', 'concat-proj', 'attn-noffn-norouter'],
                     help='Fusion strategy for combining block outputs')
 
 # Add new arguments from main_no_teacher.py
@@ -646,9 +646,16 @@ if __name__ == '__main__':
         model.cuda()
 
         fuser_params = [p for n, p in model.named_parameters()
-                if 'fuser_attention_module' in n or 'router' in n]
+                if 'fuser_attention_module' in n
+                or 'router' in n
+                or 'fuser_concat_proj' in n
+                or 'fuser_attention_noffn_norouter' in n]
+
         other_params  = [p for n, p in model.named_parameters()
-                if 'fuser_attention_module' not in n and 'router' not in n]
+                if 'fuser_attention_module' not in n
+                and 'router' not in n
+                and 'fuser_concat_proj' not in n
+                and 'fuser_attention_noffn_norouter' not in n]
 
         criterion = LabelSmoothingCrossEntropy()
 

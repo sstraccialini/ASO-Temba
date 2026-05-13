@@ -620,6 +620,50 @@ class LinearProjection(nn.Module):
         x = self.norm(x)
         x = self.activation(x)
         return x
+    
+class MultiScaleAttentionNoFFNNoRouter(nn.Module):
+
+    def __init__(self, embed_dim, num_scales=3, nhead=8, dropout=0.25):
+
+        super().__init__()
+
+        while nhead > 1 and embed_dim % nhead != 0:
+
+            nhead -= 1
+
+        self.pre_proj = nn.Sequential(
+
+            nn.Linear(embed_dim * num_scales, embed_dim),
+
+            nn.GELU(),
+
+        )
+
+        self.norm1 = nn.LayerNorm(embed_dim)
+
+        self.self_attn = nn.MultiheadAttention(
+
+            embed_dim, nhead, dropout=dropout, batch_first=True
+
+        )
+
+        self.dropout = nn.Dropout(dropout)
+
+        self.post_norm = nn.LayerNorm(embed_dim)
+
+    def forward(self, multi_scale_features):
+
+        raw_concat = torch.cat(multi_scale_features, dim=-1)   # (B, T, 3C)
+
+        x = self.pre_proj(raw_concat)                          # (B, T, C)
+
+        x_norm = self.norm1(x)
+
+        attn_out, _ = self.self_attn(x_norm, x_norm, x_norm, need_weights=False)
+
+        x = x + self.dropout(attn_out)
+
+        return self.post_norm(x), None
 
 class MultiScaleAttentionFuser(nn.Module):
     def __init__(self, embed_dim, num_scales=3, nhead=8, dropout=0.25):
@@ -733,6 +777,22 @@ class MSTemba(nn.Module):
                 embed_dim=embed_dims[2], num_heads=4, batch_first=True
             )
             self.fuser_q = nn.Parameter(torch.randn(1, 1, embed_dims[2]) * 0.02)
+        
+        elif self.fuser == 'concat-proj':
+
+            self.fuser_concat_proj = nn.Sequential(
+
+                nn.Linear(embed_dims[-1] * 3, embed_dims[-1]),
+
+                nn.GELU(),
+
+    )
+        elif self.fuser == 'attn-noffn-norouter':
+
+            self.fuser_attention_noffn_norouter = MultiScaleAttentionNoFFNNoRouter(
+                embed_dims[-1], num_scales=3, nhead=8, dropout=0.25
+
+    )
 
         # Hierarchical blocks
         self.blocks = nn.ModuleList()
@@ -799,7 +859,7 @@ class MSTemba(nn.Module):
         if self.training:
             x = x + torch.randn_like(x) * 0.03                  # noise in projected space
             mask = (torch.rand(x.shape[0], x.shape[1], 1,
-                            device=x.device) > 0.10).float()    # dropout reduced 0.15 → 0.10
+                            device=x.device) > 0.10).float()    
             x = x * mask
         concat_x = []
         block_outputs = []  # Store raw block outputs
@@ -932,8 +992,22 @@ class MSTemba(nn.Module):
         elif self.fuser == 'attention':
             x, routing_weights = self.fuser_attention_module([x1, x2, x3])
             self._last_fusion_weights = routing_weights      # no .detach() — gradients must flow
+
+        elif self.fuser == 'concat-proj':
+
+            x = torch.cat([x1, x2, x3], dim=-1)   # (B, T, 3C)
+
+            x = self.fuser_concat_proj(x)         # (B, T, C)
+
+            self._last_fusion_weights = None
+        elif self.fuser == 'attn-noffn-norouter':
+
+            x, routing_weights = self.fuser_attention_noffn_norouter([x1, x2, x3])
+
+            self._last_fusion_weights = None
         else:
             raise ValueError(f"Unknown fuser mode: {self.fuser}")
+        
 
 
         #if self.fuser != 'attention':

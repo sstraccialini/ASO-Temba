@@ -1,0 +1,16 @@
+metric,value
+model_path,/mnt/beegfsstudents/home/3185670/ASO-Temba/outputs/tsu_i3d-attention_hpcl/best_model.pth
+dataset,tsu
+mode,rgb
+num_classes,51
+num_parameters,21477607
+eval_time_seconds,27.94
+val_loss,7.403262615203857
+per_frame_mAP,35.2831916809082
+sampled_mAP_25,38.3516960144043
+block1_per_frame_mAP,27.573652267456055
+block2_per_frame_mAP,31.215179443359375
+block3_per_frame_mAP,31.926589965820312
+block1_sampled_mAP_25,30.813922882080078
+block2_sampled_mAP_25,36.2110710144043
+block3_sampled_mAP_25,34.932132720947266
