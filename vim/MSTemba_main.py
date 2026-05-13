@@ -46,7 +46,13 @@ parser.add_argument('-unisize', type=str, default='False')
 parser.add_argument('-alpha_l', type=float, default='1.0')
 parser.add_argument('-beta_l', type=float, default='1.0')
 parser.add_argument('-output_dir', type=str, default='./output', help='Directory to save output files')
-parser.add_argument('--fuser', type=str, default='sum', choices=['sum', 'weighted', 'token-attention', 'cross-token-attention', 'attention', 'attention_x3'],
+parser.add_argument('--fuser', type=str, default='sum',
+                    choices=[
+                        'sum', 'weighted', 'token-attention', 'cross-token-attention',
+                        'attention', 'attention_x3',
+                        'attention_x3_no_attn', 'attention_x3_no_ffn',
+                        'attention_x3_bn', 'attention_x3_shared_common',
+                    ],
                     help='Fusion strategy for combining block outputs')
 
 # Add new arguments from main_no_teacher.py

@@ -753,6 +753,148 @@ class MultiScaleAttentionX3Fuser(nn.Module):
         return self.post_norm(fused), None
 
 
+# ---------------------------------------------------------------------------
+# AttentionX3 ablation variants
+#
+#   attention_x3_no_attn   – removes per-scale MHA; keeps FFN/projection/post_norm
+#   attention_x3_no_ffn    – removes per-scale FFN; keeps MHA/projection/post_norm
+#   attention_x3_bn        – replaces LayerNorm with temporal BatchNorm1d
+#   attention_x3_shared_common – projects all scales to E=576 first, then applies
+#                                one shared attention/FFN block (tests whether
+#                                scale-specific parameters matter)
+# ---------------------------------------------------------------------------
+
+class SequenceBatchNorm1d(nn.Module):
+    """BatchNorm1d wrapper that handles (B, T, C) inputs."""
+    def __init__(self, dim):
+        super().__init__()
+        self.bn = nn.BatchNorm1d(dim)
+
+    def forward(self, x):
+        # x: (B, T, C) → transpose to (B, C, T) for BN → back
+        return self.bn(x.transpose(1, 2)).transpose(1, 2)
+
+
+class MultiScaleAttentionX3NoAttnFuser(nn.Module):
+    """AttentionX3 without per-scale self-attention.  Keeps FFN, projection, post_norm."""
+    def __init__(self, dims, embed_dim, dropout=0.25):
+        super().__init__()
+        self.norms2 = nn.ModuleList([nn.LayerNorm(d) for d in dims])
+        self.ffns = nn.ModuleList([
+            nn.Sequential(
+                nn.Linear(d, d * 4), nn.GELU(), nn.Dropout(dropout),
+                nn.Linear(d * 4, d), nn.Dropout(dropout),
+            )
+            for d in dims
+        ])
+        self.projs = nn.ModuleList([nn.Linear(d, embed_dim) for d in dims])
+        self.post_norm = nn.LayerNorm(embed_dim)
+
+    def forward(self, scale_features):
+        projected = []
+        for i, x in enumerate(scale_features):
+            x = x + self.ffns[i](self.norms2[i](x))
+            projected.append(self.projs[i](x))
+        return self.post_norm(sum(projected)), None
+
+
+class MultiScaleAttentionX3NoFFNFuser(nn.Module):
+    """AttentionX3 without per-scale FFN.  Keeps MHA, projection, post_norm."""
+    def __init__(self, dims, embed_dim, dropout=0.25):
+        super().__init__()
+        self.norms1 = nn.ModuleList([nn.LayerNorm(d) for d in dims])
+        self.attns = nn.ModuleList()
+        for d in dims:
+            nh = max(1, d // 64)
+            while nh > 1 and d % nh != 0:
+                nh -= 1
+            self.attns.append(nn.MultiheadAttention(d, nh, dropout=dropout, batch_first=True))
+        self.projs = nn.ModuleList([nn.Linear(d, embed_dim) for d in dims])
+        self.post_norm = nn.LayerNorm(embed_dim)
+
+    def forward(self, scale_features):
+        projected = []
+        for i, x in enumerate(scale_features):
+            x_norm = self.norms1[i](x)
+            attn_out, _ = self.attns[i](x_norm, x_norm, x_norm, need_weights=False)
+            x = x + attn_out
+            projected.append(self.projs[i](x))
+        return self.post_norm(sum(projected)), None
+
+
+class MultiScaleAttentionX3BNFuser(nn.Module):
+    """AttentionX3 with temporal BatchNorm1d instead of LayerNorm."""
+    def __init__(self, dims, embed_dim, dropout=0.25):
+        super().__init__()
+        self.norms1 = nn.ModuleList([SequenceBatchNorm1d(d) for d in dims])
+        self.norms2 = nn.ModuleList([SequenceBatchNorm1d(d) for d in dims])
+        self.attns = nn.ModuleList()
+        for d in dims:
+            nh = max(1, d // 64)
+            while nh > 1 and d % nh != 0:
+                nh -= 1
+            self.attns.append(nn.MultiheadAttention(d, nh, dropout=dropout, batch_first=True))
+        self.ffns = nn.ModuleList([
+            nn.Sequential(
+                nn.Linear(d, d * 4), nn.GELU(), nn.Dropout(dropout),
+                nn.Linear(d * 4, d), nn.Dropout(dropout),
+            )
+            for d in dims
+        ])
+        self.projs = nn.ModuleList([nn.Linear(d, embed_dim) for d in dims])
+        self.post_norm = SequenceBatchNorm1d(embed_dim)
+
+    def forward(self, scale_features):
+        projected = []
+        for i, x in enumerate(scale_features):
+            x_norm = self.norms1[i](x)
+            attn_out, _ = self.attns[i](x_norm, x_norm, x_norm, need_weights=False)
+            x = x + attn_out
+            x = x + self.ffns[i](self.norms2[i](x))
+            projected.append(self.projs[i](x))
+        return self.post_norm(sum(projected)), None
+
+
+class MultiScaleAttentionX3SharedCommonFuser(nn.Module):
+    """
+    Projects every scale to E=embed_dim first, then applies ONE shared
+    attention/FFN block to each projected branch.  Tests whether scale-specific
+    attention parameters matter vs a common parameter set.
+
+    Note: this is NOT equivalent to native-dim AttentionX3 because the
+    per-scale input projections (pre_projs) are still scale-specific.
+    """
+    def __init__(self, dims, embed_dim, dropout=0.25):
+        super().__init__()
+        # per-scale input projections to common space
+        self.pre_projs = nn.ModuleList([nn.Linear(d, embed_dim) for d in dims])
+
+        # shared attention block operating in E
+        nh = max(1, embed_dim // 64)
+        while nh > 1 and embed_dim % nh != 0:
+            nh -= 1
+        self.shared_norm1 = nn.LayerNorm(embed_dim)
+        self.shared_attn = nn.MultiheadAttention(embed_dim, nh, dropout=dropout, batch_first=True)
+        self.shared_norm2 = nn.LayerNorm(embed_dim)
+        self.shared_ffn = nn.Sequential(
+            nn.Linear(embed_dim, embed_dim * 4), nn.GELU(), nn.Dropout(dropout),
+            nn.Linear(embed_dim * 4, embed_dim), nn.Dropout(dropout),
+        )
+        self.post_norm = nn.LayerNorm(embed_dim)
+
+    def forward(self, scale_features):
+        projected = []
+        for i, x_i in enumerate(scale_features):
+            x = self.pre_projs[i](x_i)                              # (B, T, E)
+            x_norm = self.shared_norm1(x)
+            attn_out, _ = self.shared_attn(x_norm, x_norm, x_norm, need_weights=False)
+            x = x + attn_out
+            x = x + self.shared_ffn(self.shared_norm2(x))
+            projected.append(x)
+        fused = projected[0] + projected[1] + projected[2]
+        return self.post_norm(fused), None
+
+
 def resize(input,
            size=None,
            scale_factor=None,
@@ -801,6 +943,26 @@ class MSTemba(nn.Module):
                 dims=embed_dims,          # [256, 384, 576]
                 embed_dim=embed_dims[-1], # 576
                 dropout=0.25,
+            )
+
+        elif self.fuser == 'attention_x3_no_attn':
+            self.fuser_attx3_module = MultiScaleAttentionX3NoAttnFuser(
+                dims=embed_dims, embed_dim=embed_dims[-1], dropout=0.25,
+            )
+
+        elif self.fuser == 'attention_x3_no_ffn':
+            self.fuser_attx3_module = MultiScaleAttentionX3NoFFNFuser(
+                dims=embed_dims, embed_dim=embed_dims[-1], dropout=0.25,
+            )
+
+        elif self.fuser == 'attention_x3_bn':
+            self.fuser_attx3_module = MultiScaleAttentionX3BNFuser(
+                dims=embed_dims, embed_dim=embed_dims[-1], dropout=0.25,
+            )
+
+        elif self.fuser == 'attention_x3_shared_common':
+            self.fuser_attx3_module = MultiScaleAttentionX3SharedCommonFuser(
+                dims=embed_dims, embed_dim=embed_dims[-1], dropout=0.25,
             )
 
         elif self.fuser == 'token-attention':
@@ -976,8 +1138,14 @@ class MSTemba(nn.Module):
             block_pred = self.block_heads[i](self.head_dropout(block_out))
             block_predictions.append(block_pred)
 
-        # attention_x3: apply per-scale self-attention in native dims, project to E inside the module
-        if self.fuser == 'attention_x3':
+        # attention_x3 family: per-scale attention in native dims, project to E inside module
+        if self.fuser in {
+            'attention_x3',
+            'attention_x3_no_attn',
+            'attention_x3_no_ffn',
+            'attention_x3_bn',
+            'attention_x3_shared_common',
+        }:
             # x1_raw, x2_raw, x3_raw are in native dims [256, 384, 576]
             # (before scale_proj which would project everything to 576)
             x1_raw, x2_raw, x3_raw = concat_x  # [256], [384], [576]
