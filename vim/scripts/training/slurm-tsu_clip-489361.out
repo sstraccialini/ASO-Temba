@@ -1,8 +1,0 @@
-ERROR: Unable to locate a modulefile for 'slurm'
-gnode03
-/home/3199302/.conda/envs/mstemba/bin/python
-MYID=3199302
-CONDA_PREFIX=/home/3199302/.conda/envs/mstemba
-PYTHONPATH=
-LD_LIBRARY_PATH=/home/3199302/.conda/envs/mstemba/lib:/home/3199302/.conda/envs/mstemba/lib64:
-[2026-05-06T02:25:11.792] error: *** JOB 489361 ON gnode03 CANCELLED AT 2026-05-06T02:25:11 DUE to SIGNAL Terminated ***

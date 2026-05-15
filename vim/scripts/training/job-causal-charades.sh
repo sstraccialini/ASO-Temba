@@ -31,23 +31,24 @@ echo "MYID=$MYID"
 #   --causal_consistency_loss_weight adds L_caus_cons regularisation
 #   --causal_consistency_margin      hinge margin for L_caus_cons
 
+
 python MSTemba_main.py \
-  -dataset tsu \
+  -dataset charades \
   -mode rgb \
-  -backbone i3d \
+  -backbone i3d/clip \
   -model mstemba \
   -train True \
-  -rgb_root $BASE_HOME/ASO-Temba/data/tsu_features_i3d \
-  -num_clips 2500 \
+  -rgb_root $BASE_HOME/ASO-Temba/data/charades_features_i3d or $BASE_HOME/ASO-Temba/data/charades_features_clip \
+  -num_clips 256 \
   -skip 0 \
   --lr 2e-4 \
   -comp_info False \
-  -epochs 140 \
+  -epochs 100 \
   -unisize True \
   -alpha_l 1 \
   -beta_l 0.05 \
-  -batch_size 1 \
-  --num_workers 1 \
+  -batch_size 5 \
+  --num_workers 0 \
   --causal \
   --causal_consistency_loss_weight 1.0 \
   --causal_consistency_margin 0.1 \
@@ -57,28 +58,6 @@ python MSTemba_main.py \
   --clip-grad 1.0 \
   --warmup-epochs 10 \
   --min-lr 1e-5 \
-  -output_dir $BASE_HOME/ASO-Temba/outputs/causal-tsu_i3d-v2
+  --fuser sum/token-attention \
+  -output_dir $BASE_HOME/ASO-Temba/outputs/causal-charades
 
-echo "Causal training done."
-echo "====================="
-echo "Evaluation..."
-
-echo "chunk_size=1"
-
-python streaming_inference.py \
-  --weights $BASE_HOME/ASO-Temba/outputs/causal-tsu_i3d/best_model.pth \
-  --dataset tsu \
-  --backbone i3d \
-  --rgb_root $BASE_HOME/ASO-Temba/data/tsu_features_i3d \
-  --stream_chunk_size 1 \
-  --streaming_demo_n 50
-
-echo "chunk_size=25"
-
-python streaming_inference.py \
-  --weights $BASE_HOME/ASO-Temba/outputs/causal-tsu_i3d/best_model.pth \
-  --dataset tsu \
-  --backbone i3d \
-  --rgb_root $BASE_HOME/ASO-Temba/data/tsu_features_i3d \
-  --stream_chunk_size 25 \
-  --streaming_demo_n 50

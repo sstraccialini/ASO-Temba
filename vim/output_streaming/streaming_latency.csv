@@ -1,2 +1,0 @@
-vid_id,num_frames,video_duration_s,video_fps,chunk_size,num_chunks,total_stream_time_s,per_frame_latency_ms,mean_chunk_time_ms,max_chunk_time_ms,first_chunk_latency_ms,real_time_factor
-P11T15C01,2500,22760.0,0.11,25,100,7.946336030960083,3.1785344123840336,79.46336030960083,213.35816383361816,213.35816383361816,0.00034913602947979274

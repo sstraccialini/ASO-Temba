@@ -34,26 +34,26 @@ echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
 python -m pip show mamba-ssm || true
 echo "======================"
 
+echo "Evaluation..."
 
-python MSTemba_main.py \
-  -dataset charades \
-  -mode rgb \
-  -backbone clip \
-  -model mstemba \
-  -train True \
-  -rgb_root $BASE_HOME/ASO-Temba/data/charades_features_clip \
-  -num_clips 256 \
-  -skip 0 \
-  -comp_info False \
-  -epochs 50 \
-  -unisize True \
-  -alpha_l 1 \
-  -beta_l 0.05 \
-  -batch_size 5 \
-  --num_workers 0 \
-  --fuser weighted \
-  -output_dir $BASE_HOME/ASO-Temba/outputs/charades_clip-weighted
+echo "chunk_size=1"
 
+python streaming_inference.py \
+  --weights $BASE_HOME/ASO-Temba/outputs/causal-charades/best_model.pth \
+  --dataset charades \
+  --backbone clip \
+  --rgb_root $BASE_HOME/ASO-Temba/data/charades_features_i3d or $BASE_HOME/ASO-Temba/data/charades_features_clip \
+  --stream_chunk_size 1 \
+  --streaming_demo_n 50
 
+echo "chunk_size=25"
 
-echo "Training done."
+python streaming_inference.py \
+  --weights $BASE_HOME/ASO-Temba/outputs/causal-charades/best_model.pth \
+  --dataset charades \
+  --backbone clip \
+  --rgb_root $BASE_HOME/ASO-Temba/data/charades_features_i3d or $BASE_HOME/ASO-Temba/data/charades_features_clip \
+  --stream_chunk_size 25 \
+  --streaming_demo_n 50
+
+echo "Evaluation done."

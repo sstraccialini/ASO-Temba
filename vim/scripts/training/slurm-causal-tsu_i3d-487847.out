@@ -1,86 +1,0 @@
-ERROR: Unable to locate a modulefile for 'slurm'
-gnode04
-/home/3199302/.conda/envs/mstemba/bin/python
-MYID=3199302
-=====================
-Evaluation...
-chunk_size=1
-split!!!! testing
-  0%|          | 0/536 [00:00<?, ?it/s]  3%|▎         | 14/536 [00:00<00:03, 138.41it/s]  5%|▌         | 28/536 [00:00<00:06, 78.69it/s]   7%|▋         | 40/536 [00:00<00:05, 85.71it/s]  9%|▉         | 50/536 [00:00<00:05, 87.45it/s] 11%|█▏        | 61/536 [00:00<00:05, 91.31it/s] 14%|█▍        | 76/536 [00:00<00:04, 102.60it/s] 16%|█▌        | 87/536 [00:00<00:05, 88.37it/s]  18%|█▊        | 97/536 [00:01<00:05, 84.30it/s] 20%|█▉        | 107/536 [00:01<00:05, 84.73it/s] 23%|██▎       | 123/536 [00:01<00:04, 100.89it/s] 25%|██▌       | 135/536 [00:01<00:04, 91.87it/s]  27%|██▋       | 145/536 [00:01<00:05, 75.90it/s] 29%|██▊       | 154/536 [00:01<00:05, 74.67it/s] 31%|███       | 165/536 [00:01<00:04, 75.42it/s] 32%|███▏      | 173/536 [00:02<00:05, 65.43it/s] 34%|███▎      | 180/536 [00:02<00:06, 54.30it/s] 36%|███▌      | 193/536 [00:02<00:04, 69.65it/s] 38%|███▊      | 201/536 [00:02<00:04, 68.70it/s] 40%|████      | 215/536 [00:02<00:03, 85.36it/s] 43%|████▎     | 232/536 [00:02<00:03, 99.12it/s] 46%|████▋     | 249/536 [00:02<00:02, 107.42it/s] 50%|█████     | 270/536 [00:03<00:02, 129.30it/s] 53%|█████▎    | 284/536 [00:03<00:02, 106.83it/s] 57%|█████▋    | 305/536 [00:03<00:01, 128.99it/s] 60%|█████▉    | 320/536 [00:03<00:02, 91.10it/s]  62%|██████▎   | 335/536 [00:03<00:02, 88.78it/s] 65%|██████▌   | 349/536 [00:03<00:01, 94.24it/s] 67%|██████▋   | 360/536 [00:04<00:01, 92.30it/s] 69%|██████▉   | 371/536 [00:04<00:01, 87.81it/s] 71%|███████▏  | 382/536 [00:04<00:01, 85.88it/s] 73%|███████▎  | 391/536 [00:04<00:01, 75.23it/s] 75%|███████▌  | 404/536 [00:04<00:01, 83.51it/s] 81%|████████  | 434/536 [00:04<00:00, 127.72it/s] 84%|████████▎ | 448/536 [00:04<00:00, 126.25it/s] 88%|████████▊ | 470/536 [00:04<00:00, 145.26it/s] 91%|█████████ | 486/536 [00:05<00:00, 96.10it/s]  93%|█████████▎| 499/536 [00:05<00:00, 84.76it/s] 95%|█████████▌| 510/536 [00:05<00:00, 82.51it/s] 97%|█████████▋| 520/536 [00:05<00:00, 78.37it/s] 99%|█████████▉| 532/536 [00:05<00:00, 85.50it/s]100%|██████████| 536/536 [00:05<00:00, 91.10it/s]
-Loaded model: 15,700,900 trainable parameters
-Evaluation mode: offline causal for all videos + streaming demo on 50 videos (chunk_size=1)
-/mnt/beegfsstudents/home/3199302/ASO-Temba/vim/apmeter.py:88: UserWarning: TypedStorage is deprecated. It will be removed in the future and UntypedStorage will be the only storage class. This should only matter to you if you are using storages directly.  To access UntypedStorage directly, use tensor.untyped_storage() instead of tensor.storage()
-  if self.scores.storage().size() < self.scores.numel() + output.numel():
-
-============================================================
-EVALUATION SUMMARY
-============================================================
-  model_path                                  : /mnt/beegfsstudents/home/3199302/ASO-Temba/outputs/causal-tsu_i3d/best_model.pth
-  dataset                                     : tsu
-  mode                                        : rgb
-  num_classes                                 : 51
-  num_parameters                              : 15700900
-  eval_time_seconds                           : 367.0600
-  val_loss                                    : 2.7980
-  per_frame_mAP                               : 30.4198
-  sampled_mAP_25                              : 33.9433
-  block1_per_frame_mAP                        : 24.0745
-  block2_per_frame_mAP                        : 26.5592
-  block3_per_frame_mAP                        : 28.6083
-  block1_sampled_mAP_25                       : 25.8422
-  block2_sampled_mAP_25                       : 28.7488
-  block3_sampled_mAP_25                       : 32.2720
-  offline_avg_inference_time_s                : 0.0366
-  offline_avg_per_frame_latency_ms            : 0.0146
-  offline_avg_real_time_factor                : 0.0000
-  stream_chunk_size                           : 1
-  stream_num_demo_videos                      : 50
-  stream_avg_per_frame_latency_ms             : 2.7605
-  stream_avg_first_chunk_latency_ms           : 4.2675
-  stream_avg_real_time_factor                 : 0.0009
-============================================================
-Metrics CSV  : ./output_streaming/evaluation_metrics.csv
-Metrics PKL  : ./output_streaming/evaluation_metrics.pkl
-Probs PKL    : ./output_streaming/eval_full_probs.pkl
-Offline lat. : ./output_streaming/offline_latency.csv
-Stream lat.  : ./output_streaming/streaming_latency.csv
-chunk_size=25
-split!!!! testing
-  0%|          | 0/536 [00:00<?, ?it/s]  3%|▎         | 15/536 [00:00<00:03, 134.67it/s]  5%|▌         | 29/536 [00:00<00:06, 81.39it/s]   7%|▋         | 40/536 [00:00<00:05, 84.51it/s]  9%|▉         | 50/536 [00:00<00:05, 85.97it/s] 11%|█▏        | 61/536 [00:00<00:05, 89.48it/s] 14%|█▍        | 76/536 [00:00<00:04, 100.50it/s] 16%|█▌        | 87/536 [00:00<00:05, 86.95it/s]  18%|█▊        | 97/536 [00:01<00:05, 82.53it/s] 20%|█▉        | 107/536 [00:01<00:05, 82.97it/s] 23%|██▎       | 123/536 [00:01<00:04, 98.89it/s] 25%|██▌       | 135/536 [00:01<00:04, 90.23it/s] 27%|██▋       | 145/536 [00:01<00:05, 74.62it/s] 29%|██▊       | 154/536 [00:01<00:05, 73.44it/s] 31%|███       | 165/536 [00:01<00:04, 74.35it/s] 32%|███▏      | 173/536 [00:02<00:05, 64.63it/s] 34%|███▎      | 180/536 [00:02<00:06, 53.29it/s] 36%|███▌      | 193/536 [00:02<00:05, 68.26it/s] 38%|███▊      | 201/536 [00:02<00:04, 67.26it/s] 40%|████      | 216/536 [00:02<00:03, 82.65it/s] 43%|████▎     | 232/536 [00:02<00:03, 98.95it/s] 46%|████▋     | 249/536 [00:02<00:02, 107.21it/s] 50%|█████     | 270/536 [00:03<00:02, 128.10it/s] 53%|█████▎    | 284/536 [00:03<00:02, 105.53it/s] 57%|█████▋    | 305/536 [00:03<00:01, 127.53it/s] 60%|█████▉    | 320/536 [00:03<00:02, 89.58it/s]  62%|██████▏   | 332/536 [00:03<00:02, 95.23it/s] 64%|██████▍   | 344/536 [00:03<00:02, 94.50it/s] 66%|██████▌   | 355/536 [00:04<00:01, 92.77it/s] 68%|██████▊   | 366/536 [00:04<00:02, 82.84it/s] 70%|███████   | 376/536 [00:04<00:02, 77.36it/s] 72%|███████▏  | 385/536 [00:04<00:02, 71.19it/s] 75%|███████▍  | 401/536 [00:04<00:01, 85.12it/s] 79%|███████▉  | 426/536 [00:04<00:00, 117.61it/s] 82%|████████▏ | 439/536 [00:04<00:00, 117.34it/s] 88%|████████▊ | 469/536 [00:04<00:00, 151.67it/s] 90%|█████████ | 485/536 [00:05<00:00, 100.36it/s] 93%|█████████▎| 498/536 [00:05<00:00, 84.97it/s]  95%|█████████▍| 509/536 [00:05<00:00, 79.45it/s] 97%|█████████▋| 520/536 [00:05<00:00, 77.56it/s] 99%|█████████▉| 532/536 [00:05<00:00, 84.19it/s]100%|██████████| 536/536 [00:05<00:00, 89.74it/s]
-Loaded model: 15,700,900 trainable parameters
-Evaluation mode: offline causal for all videos + streaming demo on 50 videos (chunk_size=25)
-/mnt/beegfsstudents/home/3199302/ASO-Temba/vim/apmeter.py:88: UserWarning: TypedStorage is deprecated. It will be removed in the future and UntypedStorage will be the only storage class. This should only matter to you if you are using storages directly.  To access UntypedStorage directly, use tensor.untyped_storage() instead of tensor.storage()
-  if self.scores.storage().size() < self.scores.numel() + output.numel():
-
-============================================================
-EVALUATION SUMMARY
-============================================================
-  model_path                                  : /mnt/beegfsstudents/home/3199302/ASO-Temba/outputs/causal-tsu_i3d/best_model.pth
-  dataset                                     : tsu
-  mode                                        : rgb
-  num_classes                                 : 51
-  num_parameters                              : 15700900
-  eval_time_seconds                           : 359.1900
-  val_loss                                    : 2.7980
-  per_frame_mAP                               : 30.4198
-  sampled_mAP_25                              : 33.9433
-  block1_per_frame_mAP                        : 24.0745
-  block2_per_frame_mAP                        : 26.5592
-  block3_per_frame_mAP                        : 28.6083
-  block1_sampled_mAP_25                       : 25.8422
-  block2_sampled_mAP_25                       : 28.7488
-  block3_sampled_mAP_25                       : 32.2720
-  offline_avg_inference_time_s                : 0.0367
-  offline_avg_per_frame_latency_ms            : 0.0147
-  offline_avg_real_time_factor                : 0.0000
-  stream_chunk_size                           : 25
-  stream_num_demo_videos                      : 50
-  stream_avg_per_frame_latency_ms             : 2.7040
-  stream_avg_first_chunk_latency_ms           : 72.1881
-  stream_avg_real_time_factor                 : 0.0008
-============================================================
-Metrics CSV  : ./output_streaming/evaluation_metrics.csv
-Metrics PKL  : ./output_streaming/evaluation_metrics.pkl
-Probs PKL    : ./output_streaming/eval_full_probs.pkl
-Offline lat. : ./output_streaming/offline_latency.csv
-Stream lat.  : ./output_streaming/streaming_latency.csv
