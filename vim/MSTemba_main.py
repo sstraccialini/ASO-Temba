@@ -405,9 +405,10 @@ def run_network(model, data, gpu, epoch=0, baseline=False):
     
     # apply label smoothing for attentionX3 variants (if enabled)
     if args.fuser == 'attention_x3':
-        # Soft-label smoothing for BCE (labels unchanged for metric computation)
         if args.label_smooth_eps > 0:
-            labels = labels * (1 - args.label_smooth_eps) + args.label_smooth_eps * (1 - labels)
+            labels_loss = labels * (1 - args.label_smooth_eps) + args.label_smooth_eps * (1 - labels)
+        else:
+            labels_loss = labels
 
     # Compute loss for final output
     loss_f = F.binary_cross_entropy_with_logits(outputs_final, labels_loss, size_average=False)
@@ -418,7 +419,7 @@ def run_network(model, data, gpu, epoch=0, baseline=False):
     block_probs = []
     for block_output in block_outputs:
         block_prob = F.sigmoid(block_output) * mask.unsqueeze(2)
-        block_loss = F.binary_cross_entropy_with_logits(block_output, labels, size_average=False)
+        block_loss = F.binary_cross_entropy_with_logits(block_output, labels_loss, size_average=False)
         block_loss = torch.sum(block_loss) / torch.sum(mask)
         block_losses.append(block_loss)
         block_probs.append(block_prob)
@@ -669,7 +670,6 @@ if __name__ == '__main__':
                 or 'fuser_routing_only' in n
                 or 'fuser_attention_router_noffn' in n
                 or 'fuser_attx3_module' in n
-                or 'router' in n
                 ]
 
         other_params  = [p for n, p in model.named_parameters()

@@ -11,14 +11,14 @@
 
 This repository extends **MS-Temba** (*Multi-Scale Temporal Mamba for Understanding Long Untrimmed Videos*, Sinha et al., 2025 — [arXiv:2501.06138](https://arxiv.org/abs/2501.06138), [original code](https://github.com/thearkaprava/MS-Temba)) for Temporal Action Detection (TAD) on densely labeled, long, untrimmed videos (Charades, Toyota Smarthome Untrimmed).
 
-Our project investigates **two main modifications** of the original architecture. They are unified within this repository so they can be evaluated individually or together:
+Our project investigates **two main modifications** of the original architecture. They are in two completely separate branches within this repository so they can be evaluated individually:
 
-| Modification | Idea |
-|---|---|
-| **Fuser redesign** | Replace the original SSM-based Multi-Scale Mamba Fuser with alternative aggregation modules: learned **weighted** sums and several **attention-based** fusers (`weighted`, `token-attention`, `cross-token-attention`, `attention`) to study how multi-scale temporal features are best combined. |
-| **Causal / online streaming** | Convert MS-Temba into a **causal**, **streaming** detector: forward-only SSMs (no bidirectional branch), a causal multi-scale fuser, and a frame-/chunk-level streaming inference pipeline suitable for **online** TAD. The original C-state diversity loss is replaced by a causal consistency loss (`L_caus_cons`). |
+| Modification | branch | Idea |
+|---|---|---|
+| **Fuser redesign** | main | Replace the original SSM-based Multi-Scale Mamba Fuser with alternative aggregation modules: learned **weighted** sums and several **attention-based** fusers (`weighted`, `token-attention`, `cross-token-attention`, `attention`) to study how multi-scale temporal features are best combined. |
+| **Causal / online streaming** | feature/causal-streaming-mstemba | Convert MS-Temba into a **causal**, **streaming** detector: forward-only SSMs (no bidirectional branch), a causal multi-scale fuser, and a frame-/chunk-level streaming inference pipeline suitable for **online** TAD. The original C-state diversity loss is replaced by a causal consistency loss (`L_caus_cons`). |
 
-Additional context (motivation, qualitative results, benchmarks) is available in the project **poster** (`GameOfTones-Poster.pdf`) and **presentation** (`GameOfTones-presentation.pptx`) in this repository.
+Additional context (motivation, qualitative results, benchmarks) is available in the project **poster** (`poster.pdf`) and **presentation** (`presentation.pptx`) in this repository.
 
 ## Repository structure
 

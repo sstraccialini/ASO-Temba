@@ -1153,10 +1153,6 @@ class MSTemba(nn.Module):
             x, routing_weights = self.fuser_attention_no_router([x1, x2, x3])
             self._last_fusion_weights = None
 
-        elif self.fuser == 'routing-only':
-            x, routing_weights = self.fuser_routing_only([x1, x2, x3])
-            self._last_fusion_weights = routing_weights
-
         elif self.fuser == 'attn-router-noffn':
             x, routing_weights = self.fuser_attention_router_noffn([x1, x2, x3])
             self._last_fusion_weights = routing_weights
