@@ -622,6 +622,7 @@ class LinearProjection(nn.Module):
         return x
 
 class MultiScaleAttentionFuser(nn.Module):
+    '''Multi-Scale Attention Fuser with Dynamic Routing'''
     def __init__(self, embed_dim, num_scales=3, nhead=8, dropout=0.25):
         super().__init__()
         # Keep heads valid for any embed_dim.
@@ -654,24 +655,23 @@ class MultiScaleAttentionFuser(nn.Module):
         )
         self.post_norm = nn.LayerNorm(embed_dim)
         self.router_tau = nn.Parameter(torch.ones(1))
-        # Initialize router symmetrically so it starts close to (0.33, 0.33, 0.33)
         nn.init.constant_(self.router[1].weight, 0)
         nn.init.constant_(self.router[1].bias, 0)
 
     def forward(self, multi_scale_features):
-        # multi_scale_features: list of tensors [(B, T, C), ...]
+        # multi_scale_features: list of tensors 
         raw_concat = torch.cat(multi_scale_features, dim=-1)
         x = self.pre_proj(raw_concat)
 
-        # 1. Attention with PRE-NORM
+        # Attention with PRE-NORM
         x_norm = self.norm1(x)
         attn_out, _ = self.self_attn(x_norm, x_norm, x_norm, need_weights=False)
         x = x + self.dropout(attn_out)
 
-        # 2. FFN with PRE-NORM
+        # FFN with PRE-NORM
         x = x + self.ffn(self.norm2(x))
 
-        # 3. Dynamic Routing
+        # Dynamic Routing
         stacked_scales = torch.stack(multi_scale_features, dim=2)  # (B, T, S, C)
         tau = torch.clamp(self.router_tau, min=0.1)                 # floor at 0.1 prevents near-zero temp collapse
         routing_weights = torch.softmax(self.router(x) / tau, dim=-1)
@@ -680,66 +680,51 @@ class MultiScaleAttentionFuser(nn.Module):
         return self.post_norm(x + routed), routing_weights
 
 class MultiScaleAttentionNoFFNNoRouter(nn.Module):
-
+    '''Ablation: Self-Attention Only, No FFN, No Routing'''
     def __init__(self, embed_dim, num_scales=3, nhead=8, dropout=0.25):
-
         super().__init__()
 
         while nhead > 1 and embed_dim % nhead != 0:
-
             nhead -= 1
 
         self.pre_proj = nn.Sequential(
-
             nn.Linear(embed_dim * num_scales, embed_dim),
-
-            nn.GELU(),
-
-        )
+            nn.GELU())
 
         self.norm1 = nn.LayerNorm(embed_dim)
-
         self.self_attn = nn.MultiheadAttention(
-
-            embed_dim, nhead, dropout=dropout, batch_first=True
-
-        )
+            embed_dim, nhead, dropout=dropout, batch_first=True)
 
         self.dropout = nn.Dropout(dropout)
-
         self.post_norm = nn.LayerNorm(embed_dim)
 
     def forward(self, multi_scale_features):
 
         raw_concat = torch.cat(multi_scale_features, dim=-1)   # (B, T, 3C)
-
         x = self.pre_proj(raw_concat)                          # (B, T, C)
-
         x_norm = self.norm1(x)
-
         attn_out, _ = self.self_attn(x_norm, x_norm, x_norm, need_weights=False)
-
         x = x + self.dropout(attn_out)
 
         return self.post_norm(x), None
 
 class MultiScaleAttentionNoRouter(nn.Module):
+    '''Ablation: Self-Attention + FFN, No Routing'''
     def __init__(self, embed_dim, num_scales=3, nhead=8, dropout=0.25):
         super().__init__()
+
         while nhead > 1 and embed_dim % nhead != 0:
             nhead -= 1
 
         self.pre_proj = nn.Sequential(
             nn.Linear(embed_dim * num_scales, embed_dim),
-            nn.GELU(),
-        )
+            nn.GELU())
 
         self.norm1 = nn.LayerNorm(embed_dim)
         self.self_attn = nn.MultiheadAttention(
-            embed_dim, nhead, dropout=dropout, batch_first=True
-        )
+            embed_dim, nhead, dropout=dropout, batch_first=True)
+        
         self.dropout = nn.Dropout(dropout)
-
         self.norm2 = nn.LayerNorm(embed_dim)
         self.ffn = nn.Sequential(
             nn.Linear(embed_dim, embed_dim * 4),
@@ -754,16 +739,15 @@ class MultiScaleAttentionNoRouter(nn.Module):
     def forward(self, multi_scale_features):
         raw_concat = torch.cat(multi_scale_features, dim=-1)   # (B, T, 3C)
         x = self.pre_proj(raw_concat)                          # (B, T, C)
-
         x_norm = self.norm1(x)
         attn_out, _ = self.self_attn(x_norm, x_norm, x_norm, need_weights=False)
         x = x + self.dropout(attn_out)
-
         x = x + self.ffn(self.norm2(x))
 
         return self.post_norm(x), None
     
 class MultiScaleAttentionRoutingNoFFN(nn.Module):
+    '''Ablation: Self-Attention + Routing, No FFN'''
     def __init__(self, embed_dim, num_scales=3, nhead=8, dropout=0.25):
         super().__init__()
         while nhead > 1 and embed_dim % nhead != 0:
@@ -771,19 +755,16 @@ class MultiScaleAttentionRoutingNoFFN(nn.Module):
 
         self.pre_proj = nn.Sequential(
             nn.Linear(embed_dim * num_scales, embed_dim),
-            nn.GELU(),
-        )
+            nn.GELU())
 
         self.norm1 = nn.LayerNorm(embed_dim)
         self.self_attn = nn.MultiheadAttention(
-            embed_dim, nhead, dropout=dropout, batch_first=True
-        )
+            embed_dim, nhead, dropout=dropout, batch_first=True)
+        
         self.dropout = nn.Dropout(dropout)
-
         self.router = nn.Sequential(
             nn.LayerNorm(embed_dim),
-            nn.Linear(embed_dim, num_scales)
-        )
+            nn.Linear(embed_dim, num_scales))
 
         self.post_norm = nn.LayerNorm(embed_dim)
         self.router_tau = nn.Parameter(torch.ones(1))
@@ -805,22 +786,10 @@ class MultiScaleAttentionRoutingNoFFN(nn.Module):
         routed = (routing_weights.unsqueeze(-1) * stacked_scales).sum(dim=2)
 
         return self.post_norm(x + routed), routing_weights
-class MultiScaleAttentionX3Fuser(nn.Module):
-    """
-    Applica self-attention INDIPENDENTEMENTE su ogni scala nella sua dimensione
-    nativa, poi proietta ciascuna a dim comune E e somma.
-    Preserva la specializzazione temporale di ogni scala prima del mixing.
 
-    D1=256 → nhead=4  (256/64)
-    D2=384 → nhead=6  (384/64)
-    D3=576 → nhead=9  (576/64)
-    E=576 (dim comune, corrisponde a embed_dims[-1])
-    """
+class MultiScaleAttentionX3Fuser(nn.Module):
+    """AttentionX3: Per-Scale Self-Attention + FFN + Projection, then sum & post-norm."""
     def __init__(self, dims, embed_dim, dropout=0.25):
-        """
-        dims: list [D1, D2, D3] = [256, 384, 576]
-        embed_dim: E = 576
-        """
         super().__init__()
         self.dims = dims
         self.embed_dim = embed_dim
@@ -832,9 +801,8 @@ class MultiScaleAttentionX3Fuser(nn.Module):
         self.projs = nn.ModuleList()
 
         nheads = [max(1, d // 64) for d in dims]
-        # aggiusta nhead se non divide esattamente
         nheads = [nh - (d % nh != 0) * (nh % (d // nh)) for nh, d in zip(nheads, dims)]
-        # fallback sicuro: scendi finché non divide
+
         safe_nheads = []
         for d, nh in zip(dims, nheads):
             while nh > 1 and d % nh != 0:
@@ -859,10 +827,6 @@ class MultiScaleAttentionX3Fuser(nn.Module):
         self.post_norm = nn.LayerNorm(embed_dim)
 
     def forward(self, scale_features):
-        """
-        scale_features: list of 3 tensors [(B,T,D1), (B,T,D2), (B,T,D3)]
-        returns: (fused, None)  — None per compatibilità con routing_weights
-        """
         projected = []
         for i, x in enumerate(scale_features):
             # Pre-norm self-attention
@@ -871,23 +835,11 @@ class MultiScaleAttentionX3Fuser(nn.Module):
             x = x + attn_out
             # Pre-norm FFN
             x = x + self.ffns[i](self.norms2[i](x))
-            # Proietta a E
             projected.append(self.projs[i](x))
 
         fused = sum(projected)  # (B, T, E)
         return self.post_norm(fused), None
 
-
-# ---------------------------------------------------------------------------
-# AttentionX3 ablation variants
-#
-#   attention_x3_no_attn   – removes per-scale MHA; keeps FFN/projection/post_norm
-#   attention_x3_no_ffn    – removes per-scale FFN; keeps MHA/projection/post_norm
-#   attention_x3_bn        – replaces LayerNorm with temporal BatchNorm1d
-#   attention_x3_shared_common – projects all scales to E=576 first, then applies
-#                                one shared attention/FFN block (tests whether
-#                                scale-specific parameters matter)
-# ---------------------------------------------------------------------------
 
 class SequenceBatchNorm1d(nn.Module):
     """BatchNorm1d wrapper that handles (B, T, C) inputs."""
@@ -899,52 +851,6 @@ class SequenceBatchNorm1d(nn.Module):
         # x: (B, T, C) → transpose to (B, C, T) for BN → back
         return self.bn(x.transpose(1, 2)).transpose(1, 2)
 
-
-class MultiScaleAttentionX3NoAttnFuser(nn.Module):
-    """AttentionX3 without per-scale self-attention.  Keeps FFN, projection, post_norm."""
-    def __init__(self, dims, embed_dim, dropout=0.25):
-        super().__init__()
-        self.norms2 = nn.ModuleList([nn.LayerNorm(d) for d in dims])
-        self.ffns = nn.ModuleList([
-            nn.Sequential(
-                nn.Linear(d, d * 4), nn.GELU(), nn.Dropout(dropout),
-                nn.Linear(d * 4, d), nn.Dropout(dropout),
-            )
-            for d in dims
-        ])
-        self.projs = nn.ModuleList([nn.Linear(d, embed_dim) for d in dims])
-        self.post_norm = nn.LayerNorm(embed_dim)
-
-    def forward(self, scale_features):
-        projected = []
-        for i, x in enumerate(scale_features):
-            x = x + self.ffns[i](self.norms2[i](x))
-            projected.append(self.projs[i](x))
-        return self.post_norm(sum(projected)), None
-
-
-class MultiScaleAttentionX3NoFFNFuser(nn.Module):
-    """AttentionX3 without per-scale FFN.  Keeps MHA, projection, post_norm."""
-    def __init__(self, dims, embed_dim, dropout=0.25):
-        super().__init__()
-        self.norms1 = nn.ModuleList([nn.LayerNorm(d) for d in dims])
-        self.attns = nn.ModuleList()
-        for d in dims:
-            nh = max(1, d // 64)
-            while nh > 1 and d % nh != 0:
-                nh -= 1
-            self.attns.append(nn.MultiheadAttention(d, nh, dropout=dropout, batch_first=True))
-        self.projs = nn.ModuleList([nn.Linear(d, embed_dim) for d in dims])
-        self.post_norm = nn.LayerNorm(embed_dim)
-
-    def forward(self, scale_features):
-        projected = []
-        for i, x in enumerate(scale_features):
-            x_norm = self.norms1[i](x)
-            attn_out, _ = self.attns[i](x_norm, x_norm, x_norm, need_weights=False)
-            x = x + attn_out
-            projected.append(self.projs[i](x))
-        return self.post_norm(sum(projected)), None
 
 
 def resize(input,
@@ -997,16 +903,6 @@ class MSTemba(nn.Module):
                 dropout=0.25,
             )
 
-        elif self.fuser == 'attention_x3_no_attn':
-            self.fuser_attx3_module = MultiScaleAttentionX3NoAttnFuser(
-                dims=embed_dims, embed_dim=embed_dims[-1], dropout=0.25,
-            )
-
-        elif self.fuser == 'attention_x3_no_ffn':
-            self.fuser_attx3_module = MultiScaleAttentionX3NoFFNFuser(
-                dims=embed_dims, embed_dim=embed_dims[-1], dropout=0.25,
-            )
-
         elif self.fuser == 'token-attention':
             d = embed_dims[2]
             self.fuser_q = nn.Parameter(torch.randn(1, 1, d) * 0.02)  # learned query
@@ -1016,39 +912,25 @@ class MSTemba(nn.Module):
 
         elif self.fuser == 'cross-token-attention':
             self.fuser_attention = nn.MultiheadAttention(
-                embed_dim=embed_dims[2], num_heads=4, batch_first=True
-            )
+                embed_dim=embed_dims[2], num_heads=4, batch_first=True)
             self.fuser_q = nn.Parameter(torch.randn(1, 1, embed_dims[2]) * 0.02)
         
         elif self.fuser == 'concat-proj':
-
             self.fuser_concat_proj = nn.Sequential(
-
                 nn.Linear(embed_dims[-1] * 3, embed_dims[-1]),
-
-                nn.GELU(),
-
-    )
+                nn.GELU())
+            
         elif self.fuser == 'attn-noffn-norouter':
-
             self.fuser_attention_noffn_norouter = MultiScaleAttentionNoFFNNoRouter(
-                embed_dims[-1], num_scales=3, nhead=8, dropout=0.25
-
-    )
+                embed_dims[-1], num_scales=3, nhead=8, dropout=0.25)
+            
         elif self.fuser == 'attn-ffn-norouter':
-
             self.fuser_attention_no_router = MultiScaleAttentionNoRouter(
-
-                embed_dims[-1], num_scales=3, nhead=8, dropout=0.25
-
-    )
+                embed_dims[-1], num_scales=3, nhead=8, dropout=0.25)
+            
         elif self.fuser == 'attn-router-noffn':
-
             self.fuser_attention_router_noffn = MultiScaleAttentionRoutingNoFFN(
-
-                embed_dims[-1], num_scales=3, nhead=8, dropout=0.25
-
-    )
+                embed_dims[-1], num_scales=3, nhead=8, dropout=0.25)
 
         # Hierarchical blocks
         self.blocks = nn.ModuleList()
@@ -1076,7 +958,7 @@ class MSTemba(nn.Module):
 
         # Final norm and classifier
         self.norm = nn.LayerNorm(embed_dims[-1])
-        if self.fuser in ['attention_x3', 'attention_x3_no_attn', 'attention_x3_no_ffn']:
+        if self.fuser =='attention_x3':
             head_drop = head_drop
         else:
             head_drop = 0.2
@@ -1212,7 +1094,7 @@ class MSTemba(nn.Module):
         block_predictions = []
         for i, block_out in enumerate(block_outputs):
             # Apply block-specific head
-            if self.fuser in ['attention_x3', 'attention_x3_no_attn', 'attention_x3_no_ffn']:
+            if self.fuser == 'attention_x3':
                 block_pred = self.block_heads[i](self.head_dropout(block_out))
             else:
                 block_pred = self.block_heads[i](block_out)
@@ -1264,33 +1146,23 @@ class MSTemba(nn.Module):
 
             self._last_fusion_weights = None
         elif self.fuser == 'attn-noffn-norouter':
-
             x, routing_weights = self.fuser_attention_noffn_norouter([x1, x2, x3])
-
             self._last_fusion_weights = None
+
         elif self.fuser == 'attn-ffn-norouter':
-
             x, routing_weights = self.fuser_attention_no_router([x1, x2, x3])
-
             self._last_fusion_weights = None
+
         elif self.fuser == 'routing-only':
-
             x, routing_weights = self.fuser_routing_only([x1, x2, x3])
-
             self._last_fusion_weights = routing_weights
+
         elif self.fuser == 'attn-router-noffn':
-
             x, routing_weights = self.fuser_attention_router_noffn([x1, x2, x3])
-
             self._last_fusion_weights = routing_weights
-        # attention_x3 family: per-scale attention in native dims, project to E inside module
-        elif self.fuser in {
-            'attention_x3',
-            'attention_x3_no_attn',
-            'attention_x3_no_ffn',
-            'attention_x3_bn',
-            'attention_x3_shared_common',
-        }:
+
+        # attention_x3: per-scale attention in native dims, project to E inside module
+        elif self.fuser == 'attention_x3':
             # x1_raw, x2_raw, x3_raw are in native dims [256, 384, 576]
             # (before scale_proj which would project everything to 576)
             x1_raw, x2_raw, x3_raw = concat_x  # [256], [384], [576]

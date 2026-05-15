@@ -48,8 +48,8 @@ parser.add_argument('-alpha_l', type=float, default='1.0')
 parser.add_argument('-beta_l', type=float, default='1.0')
 parser.add_argument('-output_dir', type=str, default='./output', help='Directory to save output files')
 parser.add_argument('--fuser', type=str, default='sum', choices=['sum', 'weighted', 'concat-proj', 'token-attention', 'cross-token-attention',
-                                                                    'attention', 'attn-noffn-norouter', 'attn-ffn-norouter', 'routing-only', 'attn-router-noffn',
-                                                                    , 'attention_x3', 'attention_x3_no_attn', 'attention_x3_no_ffn',
+                                                                    'attention', 'attn-noffn-norouter', 'attn-ffn-norouter', 'attn-router-noffn',
+                                                                     'attention_x3',
                                                                 ],
                     help='Fusion strategy for combining block outputs')
 
@@ -404,7 +404,7 @@ def run_network(model, data, gpu, epoch=0, baseline=False):
     probs_f = F.sigmoid(outputs_final) * mask.unsqueeze(2)
     
     # apply label smoothing for attentionX3 variants (if enabled)
-    if args.fuser in ['attentionX3', 'attention_x3_no_attn', 'attention_x3_no_ffn']:
+    if args.fuser == 'attention_x3':
         # Soft-label smoothing for BCE (labels unchanged for metric computation)
         if args.label_smooth_eps > 0:
             labels = labels * (1 - args.label_smooth_eps) + args.label_smooth_eps * (1 - labels)
@@ -660,42 +660,27 @@ if __name__ == '__main__':
         model.cuda()
 
         fuser_params = [p for n, p in model.named_parameters()
-
                 if 'fuser_attention_module' in n
 
                 or 'router' in n
-
                 or 'fuser_concat_proj' in n
-
                 or 'fuser_attention_noffn_norouter' in n
-
                 or 'fuser_attention_no_router' in n
-
                 or 'fuser_routing_only' in n
-
                 or 'fuser_attention_router_noffn' in n
-                
                 or 'fuser_attx3_module' in n
-
                 or 'router' in n
                 ]
 
         other_params  = [p for n, p in model.named_parameters()
-
                 if 'fuser_attention_module' not in n
 
                 and 'router' not in n
-
                 and 'fuser_concat_proj' not in n
-
                 and 'fuser_attention_noffn_norouter' not in n
-
                 and 'fuser_attention_no_router' not in n
-
                 and 'fuser_routing_only' not in n
-
                 and 'fuser_attention_router_noffn' not in n
-                
                 and 'fuser_attx3_module' not in n]
 
         criterion = LabelSmoothingCrossEntropy()
@@ -714,7 +699,7 @@ if __name__ == '__main__':
 
         lr_scheduler = CosineLRScheduler(
             optimizer,
-            t_initial=t,            # half of total 200 epochs → restart at epoch 100
+            t_initial=t,            
             lr_min=args.min_lr,
             warmup_lr_init=args.warmup_lr,
             warmup_t=args.warmup_epochs,
@@ -738,14 +723,10 @@ if __name__ == '__main__':
         run([(model, 0, dataloaders, optimizer, lr_scheduler, args.comp_info)], criterion, num_epochs=int(args.epochs), model_ema=model_ema)
 
     elif args.train == 'False':
-        # =========================
-        #     EVALUATION ONLY
-        # =========================
         logging.info("=" * 60)
         logging.info("Running EVALUATION on the 'testing' subset")
         logging.info("=" * 60)
 
-        # 1) Build the same model architecture
         if args.backbone == 'i3d':
             in_feat_dim = 1024
         elif args.backbone == 'clip':
@@ -765,7 +746,6 @@ if __name__ == '__main__':
         )
         model.cuda()
 
-        # 2) Load the trained weights
         ckpt_path = args.weights
         logging.info(f"Loading checkpoint: {ckpt_path}")
         checkpoint = torch.load(ckpt_path, map_location='cuda:0')
@@ -777,7 +757,6 @@ if __name__ == '__main__':
         else:
             state_dict = checkpoint
 
-        # Strip any 'module.' prefix if it was saved with DataParallel
         state_dict = {k.replace('module.', '', 1) if k.startswith('module.') else k: v
                       for k, v in state_dict.items()}
 
@@ -788,7 +767,6 @@ if __name__ == '__main__':
         n_parameters = sum(p.numel() for p in model.parameters() if p.requires_grad)
         logging.info(f"Number of trainable parameters: {n_parameters}")
 
-        # 3) Run evaluation on the 'testing' subset
         model.eval()
         eval_start = time.time()
         with torch.no_grad():
@@ -798,10 +776,6 @@ if __name__ == '__main__':
                 )
         eval_time = time.time() - eval_start
 
-        # 4) Collect every metric reported in the MS-Temba paper
-        # Paper reports per-frame mAP (full) and the standard sampled-mAP
-        # protocol (25 evenly sampled frames) on Charades / TSU. We also
-        # store per-block mAPs for the 3 multi-scale Temba blocks.
         metrics = {
             "model_path":              ckpt_path,
             "dataset":                 args.dataset,
@@ -811,11 +785,9 @@ if __name__ == '__main__':
             "eval_time_seconds":       round(eval_time, 2),
             "val_loss":                float(val_loss),
 
-            # ---- Headline numbers reported in the paper ----
             "per_frame_mAP":           float(val_map),            # main metric
             "sampled_mAP_25":          float(sample_val_map),     # 25-frame sampled mAP
 
-            # ---- Per-block mAPs (multi-scale ablation) ----
             "block1_per_frame_mAP":    float(block_val_maps[0]),
             "block2_per_frame_mAP":    float(block_val_maps[1]),
             "block3_per_frame_mAP":    float(block_val_maps[2]),
@@ -824,7 +796,6 @@ if __name__ == '__main__':
             "block3_sampled_mAP_25":   float(block_sample_val_maps[2]),
         }
 
-        # 5) Save metrics to CSV (easy diff with future runs)
         os.makedirs(args.output_dir, exist_ok=True)
         csv_path = os.path.join(args.output_dir, "evaluation_metrics.csv")
         with open(csv_path, "w", newline="") as f:
@@ -834,8 +805,6 @@ if __name__ == '__main__':
                 writer.writerow([k, v])
         logging.info(f"Metrics CSV saved to: {csv_path}")
 
-        # 6) Also save metrics as a pickle (preserves types) and the
-        #    full per-video probability tensors for later analysis.
         pkl_path = os.path.join(args.output_dir, "evaluation_metrics.pkl")
         pickle.dump(metrics, open(pkl_path, "wb"), pickle.HIGHEST_PROTOCOL)
         logging.info(f"Metrics pickle saved to: {pkl_path}")
@@ -844,14 +813,12 @@ if __name__ == '__main__':
         pickle.dump(full_probs, open(probs_path, "wb"), pickle.HIGHEST_PROTOCOL)
         logging.info(f"Per-video probabilities saved to: {probs_path}")
 
-        # 7) Optional: run the qualitative block-analysis already in the file
         try:
             analyze_block_predictions(model, dataloaders['val'],
                                       args.output_dir, epoch="eval")
         except Exception as e:
             logging.warning(f"Block analysis skipped due to: {e}")
 
-        # 8) Pretty print final summary
         logging.info("=" * 60)
         logging.info("EVALUATION SUMMARY")
         logging.info("=" * 60)
