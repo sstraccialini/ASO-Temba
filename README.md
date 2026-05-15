@@ -134,7 +134,7 @@ python vim/MSTemba_main.py \
   -output_dir ./outputs/tsu_i3d-weighted
 ```
 
-Supported values: `sum` (original), `weighted`, `token-attention`, `cross-token-attention`, `attention`.
+Supported values: `sum` (original), `weighted`, `token-attention`, `cross-token-attention`, `attention`, `attentionX3`.
 
 **Causal / streaming.** Add the causal flags:
 
