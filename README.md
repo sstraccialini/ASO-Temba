@@ -48,9 +48,7 @@ ASO-Temba/
 ├── mamba-1p1p1/                  Vendored mamba_ssm package (modified Mamba w/ C-state access)
 ├── det/, seg/                    Detectron2 / segmentation code inherited from
 │                                 Vision-Mamba (not used by the TAD pipeline)
-├── extract_frames.sh,            Helpers to extract frames before CLIP feature extraction
-│   serial_extract.sh
-├── check_features.ipynb          Sanity-check notebook for I3D / CLIP features
+├── misc                          Various helpers and notebooks to download data, check annotations, extract frames, etc.
 └── README.md
 ```
 
@@ -67,7 +65,7 @@ conda install -y --override-channels \
   -c "nvidia/label/cuda-11.8.0" \
   cuda-toolkit
 
-nvcc --version            # expect: release 11.8, V11.8.89
+nvcc --version
 
 # 2. Base Python deps
 pip install --upgrade pip setuptools wheel ninja packaging
@@ -162,19 +160,6 @@ python vim/streaming_inference.py \
 
 A live qualitative demo of the streaming model is provided in `visualization/demo_online.py`.
 
-## Acknowledgements & citation
-
-This project builds directly on **MS-Temba**:
-
-```bibtex
-@article{sinha2025ms,
-  title={MS-Temba: Multi-Scale Temporal Mamba for Efficient Temporal Action Detection},
-  author={Sinha, Arkaprava and Raj, Monish Soundar and Wang, Pu and Helmy, Ahmed and Das, Srijan},
-  journal={arXiv preprint arXiv:2501.06138},
-  year={2025}
-}
-```
-
-which itself stands on Mamba ([paper](https://arxiv.org/abs/2312.00752), [code](https://github.com/state-spaces/mamba)), Vision-Mamba ([code](https://github.com/hustvl/Vim)) and MS-TCT ([code](https://github.com/dairui01/MS-TCT)). Thanks to the authors of all four works.
-
+---
+---
 > Project carried out for the **Computer Vision and Image Processing** course, M.Sc. in Artificial Intelligence - Bocconi University, 2025/26.
