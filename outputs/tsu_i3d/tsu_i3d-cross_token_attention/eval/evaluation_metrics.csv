@@ -1,0 +1,16 @@
+metric,value
+model_path,/mnt/beegfsstudents/home/3199302/ASO-Temba/outputs/tsu_i3d-cross_token_attention/best_model.pth
+dataset,tsu
+mode,rgb
+num_classes,51
+num_parameters,17818852
+eval_time_seconds,32.6
+val_loss,6.125063419342041
+per_frame_mAP,34.204864501953125
+sampled_mAP_25,39.738243103027344
+block1_per_frame_mAP,27.0419921875
+block2_per_frame_mAP,31.86058807373047
+block3_per_frame_mAP,33.658485412597656
+block1_sampled_mAP_25,31.5111083984375
+block2_sampled_mAP_25,35.8935546875
+block3_sampled_mAP_25,36.54160690307617
