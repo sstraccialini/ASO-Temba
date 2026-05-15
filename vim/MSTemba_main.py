@@ -47,7 +47,10 @@ parser.add_argument('-unisize', type=str, default='False')
 parser.add_argument('-alpha_l', type=float, default='1.0')
 parser.add_argument('-beta_l', type=float, default='1.0')
 parser.add_argument('-output_dir', type=str, default='./output', help='Directory to save output files')
-parser.add_argument('--fuser', type=str, default='sum', choices=['sum', 'weighted', 'token-attention', 'cross-token-attention', 'attention'],
+parser.add_argument('--fuser', type=str, default='sum', choices=['sum', 'weighted', 'concat-proj', 'token-attention', 'cross-token-attention',
+                                                                    'attention', 'attn-noffn-norouter', 'attn-ffn-norouter', 'routing-only', 'attn-router-noffn',
+                                                                    , 'attention_x3', 'attention_x3_no_attn', 'attention_x3_no_ffn',
+                                                                ],
                     help='Fusion strategy for combining block outputs')
 
 # Add new arguments from main_no_teacher.py
@@ -75,6 +78,9 @@ parser.add_argument('--opt-betas', default=None, type=float, nargs='+', metavar=
                     help='Optimizer Betas (default: None, use opt default)')
 parser.add_argument('--clip-grad', type=float, default=1.0, metavar='NORM',
                     help='Clip gradient norm (default: 1.0)')
+parser.add_argument('--head-drop', type=float, default=0.0, help='Dropout before classification heads')
+parser.add_argument('--label-smooth-eps', type=float, default=0.0, help='Label smoothing epsilon for BCE')
+parser.add_argument('--flip-ratio', type=float, default=0.0, help='Temporal flip augmentation ratio')
 parser.add_argument('--momentum', type=float, default=0.9, metavar='M',
                     help='SGD momentum (default: 0.9)')
 parser.add_argument('--weight-decay', type=float, default=0.05,
@@ -397,10 +403,16 @@ def run_network(model, data, gpu, epoch=0, baseline=False):
     # Logit for final output
     probs_f = F.sigmoid(outputs_final) * mask.unsqueeze(2)
     
+    # apply label smoothing for attentionX3 variants (if enabled)
+    if args.fuser in ['attentionX3', 'attention_x3_no_attn', 'attention_x3_no_ffn']:
+        # Soft-label smoothing for BCE (labels unchanged for metric computation)
+        if args.label_smooth_eps > 0:
+            labels = labels * (1 - args.label_smooth_eps) + args.label_smooth_eps * (1 - labels)
+
     # Compute loss for final output
-    loss_f = F.binary_cross_entropy_with_logits(outputs_final, labels, size_average=False)
+    loss_f = F.binary_cross_entropy_with_logits(outputs_final, labels_loss, size_average=False)
     loss_f = torch.sum(loss_f) / torch.sum(mask)
-    
+
     # Compute loss for each block
     block_losses = []
     block_probs = []
@@ -641,14 +653,50 @@ if __name__ == '__main__':
             drop_path_rate=args.drop_path,
             drop_block_rate=None,
             in_feat_dim=in_feat_dim,
-            fuser=args.fuser
+            fuser=args.fuser,
+            head_drop=args.head_drop,
+            flip_img_sequences_ratio=args.flip_ratio,
         )
         model.cuda()
 
         fuser_params = [p for n, p in model.named_parameters()
-                if 'fuser_attention_module' in n or 'router' in n]
+
+                if 'fuser_attention_module' in n
+
+                or 'router' in n
+
+                or 'fuser_concat_proj' in n
+
+                or 'fuser_attention_noffn_norouter' in n
+
+                or 'fuser_attention_no_router' in n
+
+                or 'fuser_routing_only' in n
+
+                or 'fuser_attention_router_noffn' in n
+                
+                or 'fuser_attx3_module' in n
+
+                or 'router' in n
+                ]
+
         other_params  = [p for n, p in model.named_parameters()
-                if 'fuser_attention_module' not in n and 'router' not in n]
+
+                if 'fuser_attention_module' not in n
+
+                and 'router' not in n
+
+                and 'fuser_concat_proj' not in n
+
+                and 'fuser_attention_noffn_norouter' not in n
+
+                and 'fuser_attention_no_router' not in n
+
+                and 'fuser_routing_only' not in n
+
+                and 'fuser_attention_router_noffn' not in n
+                
+                and 'fuser_attx3_module' not in n]
 
         criterion = LabelSmoothingCrossEntropy()
 
@@ -657,11 +705,11 @@ if __name__ == '__main__':
             {'params': fuser_params,  'lr': args.lr * 0.7, 'weight_decay': 0.05},
         ], eps=args.opt_eps)
         
+
+        # cosine scheduler parameters
         if args.dataset == 'tsu':
             t = 125
-
         elif args.dataset == 'charades':
-
             t = 30
 
         lr_scheduler = CosineLRScheduler(
@@ -711,7 +759,9 @@ if __name__ == '__main__':
             drop_path_rate=args.drop_path,
             drop_block_rate=None,
             in_feat_dim=in_feat_dim,
-            fuser=args.fuser
+            fuser=args.fuser,
+            head_drop=args.head_drop,
+            flip_img_sequences_ratio=0.0,
         )
         model.cuda()
 
