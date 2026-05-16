@@ -404,11 +404,10 @@ def run_network(model, data, gpu, epoch=0, baseline=False):
     probs_f = F.sigmoid(outputs_final) * mask.unsqueeze(2)
     
     # apply label smoothing for attentionX3 variants (if enabled)
-    if args.fuser == 'attention_x3':
-        if args.label_smooth_eps > 0:
-            labels_loss = labels * (1 - args.label_smooth_eps) + args.label_smooth_eps * (1 - labels)
-        else:
-            labels_loss = labels
+    if args.fuser == 'attention_x3' and args.label_smooth_eps > 0:
+        labels_loss = labels * (1 - args.label_smooth_eps) + args.label_smooth_eps * (1 - labels)
+    else:
+        labels_loss = labels
 
     # Compute loss for final output
     loss_f = F.binary_cross_entropy_with_logits(outputs_final, labels_loss, size_average=False)
